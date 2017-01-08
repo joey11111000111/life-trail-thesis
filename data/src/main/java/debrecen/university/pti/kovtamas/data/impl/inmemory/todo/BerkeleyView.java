@@ -1,4 +1,4 @@
-package debrecen.university.pti.kovtamas.data.impl.todo;
+package debrecen.university.pti.kovtamas.data.impl.inmemory.todo;
 
 import com.sleepycat.bind.serial.ClassCatalog;
 import com.sleepycat.bind.serial.SerialSerialBinding;
@@ -54,7 +54,7 @@ class BerkeleyView {
                     .deadline(entity.getDeadline())
                     .category(entity.getCategory())
                     .subTaskIds(entity.getSubTaskIds())
-                    .repeating(entity.isRepeating())
+                    .repeating(entity.getRepeating())
                     .build();
         }
     }

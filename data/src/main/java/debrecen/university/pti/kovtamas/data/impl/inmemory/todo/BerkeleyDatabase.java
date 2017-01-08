@@ -1,8 +1,8 @@
-package debrecen.university.pti.kovtamas.data.impl.todo;
+package debrecen.university.pti.kovtamas.data.impl.inmemory.todo;
 
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
-import debrecen.university.pti.kovtamas.data.impl.BerkeleyConfig;
+import debrecen.university.pti.kovtamas.data.impl.inmemory.BerkeleyConfig;
 import java.io.IOException;
 import lombok.Getter;
 

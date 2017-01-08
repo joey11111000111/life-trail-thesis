@@ -1,4 +1,4 @@
-package debrecen.university.pti.kovtamas.data.impl;
+package debrecen.university.pti.kovtamas.data.impl.inmemory;
 
 import com.sleepycat.bind.serial.StoredClassCatalog;
 import com.sleepycat.je.Database;

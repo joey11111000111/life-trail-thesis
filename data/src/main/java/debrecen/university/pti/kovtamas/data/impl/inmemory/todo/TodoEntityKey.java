@@ -1,4 +1,4 @@
-package debrecen.university.pti.kovtamas.data.impl.todo;
+package debrecen.university.pti.kovtamas.data.impl.inmemory.todo;
 
 import java.io.Serializable;
 import lombok.AllArgsConstructor;

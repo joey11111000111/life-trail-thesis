@@ -13,6 +13,6 @@ public class TodoEntity {
     private String deadline;
     private String category;
     private String subTaskIds;
-    private boolean repeating;
+    private Boolean repeating;
 
 }

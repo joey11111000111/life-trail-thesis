@@ -1,10 +1,11 @@
-package debrecen.university.pti.kovtamas.data.impl.todo;
+package debrecen.university.pti.kovtamas.data.impl.inmemory.todo;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.TodoEntity;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.DatabaseIntegrityException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TodoRepository;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -93,6 +94,16 @@ public class InMemoryTodoRepository implements TodoRepository {
         String missingIdsString = sb.toString();
 
         return "The ids " + missingIdsString + " do not belong to any objects in the database!";
+    }
+
+    @Override
+    public void save(TodoEntity entity) {
+        data.add(entity);
+    }
+
+    @Override
+    public void saveAll(Collection<TodoEntity> entities) {
+        data.addAll(entities);
     }
 
 }
