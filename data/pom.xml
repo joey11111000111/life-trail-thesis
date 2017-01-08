@@ -9,11 +9,28 @@
     <artifactId>data</artifactId>
     <packaging>jar</packaging>
 
+    <!-- Repository for the Oracle Berkeley Database -->
+    <repositories>
+        <repository>
+            <id>oracleReleases</id>
+            <name>Oracle Released Java Packages</name>
+            <url>http://download.oracle.com/maven</url>
+            <layout>default</layout>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
+        <!-- Oracle Berkeley Database Java api -->
+        <dependency>
+            <groupId>com.sleepycat</groupId>
+            <artifactId>je</artifactId>
+            <version>5.0.73</version>
+        </dependency>
     </dependencies>
+
 
 </project>

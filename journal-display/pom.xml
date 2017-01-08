@@ -15,11 +15,6 @@
             <artifactId>journal-service</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>debrecen.university.pti.kovtamas</groupId>
-            <artifactId>journal-service-impl</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
 </project>

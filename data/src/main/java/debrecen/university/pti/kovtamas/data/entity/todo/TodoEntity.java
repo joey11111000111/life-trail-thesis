@@ -1,11 +1,9 @@
-package debrecen.university.pti.kovtamas.data.todo.entity;
+package debrecen.university.pti.kovtamas.data.entity.todo;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @Builder
 public class TodoEntity {
 
