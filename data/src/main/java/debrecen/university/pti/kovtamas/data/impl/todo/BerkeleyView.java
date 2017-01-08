@@ -10,9 +10,11 @@ import java.util.Set;
 
 class BerkeleyView {
 
+    private BerkeleyDatabase db;
     private StoredValueSet<TodoEntity> todoEntitySet;
 
     public BerkeleyView(BerkeleyDatabase db) {
+        this.db = db;
         ClassCatalog catalog = db.getConfig().getJavaCatalog();
 
         todoEntitySet = new StoredValueSet<>(db.getTodoEntityDb(),
@@ -55,6 +57,10 @@ class BerkeleyView {
                     .repeating(entity.isRepeating())
                     .build();
         }
+    }
+
+    public void close() {
+        db.close();
     }
 
     public void add(TodoEntity entity) {

@@ -1,14 +1,17 @@
 package debrecen.university.pti.kovtamas.data.interfaces.todo;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.TodoEntity;
-import java.util.Collection;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
+import java.util.Set;
 
 public interface TodoRepository {
 
-    Collection<TodoEntity> findAll();
+    Set<TodoEntity> findAll();
 
-    Collection<TodoEntity> findByCategory(String category);
+    Set<TodoEntity> findByCategory(String category);
 
-    TodoEntity findById(int id);
+    TodoEntity findById(int id) throws TaskNotFoundException;
+
+    Set<TodoEntity> findByIds(Set<Integer> ids) throws TaskNotFoundException;
 
 }
