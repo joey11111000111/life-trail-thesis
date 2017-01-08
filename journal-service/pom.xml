@@ -8,4 +8,13 @@
     </parent>
     <artifactId>journal-service</artifactId>
     <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>debrecen.university.pti.kovtamas</groupId>
+            <artifactId>data</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
 </project>

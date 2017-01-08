@@ -9,11 +9,10 @@
         <module>data</module>
         <module>todo-service</module>
         <module>journal-service</module>
-        <module>todo-service-impl</module>
-        <module>journal-service-impl</module>
         <module>todo-display</module>
         <module>journal-display</module>
         <module>application</module>
+        <module>BerkeleyDbPractice</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -27,6 +26,11 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>4.12</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.16.12</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
