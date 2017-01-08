@@ -11,8 +11,12 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BerkeleyConfig {
+
+    private static final Logger LOG = LoggerFactory.getLogger(BerkeleyConfig.class);
 
     private static final Set<String> ALL_BERKELEY_SAVE_DIRS;
     private static final String CLASS_CATALOG_STORE = "java_class_catalog";
@@ -23,12 +27,16 @@ public class BerkeleyConfig {
 
     public static BerkeleyConfig createConfig(@NonNull String saveDir) throws IOException {
         if (ALL_BERKELEY_SAVE_DIRS.contains(saveDir)) {
-            throw new IllegalArgumentException("The save directory " + saveDir + " is already in use!");
+            String exceptionMessage = "The save directory " + saveDir + " is already in use!";
+            LOG.warn(exceptionMessage);
+            throw new IllegalArgumentException(exceptionMessage);
         }
 
         File saveDirectory = new File(saveDir);
         if (!saveDirectory.exists() || saveDirectory.isFile()) {
-            throw new IOException("The save directory " + saveDir + " does not exist or is a file!");
+            String exceptionMessage = "The save directory " + saveDir + " does not exist or is a file!";
+            LOG.error(exceptionMessage);
+            throw new IOException(exceptionMessage);
         }
 
         ALL_BERKELEY_SAVE_DIRS.add(saveDir);
@@ -47,6 +55,7 @@ public class BerkeleyConfig {
         config.setAllowCreateVoid(true);
 
         environment = new Environment(saveDirectory, config);
+        LOG.info("Environment was successfully created");
 
         // init catalog
         DatabaseConfig dbConfig = new DatabaseConfig();
@@ -55,11 +64,13 @@ public class BerkeleyConfig {
 
         Database javaDb = environment.openDatabase(null, CLASS_CATALOG_STORE, dbConfig);
         javaCatalog = new StoredClassCatalog(javaDb);
+        LOG.info("Java catalog was successfully created");
     }
 
     public void close() {
         javaCatalog.close();
         environment.close();
+        LOG.debug("The java catalog and the environment was closed");
     }
 
 }

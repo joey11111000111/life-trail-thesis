@@ -9,14 +9,19 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class InMemoryTodoRepository implements TodoRepository {
+
+    private static final Logger LOG = LoggerFactory.getLogger(InMemoryTodoRepository.class);
 
     private final BerkeleyView data;
 
     public InMemoryTodoRepository(String saveDir) throws IOException {
         BerkeleyDatabase db = new BerkeleyDatabase(saveDir);
         data = new BerkeleyView(db);
+        LOG.info("InMemoryTodoRepository was created");
     }
 
     @Override
@@ -37,7 +42,9 @@ public class InMemoryTodoRepository implements TodoRepository {
                 .filter(entity -> entity.getId() == id)
                 .collect(Collectors.toSet());
         if (results.isEmpty()) {
-            throw new TaskNotFoundException("The id " + id + " doesn't belong to any object in the database!");
+            String exceptionMessage = "The id " + id + " doesn't belong to any object in the database!";
+            LOG.warn(exceptionMessage);
+            throw new TaskNotFoundException(exceptionMessage);
         }
 
         if (results.size() > 1) {
@@ -58,11 +65,15 @@ public class InMemoryTodoRepository implements TodoRepository {
                 .collect(Collectors.toSet());
 
         if (results.size() < ids.size()) {
-            throw new TaskNotFoundException(buildByIdsNotFoundExceptionMessage(ids, results));
+            String exceptionMessage = buildByIdsNotFoundExceptionMessage(ids, results);
+            LOG.warn(exceptionMessage);
+            throw new TaskNotFoundException(exceptionMessage);
         }
 
         if (results.size() > 1) {
-            throw new DatabaseIntegrityException("Multiple todo items has the same ids in the database!");
+            String exceptionMessage = "Multiple todo items has the same ids in the database!";
+            LOG.error(exceptionMessage);
+            throw new DatabaseIntegrityException(exceptionMessage);
         }
 
         return results;
