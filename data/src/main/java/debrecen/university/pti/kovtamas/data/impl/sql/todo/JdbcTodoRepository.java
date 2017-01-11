@@ -192,13 +192,6 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
-    public void removeAll(Collection<Integer> ids) throws TaskNotFoundException {
-        for (Integer id : ids) {
-            remove(id);
-        }
-    }
-
-    @Override
     public void clean() {
         String exceptionMessage = "Could not clean database table!";
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {

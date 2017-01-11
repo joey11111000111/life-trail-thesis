@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -99,14 +100,8 @@ public class JdbcTodoRepositoryTest {
     @Test
     public void saveFindAllAndCleanTest() {
         Set<TodoEntity> entities = generateEntities();
-        try {
-            repo.saveAll(entities);
-        } catch (TaskSaveFailureException ex) {
-            String message = "Could not save entity collection!";
-            LOG.error(message, ex);
-            fail(message);
-        }
-        validateSave(entities);
+        populateDatabase(entities);
+        collectionEquals(entities, repo.findAll());
         clean();
         entities.forEach(entity -> {
             try {
@@ -116,21 +111,119 @@ public class JdbcTodoRepositoryTest {
                 LOG.warn(message, ex);
             }
         });
-        validateSave(entities);
+        collectionEquals(entities, repo.findAll());
     }
 
-    private void validateSave(Set<TodoEntity> entities) {
-        int rowCount = repo.getRowCount();
-        assertEquals(entities.size(), rowCount);
+    @Test
+    public void findByIdTest() {
+        Set<TodoEntity> entities = generateEntities();
+        populateDatabase(entities);
 
-        List<TodoEntity> originals = new ArrayList<>(entities);
-        List<TodoEntity> founds = new ArrayList<>(repo.findAll());
+        int id = 1;
+        TodoEntity originalEntity = entities.stream()
+                .filter(e -> e.getId() == id)
+                .findFirst()
+                .get();
+
+        TodoEntity foundEntity = null;
+        try {
+            foundEntity = repo.findById(id);
+        } catch (TaskNotFoundException tnfe) {
+            String message = "Could not find task with id: " + id;
+            LOG.warn(message, tnfe);
+            fail(message);
+        }
+
+        assertEquals(originalEntity, foundEntity);
+    }
+
+    @Test
+    public void findIdCollectionTest() {
+        Set<TodoEntity> entities = generateEntities();
+        populateDatabase(entities);
+
+        List<Integer> ids = Arrays.asList(1, 2);
+        Set<TodoEntity> originalEntities = entities.stream()
+                .filter(e -> ids.contains(e.getId()))
+                .collect(Collectors.toSet());
+
+        try {
+            collectionEquals(originalEntities, repo.findByIds(ids));
+        } catch (TaskNotFoundException tnfe) {
+            String message = "Could not find task(s) by id";
+            LOG.warn(message, tnfe);
+            fail(message);
+        }
+    }
+
+    @Test
+    public void findByCategoryTest() {
+        Set<TodoEntity> entities = generateEntities();
+        populateDatabase(entities);
+
+        String category = "everyday life";
+        Set<TodoEntity> originalEntities = entities.stream()
+                .filter(e -> category.equals(e.getCategory()))
+                .collect(Collectors.toSet());
+
+        collectionEquals(originalEntities, repo.findByCategory(category));
+    }
+
+    @Test
+    public void findByNotCategory() {
+        Set<TodoEntity> entities = generateEntities();
+        populateDatabase(entities);
+
+        String catToSkip = "personal";
+        Set<TodoEntity> originalEntities = entities.stream()
+                .filter(e -> !catToSkip.equals(e.getCategory()))
+                .collect(Collectors.toSet());
+        collectionEquals(originalEntities, repo.findByNotCategory(catToSkip));
+    }
+
+    @Test
+    public void removeTest() {
+        Set<TodoEntity> entities = generateEntities();
+        populateDatabase(entities);
+
+        int id = 1;
+        Set<TodoEntity> originalEntities = entities.stream()
+                .filter(e -> e.getId() != id)
+                .collect(Collectors.toSet());
+
+        try {
+            repo.remove(id);
+        } catch (TaskNotFoundException tnfe) {
+            String message = "Could not find task with id: " + id + " to remove!";
+            LOG.warn(message, tnfe);
+            fail(message);
+        }
+
+        collectionEquals(originalEntities, repo.findAll());
+    }
+
+    private void populateDatabase(Collection<TodoEntity> entities) {
+        try {
+            repo.saveAll(entities);
+        } catch (TaskSaveFailureException ex) {
+            String message = "Could not populate table for the test!";
+            LOG.error(message, ex);
+            fail(message);
+        }
+    }
+
+    private void collectionEquals(Collection<TodoEntity> c1, Collection<TodoEntity> c2) {
+        assertEquals(c1.size(), c2.size());
+
+        List<TodoEntity> l1 = new ArrayList<>(c1);
+        List<TodoEntity> l2 = new ArrayList<>(c2);
         Comparator<TodoEntity> cmp = (e1, e2) -> e1.getId() - e2.getId();
-        Collections.sort(originals, cmp);
-        Collections.sort(founds, cmp);
 
-        for (int i = 0; i < originals.size(); i++) {
-            assertEquals(originals.get(i), founds.get(i));
+        Collections.sort(l1, cmp);
+        Collections.sort(l2, cmp);
+
+        for (int i = 0; i < l1.size(); i++) {
+            assertEquals(l1.get(i), l2.get(i));
         }
     }
 
@@ -138,17 +231,6 @@ public class JdbcTodoRepositoryTest {
         repo.clean();
         int rowCount = repo.getRowCount();
         assertEquals(0, rowCount);
-    }
-
-    private void populateTable() {
-        Collection<TodoEntity> entities = generateEntities();
-        try {
-            repo.saveAll(entities);
-        } catch (TaskSaveFailureException ex) {
-            LOG.error("Could not populate test table! Aborting test...", ex);
-            fail();
-            // @AfterClass method is guaranteed to run even when exception is thrown
-        }
     }
 
     private Set<TodoEntity> generateEntities() {

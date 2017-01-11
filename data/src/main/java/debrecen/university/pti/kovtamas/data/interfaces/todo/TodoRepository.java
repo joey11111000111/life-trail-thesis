@@ -24,8 +24,6 @@ public interface TodoRepository {
 
     void remove(int id) throws TaskNotFoundException;
 
-    void removeAll(Collection<Integer> ids) throws TaskNotFoundException;
-
     void clean();
 
     int getRowCount();
