@@ -4,6 +4,7 @@ import debrecen.university.pti.kovtamas.data.entity.todo.TodoEntity;
 import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DataSourceManager;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskSaveFailureException;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.UnsuccessfulDatabaseOperation;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TodoRepository;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -139,8 +140,8 @@ public class JdbcTodoRepository implements TodoRepository {
     public void save(TodoEntity entity) throws TaskSaveFailureException {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             PreparedStatement prStatement = conn.prepareStatement(
-                    (entity.getRepeating() == null) ? TodoQueries.INSERT_NO_REPEATING : TodoQueries.INSERT_FULL,
-                    PreparedStatement.RETURN_GENERATED_KEYS
+                    TodoQueries.INSERT_FULL,
+                    Statement.RETURN_GENERATED_KEYS
             );
 
             prStatement.setString(1, entity.getTaskDef());
@@ -148,14 +149,12 @@ public class JdbcTodoRepository implements TodoRepository {
             prStatement.setString(3, entity.getDeadline());
             prStatement.setString(4, entity.getCategory());
             prStatement.setString(5, entity.getSubTaskIds());
-            if (entity.getRepeating() != null) {
-                prStatement.setString(6, Boolean.toString(entity.getRepeating()));
-            }
+            prStatement.setString(6, Boolean.toString(entity.isRepeating()));
+            prStatement.executeUpdate();
 
-            prStatement.execute();
             ResultSet result = prStatement.getGeneratedKeys();
             if (result.next()) {
-                entity.setId(result.getInt("ID"));
+                entity.setId(result.getInt(1));
             } else {
                 String message = "Possible save error, generated ID could not be retrived!";
                 LOG.warn(message);
@@ -196,6 +195,40 @@ public class JdbcTodoRepository implements TodoRepository {
     public void removeAll(Collection<Integer> ids) throws TaskNotFoundException {
         for (Integer id : ids) {
             remove(id);
+        }
+    }
+
+    @Override
+    public void clean() {
+        String exceptionMessage = "Could not clean database table!";
+        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(TodoQueries.CLEAN_TABLE);
+            ResultSet results = statement.executeQuery(TodoQueries.GET_ROW_COUNT);
+            if (results.next()) {
+                int rowCount = results.getInt("ROW_COUNT");
+                if (rowCount != 0) {
+                    throw new UnsuccessfulDatabaseOperation(exceptionMessage);
+                }
+            }
+        } catch (SQLException sqle) {
+            LOG.warn("Exception while trying to clean the database table!", sqle);
+            throw new UnsuccessfulDatabaseOperation(exceptionMessage);
+        }
+    }
+
+    @Override
+    public int getRowCount() {
+        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
+            Statement statement = conn.createStatement();
+            ResultSet results = statement.executeQuery(TodoQueries.GET_ROW_COUNT);
+            if (results.next()) {
+                return results.getInt("ROW_COUNT");
+            }
+            return -1;
+        } catch (SQLException sqle) {
+            LOG.warn("Could not get row count of database table!", sqle);
+            return -1;
         }
     }
 

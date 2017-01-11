@@ -16,6 +16,9 @@ public class TodoQueries {
             + " VALUES(?, ?, ?, ?, ?)";
 
     public static final String REMOVE_BY_ID = "DELETE FROM " + TASK_TABLE_NAME + " WHERE ID = ?";
+    public static final String CLEAN_TABLE = "TRUNCATE " + TASK_TABLE_NAME;
+
+    public static final String GET_ROW_COUNT = "SELECT COUNT(1) AS ROW_COUNT FROM " + TASK_TABLE_NAME;
 
     public static String buildIdCollectionQuery(int num) {
         StringBuilder sb = new StringBuilder("SELECT * FROM " + TASK_TABLE_NAME + " WHERE");

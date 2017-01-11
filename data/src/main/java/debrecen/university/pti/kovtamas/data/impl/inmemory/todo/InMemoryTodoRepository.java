@@ -13,7 +13,7 @@ import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class InMemoryTodoRepository implements TodoRepository {
+public class InMemoryTodoRepository /*implements TodoRepository*/ {
 
     private static final Logger LOG = LoggerFactory.getLogger(InMemoryTodoRepository.class);
 
@@ -25,19 +25,19 @@ public class InMemoryTodoRepository implements TodoRepository {
         LOG.info("InMemoryTodoRepository was created");
     }
 
-    @Override
+//    @Override
     public Set<TodoEntity> findAll() {
         return data.getAllEntities();
     }
 
-    @Override
+//    @Override
     public Set<TodoEntity> findByCategory(@NonNull String category) {
         return data.getAllEntities().stream()
                 .filter(entity -> category.equals(entity.getCategory()))
                 .collect(Collectors.toSet());
     }
 
-    @Override
+//    @Override
     public TodoEntity findById(int id) throws TaskNotFoundException {
         Set<TodoEntity> results = data.getAllEntities().stream()
                 .filter(entity -> entity.getId() == id)
@@ -55,7 +55,7 @@ public class InMemoryTodoRepository implements TodoRepository {
         return results.iterator().next();
     }
 
-    @Override
+//    @Override
     public Set<TodoEntity> findByIds(@NonNull Set<Integer> ids) throws TaskNotFoundException {
         if (ids.isEmpty()) {
             return new HashSet<>();
@@ -96,12 +96,12 @@ public class InMemoryTodoRepository implements TodoRepository {
         return "The ids " + missingIdsString + " do not belong to any objects in the database!";
     }
 
-    @Override
+//    @Override
     public void save(TodoEntity entity) {
         data.add(entity);
     }
 
-    @Override
+//    @Override
     public void saveAll(Collection<TodoEntity> entities) {
         data.addAll(entities);
     }
