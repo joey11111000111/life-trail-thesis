@@ -56,6 +56,25 @@ public class JdbcTodoRepository implements TodoRepository {
             LOG.warn("Exception while trying to read from database!", sqle);
             return new HashSet<>();
         }
+    }
+
+    @Override
+    public Set<TodoEntity> findByNotCategory(String categoryToSkip) {
+        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
+            PreparedStatement prStatement = conn.prepareStatement(TodoQueries.FIND_BY_NOT_CATEGORY);
+            prStatement.setString(1, categoryToSkip);
+            ResultSet results = prStatement.executeQuery();
+
+            Set<TodoEntity> entities = new HashSet<>();
+            while (results.next()) {
+                entities.add(convertRecordToEntity(results));
+            }
+
+            return entities;
+        } catch (SQLException sqle) {
+            LOG.warn("Exception while trying to read from database!", sqle);
+            return new HashSet<>();
+        }
 
     }
 
@@ -78,11 +97,16 @@ public class JdbcTodoRepository implements TodoRepository {
             LOG.warn(message, sqle);
             throw new TaskNotFoundException(message, sqle);
         }
-
     }
 
     @Override
-    public Set<TodoEntity> findByIds(Set<Integer> ids) throws TaskNotFoundException {
+    public Set<TodoEntity> findByIds(Collection<Integer> ids) throws TaskNotFoundException {
+        // Search for duplication in ids
+        Set<Integer> idSet = new HashSet<>(ids);
+        if (idSet.size() < ids.size()) {
+            throw new IllegalArgumentException("Duplicated id!");
+        }
+
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             PreparedStatement prStatement = conn.prepareStatement(TodoQueries.buildIdCollectionQuery(ids.size()));
 
@@ -149,6 +173,29 @@ public class JdbcTodoRepository implements TodoRepository {
     public void saveAll(Collection<TodoEntity> entities) throws TaskSaveFailureException {
         for (TodoEntity entity : entities) {
             save(entity);
+        }
+    }
+
+    @Override
+    public void remove(int id) throws TaskNotFoundException {
+        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
+            PreparedStatement prStatement = conn.prepareStatement(TodoQueries.REMOVE_BY_ID);
+            prStatement.setInt(1, id);
+            int modifiedRowCount = prStatement.executeUpdate();
+            if (modifiedRowCount == 0) {
+                throw new TaskNotFoundException("Cannot delete a row that doesn't exist!"
+                        + "The id " + id + " was not found in the database.");
+            }
+        } catch (SQLException sqle) {
+            LOG.warn("Exception while trying to remove from the database!", sqle);
+        }
+
+    }
+
+    @Override
+    public void removeAll(Collection<Integer> ids) throws TaskNotFoundException {
+        for (Integer id : ids) {
+            remove(id);
         }
     }
 

@@ -12,12 +12,18 @@ public interface TodoRepository {
 
     Set<TodoEntity> findByCategory(String category);
 
+    Set<TodoEntity> findByNotCategory(String categoryToSkip);
+
     TodoEntity findById(int id) throws TaskNotFoundException;
 
-    Set<TodoEntity> findByIds(Set<Integer> ids) throws TaskNotFoundException;
+    Set<TodoEntity> findByIds(Collection<Integer> ids) throws TaskNotFoundException;
 
     void save(TodoEntity entity) throws TaskSaveFailureException;
 
     void saveAll(Collection<TodoEntity> entities) throws TaskSaveFailureException;
+
+    void remove(int id) throws TaskNotFoundException;
+
+    void removeAll(Collection<Integer> ids) throws TaskNotFoundException;
 
 }
