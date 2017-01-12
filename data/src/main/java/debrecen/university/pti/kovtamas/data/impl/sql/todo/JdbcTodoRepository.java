@@ -139,10 +139,12 @@ public class JdbcTodoRepository implements TodoRepository {
     @Override
     public void save(TodoEntity entity) throws TaskSaveFailureException {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            PreparedStatement prStatement = conn.prepareStatement(
-                    TodoQueries.INSERT_FULL,
-                    Statement.RETURN_GENERATED_KEYS
-            );
+            PreparedStatement prStatement;
+            if (entity.hasId()) {
+                prStatement = conn.prepareStatement(TodoQueries.UPDATE);
+            } else {
+                prStatement = conn.prepareStatement(TodoQueries.INSERT, Statement.RETURN_GENERATED_KEYS);
+            }
 
             prStatement.setString(1, entity.getTaskDef());
             prStatement.setInt(2, entity.getPriority());
@@ -150,7 +152,18 @@ public class JdbcTodoRepository implements TodoRepository {
             prStatement.setString(4, entity.getCategory());
             prStatement.setString(5, entity.getSubTaskIds());
             prStatement.setString(6, Boolean.toString(entity.isRepeating()));
-            prStatement.executeUpdate();
+            if (entity.hasId()) {
+                prStatement.setInt(7, entity.getId());
+            }
+
+            int affectedRows = prStatement.executeUpdate();
+
+            if (entity.hasId()) {
+                if (affectedRows != 1) {
+                    throw new TaskSaveFailureException("Failed to update task with id: " + entity.getId());
+                }
+                return;
+            }
 
             ResultSet result = prStatement.getGeneratedKeys();
             if (result.next()) {

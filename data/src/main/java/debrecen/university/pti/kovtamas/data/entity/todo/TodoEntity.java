@@ -7,12 +7,16 @@ import lombok.Data;
 @Builder
 public class TodoEntity {
 
-    private int id;
+    private Integer id = null;
     private String taskDef;
     private int priority;
     private String deadline;
     private String category;
     private String subTaskIds;
     private boolean repeating;
+
+    public boolean hasId() {
+        return id != null;
+    }
 
 }

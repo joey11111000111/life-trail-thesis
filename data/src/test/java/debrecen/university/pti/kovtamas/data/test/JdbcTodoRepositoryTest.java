@@ -103,6 +103,8 @@ public class JdbcTodoRepositoryTest {
         populateDatabase(entities);
         collectionEquals(entities, repo.findAll());
         clean();
+
+        entities = generateEntities();
         entities.forEach(entity -> {
             try {
                 repo.save(entity);
@@ -200,6 +202,64 @@ public class JdbcTodoRepositoryTest {
         }
 
         collectionEquals(originalEntities, repo.findAll());
+    }
+
+    @Test
+    public void singleUpdateTest() {
+        Set<TodoEntity> entities = generateEntities();
+        populateDatabase(entities);
+
+        TodoEntity toUpdate = entities.iterator().next();
+        String newCategory = "new category";
+        toUpdate.setCategory(newCategory);
+        toUpdate.setPriority(0);
+        toUpdate.setRepeating(!toUpdate.isRepeating());
+
+        try {
+            repo.save(toUpdate);
+        } catch (TaskSaveFailureException tsfe) {
+            String message = "Exception while trying to update entity!";
+            LOG.error(message, tsfe);
+            fail(message);
+        }
+
+        TodoEntity readEntity = null;
+        try {
+            readEntity = repo.findById(toUpdate.getId());
+        } catch (TaskNotFoundException tnfe) {
+            String message = "Could not find the updated task!";
+            LOG.error(message, tnfe);
+            fail(message);
+        }
+
+        assertEquals(readEntity, toUpdate);
+    }
+
+    @Test
+    public void mixedSaveUpdateTest() {
+        Set<TodoEntity> entities = generateEntities();
+        TodoEntity toUpdate = entities.iterator().next();
+        try {
+            repo.save(toUpdate);
+        } catch (TaskSaveFailureException tsfe) {
+            String message = "Could not save single entity!";
+            LOG.error(message, tsfe);
+            fail(message);
+        }
+
+        toUpdate.setDeadline("1009.12.12");
+        toUpdate.setPriority(8);
+        toUpdate.setSubTaskIds("7,8,5,6,2");
+
+        try {
+            repo.saveAll(entities);
+        } catch (TaskSaveFailureException tsfe) {
+            String message = "Could not saveAll entities!";
+            LOG.error(message, tsfe);
+            fail(message);
+        }
+
+        collectionEquals(entities, repo.findAll());
     }
 
     private void populateDatabase(Collection<TodoEntity> entities) {

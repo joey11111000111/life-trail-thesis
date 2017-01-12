@@ -54,7 +54,7 @@ class BerkeleyView {
                     .deadline(entity.getDeadline())
                     .category(entity.getCategory())
                     .subTaskIds(entity.getSubTaskIds())
-                    .repeating(entity.getRepeating())
+                    //                    .repeating(entity.getRepeating())
                     .build();
         }
     }

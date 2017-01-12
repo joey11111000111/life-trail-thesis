@@ -8,12 +8,13 @@ public class TodoQueries {
     public static final String FIND_BY_ID = "SELECT * FROM " + TASK_TABLE_NAME + " WHERE ID = ?";
     public static final String FIND_BY_CATEGORY = "SELECT * FROM " + TASK_TABLE_NAME + " WHERE CATEGORY = ?";
     public static final String FIND_BY_NOT_CATEGORY = "SELECT * FROM " + TASK_TABLE_NAME + " WHERE CATEGORY <> ?";
-    public static final String INSERT_FULL = "INSERT INTO " + TASK_TABLE_NAME
+
+    public static final String INSERT = "INSERT INTO " + TASK_TABLE_NAME
             + " (TASK_DEF, PRIORITY, DEADLINE, CATEGORY, SUB_TASK_IDS, REPEATING)"
             + " VALUES(?, ?, ?, ?, ?, ?)";
-    public static final String INSERT_NO_REPEATING = "INSERT INTO " + TASK_TABLE_NAME
-            + " (TASK_DEF, PRIORITY, DEADLINE, CATEGORY, SUB_TASK_IDS)"
-            + " VALUES(?, ?, ?, ?, ?)";
+    public static final String UPDATE = "UPDATE " + TASK_TABLE_NAME
+            + " SET TASK_DEF = ?, PRIORITY = ?, DEADLINE = ?, CATEGORY = ?, SUB_TASK_IDS = ?, REPEATING = ?"
+            + " WHERE ID = ?";
 
     public static final String REMOVE_BY_ID = "DELETE FROM " + TASK_TABLE_NAME + " WHERE ID = ?";
     public static final String CLEAN_TABLE = "TRUNCATE " + TASK_TABLE_NAME;
