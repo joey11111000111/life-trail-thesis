@@ -3,7 +3,7 @@ package debrecen.university.pti.kovtamas.data.impl.inmemory.todo;
 import com.sleepycat.bind.serial.ClassCatalog;
 import com.sleepycat.bind.serial.SerialSerialBinding;
 import com.sleepycat.collections.StoredValueSet;
-import debrecen.university.pti.kovtamas.data.entity.todo.TodoEntity;
+import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -11,7 +11,7 @@ import java.util.Set;
 class BerkeleyView {
 
     private BerkeleyDatabase db;
-    private StoredValueSet<TodoEntity> todoEntitySet;
+    private StoredValueSet<TaskEntity> todoEntitySet;
 
     public BerkeleyView(BerkeleyDatabase db) {
         this.db = db;
@@ -21,7 +21,7 @@ class BerkeleyView {
                 new TodoEntityBinding(catalog, TodoEntityKey.class, TodoEntityValue.class), true);
     }
 
-    private class TodoEntityBinding extends SerialSerialBinding<TodoEntityKey, TodoEntityValue, TodoEntity> {
+    private class TodoEntityBinding extends SerialSerialBinding<TodoEntityKey, TodoEntityValue, TaskEntity> {
 
         public TodoEntityBinding(ClassCatalog classCatalog, Class<TodoEntityKey> keyClass,
                 Class<TodoEntityValue> dataClass) {
@@ -29,8 +29,8 @@ class BerkeleyView {
         }
 
         @Override
-        public TodoEntity entryToObject(TodoEntityKey key, TodoEntityValue data) {
-            return TodoEntity.builder()
+        public TaskEntity entryToObject(TodoEntityKey key, TodoEntityValue data) {
+            return TaskEntity.builder()
                     .id(key.getId())
                     .taskDef(data.getTaskDef())
                     .priority(data.getPriority())
@@ -42,12 +42,12 @@ class BerkeleyView {
         }
 
         @Override
-        public TodoEntityKey objectToKey(TodoEntity entity) {
+        public TodoEntityKey objectToKey(TaskEntity entity) {
             return new TodoEntityKey(entity.getId());
         }
 
         @Override
-        public TodoEntityValue objectToData(TodoEntity entity) {
+        public TodoEntityValue objectToData(TaskEntity entity) {
             return TodoEntityValue.builder()
                     .taskDef(entity.getTaskDef())
                     .priority(entity.getPriority())
@@ -63,15 +63,15 @@ class BerkeleyView {
         db.close();
     }
 
-    public void add(TodoEntity entity) {
+    public void add(TaskEntity entity) {
         todoEntitySet.add(entity);
     }
 
-    public void addAll(Collection<TodoEntity> entityCollection) {
+    public void addAll(Collection<TaskEntity> entityCollection) {
         todoEntitySet.addAll(todoEntitySet);
     }
 
-    public Set<TodoEntity> getAllEntities() {
+    public Set<TaskEntity> getAllEntities() {
         return new HashSet<>(todoEntitySet);
     }
 

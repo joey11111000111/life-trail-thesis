@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class TodoEntity {
+public class TaskEntity {
 
     private Integer id = null;
     private String taskDef;

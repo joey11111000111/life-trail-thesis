@@ -1,6 +1,6 @@
 package debrecen.university.pti.kovtamas.data.impl.inmemory.todo;
 
-import debrecen.university.pti.kovtamas.data.entity.todo.TodoEntity;
+import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.DatabaseIntegrityException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TodoRepository;
@@ -26,20 +26,20 @@ public class InMemoryTodoRepository /*implements TodoRepository*/ {
     }
 
 //    @Override
-    public Set<TodoEntity> findAll() {
+    public Set<TaskEntity> findAll() {
         return data.getAllEntities();
     }
 
 //    @Override
-    public Set<TodoEntity> findByCategory(@NonNull String category) {
+    public Set<TaskEntity> findByCategory(@NonNull String category) {
         return data.getAllEntities().stream()
                 .filter(entity -> category.equals(entity.getCategory()))
                 .collect(Collectors.toSet());
     }
 
 //    @Override
-    public TodoEntity findById(int id) throws TaskNotFoundException {
-        Set<TodoEntity> results = data.getAllEntities().stream()
+    public TaskEntity findById(int id) throws TaskNotFoundException {
+        Set<TaskEntity> results = data.getAllEntities().stream()
                 .filter(entity -> entity.getId() == id)
                 .collect(Collectors.toSet());
         if (results.isEmpty()) {
@@ -56,12 +56,12 @@ public class InMemoryTodoRepository /*implements TodoRepository*/ {
     }
 
 //    @Override
-    public Set<TodoEntity> findByIds(@NonNull Set<Integer> ids) throws TaskNotFoundException {
+    public Set<TaskEntity> findByIds(@NonNull Set<Integer> ids) throws TaskNotFoundException {
         if (ids.isEmpty()) {
             return new HashSet<>();
         }
 
-        Set<TodoEntity> results = data.getAllEntities().stream()
+        Set<TaskEntity> results = data.getAllEntities().stream()
                 .filter(entity -> ids.contains(entity.getId()))
                 .collect(Collectors.toSet());
 
@@ -80,7 +80,7 @@ public class InMemoryTodoRepository /*implements TodoRepository*/ {
         return results;
     }
 
-    private String buildByIdsNotFoundExceptionMessage(Set<Integer> ids, Set<TodoEntity> results) {
+    private String buildByIdsNotFoundExceptionMessage(Set<Integer> ids, Set<TaskEntity> results) {
         Set<Integer> foundIds = results.stream()
                 .map(entity -> entity.getId())
                 .collect(Collectors.toSet());
@@ -97,12 +97,12 @@ public class InMemoryTodoRepository /*implements TodoRepository*/ {
     }
 
 //    @Override
-    public void save(TodoEntity entity) {
+    public void save(TaskEntity entity) {
         data.add(entity);
     }
 
 //    @Override
-    public void saveAll(Collection<TodoEntity> entities) {
+    public void saveAll(Collection<TaskEntity> entities) {
         data.addAll(entities);
     }
 
