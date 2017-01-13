@@ -1,6 +1,6 @@
 package debrecen.university.pti.kovtamas.data.impl.sql.todo;
 
-import debrecen.university.pti.kovtamas.data.entity.todo.TodoEntity;
+import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DataSourceManager;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskSaveFailureException;
@@ -23,12 +23,12 @@ public class JdbcTodoRepository implements TodoRepository {
     private static final Logger LOG = LoggerFactory.getLogger(JdbcTodoRepository.class);
 
     @Override
-    public Set<TodoEntity> findAll() {
+    public Set<TaskEntity> findAll() {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             Statement statement = conn.createStatement();
             ResultSet results = statement.executeQuery(TodoQueries.FIND_ALL);
 
-            Set<TodoEntity> entities = new HashSet<>();
+            Set<TaskEntity> entities = new HashSet<>();
             while (results.next()) {
                 entities.add(convertRecordToEntity(results));
             }
@@ -41,13 +41,13 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
-    public Set<TodoEntity> findByCategory(String category) {
+    public Set<TaskEntity> findByCategory(String category) {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             PreparedStatement prStatement = conn.prepareStatement(TodoQueries.FIND_BY_CATEGORY);
             prStatement.setString(1, category);
             ResultSet results = prStatement.executeQuery();
 
-            Set<TodoEntity> entities = new HashSet<>();
+            Set<TaskEntity> entities = new HashSet<>();
             while (results.next()) {
                 entities.add(convertRecordToEntity(results));
             }
@@ -60,13 +60,13 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
-    public Set<TodoEntity> findByNotCategory(String categoryToSkip) {
+    public Set<TaskEntity> findByNotCategory(String categoryToSkip) {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             PreparedStatement prStatement = conn.prepareStatement(TodoQueries.FIND_BY_NOT_CATEGORY);
             prStatement.setString(1, categoryToSkip);
             ResultSet results = prStatement.executeQuery();
 
-            Set<TodoEntity> entities = new HashSet<>();
+            Set<TaskEntity> entities = new HashSet<>();
             while (results.next()) {
                 entities.add(convertRecordToEntity(results));
             }
@@ -80,7 +80,7 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
-    public TodoEntity findById(int id) throws TaskNotFoundException {
+    public TaskEntity findById(int id) throws TaskNotFoundException {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             PreparedStatement prStatement = conn.prepareStatement(TodoQueries.FIND_BY_ID);
             prStatement.setInt(1, id);
@@ -101,11 +101,11 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
-    public Set<TodoEntity> findByIds(Collection<Integer> ids) throws TaskNotFoundException {
+    public Set<TaskEntity> findByIds(Collection<Integer> ids) throws TaskNotFoundException {
         // Search for duplication in ids
         Set<Integer> idSet = new HashSet<>(ids);
         if (idSet.size() < ids.size()) {
-            throw new IllegalArgumentException("Duplicated id!");
+            throw new IllegalArgumentException("Duplicated id in collection!");
         }
 
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
@@ -117,7 +117,7 @@ public class JdbcTodoRepository implements TodoRepository {
             }
 
             ResultSet results = prStatement.executeQuery();
-            Set<TodoEntity> entities = new HashSet<>();
+            Set<TaskEntity> entities = new HashSet<>();
             while (results.next()) {
                 entities.add(convertRecordToEntity(results));
             }
@@ -137,55 +137,53 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
-    public void save(TodoEntity entity) throws TaskSaveFailureException {
+    public void save(TaskEntity entity) throws TaskSaveFailureException {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            PreparedStatement prStatement;
-            if (entity.hasId()) {
-                prStatement = conn.prepareStatement(TodoQueries.UPDATE);
-            } else {
-                prStatement = conn.prepareStatement(TodoQueries.INSERT, Statement.RETURN_GENERATED_KEYS);
-            }
-
-            prStatement.setString(1, entity.getTaskDef());
-            prStatement.setInt(2, entity.getPriority());
-            prStatement.setString(3, entity.getDeadline());
-            prStatement.setString(4, entity.getCategory());
-            prStatement.setString(5, entity.getSubTaskIds());
-            prStatement.setString(6, Boolean.toString(entity.isRepeating()));
-            if (entity.hasId()) {
-                prStatement.setInt(7, entity.getId());
-            }
-
-            int affectedRows = prStatement.executeUpdate();
-
-            if (entity.hasId()) {
-                if (affectedRows != 1) {
-                    throw new TaskSaveFailureException("Failed to update task with id: " + entity.getId());
-                }
-                return;
-            }
-
-            ResultSet result = prStatement.getGeneratedKeys();
-            if (result.next()) {
-                entity.setId(result.getInt(1));
-            } else {
-                String message = "Possible save error, generated ID could not be retrived!";
-                LOG.warn(message);
-                throw new TaskSaveFailureException(message);
-            }
-
+            saveOrUpdate(entity, conn);
         } catch (SQLException sqle) {
-            String message = "Exception while trying to read from database!";
+            String message = "Exception while trying to update the database!";
             LOG.warn(message, sqle);
             throw new TaskSaveFailureException(message, sqle);
         }
     }
 
     @Override
-    public void saveAll(Collection<TodoEntity> entities) throws TaskSaveFailureException {
-        for (TodoEntity entity : entities) {
-            save(entity);
+    public void saveAll(Collection<TaskEntity> entities) throws TaskSaveFailureException {
+        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
+            for (TaskEntity entity : entities) {
+                saveOrUpdate(entity, conn);
+            }
+        } catch (SQLException sqle) {
+            String message = "Exception while trying to update the database!";
+            LOG.warn(message, sqle);
+            throw new TaskSaveFailureException(message, sqle);
         }
+    }
+
+    private void saveOrUpdate(TaskEntity entity, Connection conn) throws SQLException, TaskSaveFailureException {
+        PreparedStatement prStatement = createSaveOrUpdateStatement(entity, conn);
+
+        // Set statement variables
+        prStatement.setString(1, entity.getTaskDef());
+        prStatement.setInt(2, entity.getPriority());
+        prStatement.setString(3, entity.getDeadline());
+        prStatement.setString(4, entity.getCategory());
+        prStatement.setString(5, entity.getSubTaskIds());
+        prStatement.setString(6, Boolean.toString(entity.isRepeating()));
+        if (entity.hasId()) {
+            prStatement.setInt(7, entity.getId());
+        }
+
+        int affectedRows = prStatement.executeUpdate();
+        if (affectedRows != 1) {
+            throw new TaskSaveFailureException("Failed to update task with id: " + entity.getId());
+        }
+
+        if (entity.hasId()) {
+            return;
+        }
+
+        entity.setId(extractGeneratedId(prStatement));
     }
 
     @Override
@@ -238,8 +236,25 @@ public class JdbcTodoRepository implements TodoRepository {
         }
     }
 
-    private TodoEntity convertRecordToEntity(ResultSet record) throws SQLException {
-        return TodoEntity.builder()
+    private PreparedStatement createSaveOrUpdateStatement(TaskEntity entity, Connection conn) throws SQLException {
+        if (entity.hasId()) {
+            return conn.prepareStatement(TodoQueries.UPDATE);
+        }
+        return conn.prepareStatement(TodoQueries.INSERT, Statement.RETURN_GENERATED_KEYS);
+    }
+
+    private Integer extractGeneratedId(PreparedStatement prStatement) throws SQLException, TaskSaveFailureException {
+        ResultSet result = prStatement.getGeneratedKeys();
+        if (result.next()) {
+            return result.getInt(1);
+        }
+        String message = "Possible save error, generated ID could not be retrived!";
+        LOG.warn(message);
+        throw new TaskSaveFailureException(message);
+    }
+
+    private TaskEntity convertRecordToEntity(ResultSet record) throws SQLException {
+        return TaskEntity.builder()
                 .id(record.getInt("ID"))
                 .taskDef(record.getString("TASK_DEF"))
                 .priority(record.getInt("PRIORITY"))

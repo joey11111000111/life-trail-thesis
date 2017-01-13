@@ -1,6 +1,6 @@
 package debrecen.university.pti.kovtamas.data.test;
 
-import debrecen.university.pti.kovtamas.data.entity.todo.TodoEntity;
+import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DataSourceManager;
 import debrecen.university.pti.kovtamas.data.impl.sql.todo.JdbcTodoRepository;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
@@ -69,13 +69,13 @@ public class JdbcTodoRepositoryTest {
     @Test
     public void queryMethodsOnEmptyTableTest() {
         // find all
-        Set<TodoEntity> entities = repo.findAll();
+        Set<TaskEntity> entities = repo.findAll();
         assertNotNull(entities);
         assertEquals(0, entities.size());
 
         // find by id/ids
         try {
-            TodoEntity entity = repo.findById(0);
+            TaskEntity entity = repo.findById(0);
             fail("Found item by id in empty database table!");
         } catch (TaskNotFoundException tnfe) {
         }
@@ -99,7 +99,7 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void saveFindAllAndCleanTest() {
-        Set<TodoEntity> entities = generateEntities();
+        Set<TaskEntity> entities = generateEntities();
         populateDatabase(entities);
         collectionEquals(entities, repo.findAll());
         clean();
@@ -118,16 +118,16 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void findByIdTest() {
-        Set<TodoEntity> entities = generateEntities();
+        Set<TaskEntity> entities = generateEntities();
         populateDatabase(entities);
 
         int id = 1;
-        TodoEntity originalEntity = entities.stream()
+        TaskEntity originalEntity = entities.stream()
                 .filter(e -> e.getId() == id)
                 .findFirst()
                 .get();
 
-        TodoEntity foundEntity = null;
+        TaskEntity foundEntity = null;
         try {
             foundEntity = repo.findById(id);
         } catch (TaskNotFoundException tnfe) {
@@ -141,11 +141,11 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void findIdCollectionTest() {
-        Set<TodoEntity> entities = generateEntities();
+        Set<TaskEntity> entities = generateEntities();
         populateDatabase(entities);
 
         List<Integer> ids = Arrays.asList(1, 2);
-        Set<TodoEntity> originalEntities = entities.stream()
+        Set<TaskEntity> originalEntities = entities.stream()
                 .filter(e -> ids.contains(e.getId()))
                 .collect(Collectors.toSet());
 
@@ -160,11 +160,11 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void findByCategoryTest() {
-        Set<TodoEntity> entities = generateEntities();
+        Set<TaskEntity> entities = generateEntities();
         populateDatabase(entities);
 
         String category = "everyday life";
-        Set<TodoEntity> originalEntities = entities.stream()
+        Set<TaskEntity> originalEntities = entities.stream()
                 .filter(e -> category.equals(e.getCategory()))
                 .collect(Collectors.toSet());
 
@@ -173,11 +173,11 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void findByNotCategory() {
-        Set<TodoEntity> entities = generateEntities();
+        Set<TaskEntity> entities = generateEntities();
         populateDatabase(entities);
 
         String catToSkip = "personal";
-        Set<TodoEntity> originalEntities = entities.stream()
+        Set<TaskEntity> originalEntities = entities.stream()
                 .filter(e -> !catToSkip.equals(e.getCategory()))
                 .collect(Collectors.toSet());
         collectionEquals(originalEntities, repo.findByNotCategory(catToSkip));
@@ -185,11 +185,11 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void removeTest() {
-        Set<TodoEntity> entities = generateEntities();
+        Set<TaskEntity> entities = generateEntities();
         populateDatabase(entities);
 
         int id = 1;
-        Set<TodoEntity> originalEntities = entities.stream()
+        Set<TaskEntity> originalEntities = entities.stream()
                 .filter(e -> e.getId() != id)
                 .collect(Collectors.toSet());
 
@@ -206,10 +206,10 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void singleUpdateTest() {
-        Set<TodoEntity> entities = generateEntities();
+        Set<TaskEntity> entities = generateEntities();
         populateDatabase(entities);
 
-        TodoEntity toUpdate = entities.iterator().next();
+        TaskEntity toUpdate = entities.iterator().next();
         String newCategory = "new category";
         toUpdate.setCategory(newCategory);
         toUpdate.setPriority(0);
@@ -223,7 +223,7 @@ public class JdbcTodoRepositoryTest {
             fail(message);
         }
 
-        TodoEntity readEntity = null;
+        TaskEntity readEntity = null;
         try {
             readEntity = repo.findById(toUpdate.getId());
         } catch (TaskNotFoundException tnfe) {
@@ -237,8 +237,8 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void mixedSaveUpdateTest() {
-        Set<TodoEntity> entities = generateEntities();
-        TodoEntity toUpdate = entities.iterator().next();
+        Set<TaskEntity> entities = generateEntities();
+        TaskEntity toUpdate = entities.iterator().next();
         try {
             repo.save(toUpdate);
         } catch (TaskSaveFailureException tsfe) {
@@ -262,7 +262,7 @@ public class JdbcTodoRepositoryTest {
         collectionEquals(entities, repo.findAll());
     }
 
-    private void populateDatabase(Collection<TodoEntity> entities) {
+    private void populateDatabase(Collection<TaskEntity> entities) {
         try {
             repo.saveAll(entities);
         } catch (TaskSaveFailureException ex) {
@@ -272,12 +272,12 @@ public class JdbcTodoRepositoryTest {
         }
     }
 
-    private void collectionEquals(Collection<TodoEntity> c1, Collection<TodoEntity> c2) {
+    private void collectionEquals(Collection<TaskEntity> c1, Collection<TaskEntity> c2) {
         assertEquals(c1.size(), c2.size());
 
-        List<TodoEntity> l1 = new ArrayList<>(c1);
-        List<TodoEntity> l2 = new ArrayList<>(c2);
-        Comparator<TodoEntity> cmp = (e1, e2) -> e1.getId() - e2.getId();
+        List<TaskEntity> l1 = new ArrayList<>(c1);
+        List<TaskEntity> l2 = new ArrayList<>(c2);
+        Comparator<TaskEntity> cmp = (e1, e2) -> e1.getId() - e2.getId();
 
         Collections.sort(l1, cmp);
         Collections.sort(l2, cmp);
@@ -293,10 +293,9 @@ public class JdbcTodoRepositoryTest {
         assertEquals(0, rowCount);
     }
 
-    private Set<TodoEntity> generateEntities() {
-        Set<TodoEntity> entities = new HashSet<>();
-        entities.add(
-                TodoEntity.builder()
+    private Set<TaskEntity> generateEntities() {
+        Set<TaskEntity> entities = new HashSet<>();
+        entities.add(TaskEntity.builder()
                         .taskDef("Go to the gym")
                         .priority(1)
                         .deadline("2017.1.10")
@@ -305,8 +304,7 @@ public class JdbcTodoRepositoryTest {
                         .repeating(false)
                         .build()
         );
-        entities.add(
-                TodoEntity.builder()
+        entities.add(TaskEntity.builder()
                         .taskDef("Go shopping")
                         .priority(2)
                         .deadline("2017.1.12")
@@ -315,8 +313,7 @@ public class JdbcTodoRepositoryTest {
                         .repeating(true)
                         .build()
         );
-        entities.add(
-                TodoEntity.builder()
+        entities.add(TaskEntity.builder()
                         .taskDef("Prepare the bike")
                         .priority(2)
                         .deadline("2017.1.12")
@@ -324,8 +321,7 @@ public class JdbcTodoRepositoryTest {
                         .subTaskIds(null)
                         .build()
         );
-        entities.add(
-                TodoEntity.builder()
+        entities.add(TaskEntity.builder()
                         .taskDef("Lock the door")
                         .priority(1)
                         .deadline("2017.1.12")
