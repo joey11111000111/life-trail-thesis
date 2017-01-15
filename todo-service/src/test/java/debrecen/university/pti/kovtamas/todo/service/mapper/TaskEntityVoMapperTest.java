@@ -22,7 +22,7 @@ public class TaskEntityVoMapperTest {
                 .map(TaskEntityVoMapper::toStandaloneVo)
                 .collect(Collectors.toList());
 
-        listEquals(expected, results);
+        voListEquals(expected, results);
     }
 
     @Test
@@ -35,13 +35,50 @@ public class TaskEntityVoMapperTest {
 
         TaskEntityVoMapper.setRelations(vos, entities);
 
-        listEquals(expectedVos, vos);
+        voListEquals(expectedVos, vos);
     }
 
-    private void listEquals(List<TaskVo> l1, List<TaskVo> l2) {
+    @Test
+    public void toStandaloneEntityTest() {
+        List<TaskEntity> expectedEntities = generateEntities();
+        expectedEntities.forEach(entity -> entity.setSubTaskIds(null));
+
+        List<TaskVo> vos = generateVos();
+        List<TaskEntity> results = vos.stream()
+                .map(TaskEntityVoMapper::toStandaloneEntity)
+                .collect(Collectors.toList());
+
+        entityListEquals(expectedEntities, results);
+    }
+
+    @Test
+    public void toCompleteEntityTest() {
+        List<TaskEntity> expectedEntities = generateEntities();
+
+        List<TaskVo> vos = generateVos();
+        List<TaskEntity> results = vos.stream()
+                .map(TaskEntityVoMapper::toCompleteEntity)
+                .collect(Collectors.toList());
+
+        entityListEquals(expectedEntities, results);
+    }
+
+    private void voListEquals(List<TaskVo> l1, List<TaskVo> l2) {
         assertEquals(l1.size(), l2.size());
 
         Comparator<TaskVo> cmp = (e1, e2) -> e1.getId() - e2.getId();
+        l1.sort(cmp);
+        l2.sort(cmp);
+
+        for (int i = 0; i < l1.size(); i++) {
+            assertEquals(l1.get(i), l2.get(i));
+        }
+    }
+
+    private void entityListEquals(List<TaskEntity> l1, List<TaskEntity> l2) {
+        assertEquals(l1.size(), l2.size());
+
+        Comparator<TaskEntity> cmp = (e1, e2) -> e1.getId() - e2.getId();
         l1.sort(cmp);
         l2.sort(cmp);
 

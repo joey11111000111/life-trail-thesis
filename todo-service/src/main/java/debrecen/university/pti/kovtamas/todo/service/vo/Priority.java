@@ -9,7 +9,7 @@ public enum Priority {
         this.value = value;
     }
 
-    int intValue() {
+    public int intValue() {
         return value;
     }
 

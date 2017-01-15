@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -25,6 +24,24 @@ public class TaskEntityVoMapper {
 
     static {
         dateFormat = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+    }
+
+    public static TaskEntity toStandaloneEntity(@NonNull TaskVo vo) {
+        return TaskEntity.builder()
+                .id(vo.getId())
+                .taskDef(vo.getTaskDef())
+                .priority(vo.getPriority().intValue())
+                .deadline(vo.getDeadline().format(dateFormat))
+                .category(vo.getCategory())
+                .subTaskIds(null)
+                .repeating(vo.isRepeating())
+                .build();
+    }
+
+    public static TaskEntity toCompleteEntity(@NonNull TaskVo vo) {
+        TaskEntity entity = toStandaloneEntity(vo);
+        entity.setSubTaskIds(buildSubTaskIdsString(vo));
+        return entity;
     }
 
     public static TaskVo toStandaloneVo(@NonNull TaskEntity entity) {
@@ -100,4 +117,25 @@ public class TaskEntityVoMapper {
         }
     }
 
+    private static String buildSubTaskIdsString(TaskVo vo) {
+        List<TaskVo> subTasks = vo.getSubTasks();
+        if (subTasks == null) {
+            return null;
+        }
+        if (subTasks.isEmpty()) {
+            return null;
+        }
+
+        subTasks.forEach(sub -> {
+            if (sub == null) {
+                throw new IllegalArgumentException("TaskVo has a subtask whose id is null!");
+            }
+        });
+
+        StringBuilder sb = new StringBuilder();
+        subTasks.forEach(subTask -> sb.append(subTask.getId()).append(','));
+        sb.deleteCharAt(sb.length() - 1);
+
+        return sb.toString();
+    }
 }
