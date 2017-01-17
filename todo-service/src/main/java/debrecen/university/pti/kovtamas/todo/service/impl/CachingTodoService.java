@@ -9,6 +9,9 @@ import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
 import debrecen.university.pti.kovtamas.todo.service.mapper.TaskEntityVoMapper;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class CachingTodoService implements TodoService {
 
@@ -74,8 +77,33 @@ public class CachingTodoService implements TodoService {
     }
 
     @Override
-    public void saveAll(List<TaskVo> tasks) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void saveAll(List<TaskVo> tasks) throws TaskSaveFailureException {
+        final boolean STANDALONE = true;
+        final boolean NESTED = false;
+        Predicate<TaskVo> isStandalone = (task) -> !task.hasSubTasks();
+
+        Map<Boolean, List<TaskVo>> separatedTasks = tasks.stream()
+                .collect(Collectors.partitioningBy(isStandalone));
+
+        List<TaskEntity> standaloneEntities = separatedTasks.get(STANDALONE).stream()
+                .map(TaskEntityVoMapper::toStandaloneEntity)
+                .collect(Collectors.toList());
+
+        try {
+            // First save all the standalone tasks
+            repo.saveAll(standaloneEntities);
+            for (int i = 0; i < standaloneEntities.size(); i++) {
+                List<TaskVo> standaloneVos = separatedTasks.get(STANDALONE);
+                standaloneVos.get(i).setId(standaloneEntities.get(i).getId());
+            }
+
+            // Then save all the nested tasks
+            for (TaskVo rootVo : separatedTasks.get(NESTED)) {
+                saveTaskTree(rootVo);
+            }
+        } catch (TaskPersistenceException tpe) {
+            throw new TaskSaveFailureException("Could not save given task list!", tpe);
+        }
     }
 
     @Override
