@@ -52,12 +52,12 @@ public class TaskEntityVoMapperTest {
     }
 
     @Test
-    public void toCompleteEntityTest() {
+    public void toEntityTest() {
         List<TaskEntity> expectedEntities = generateEntities();
 
         List<TaskVo> vos = generateVos();
         List<TaskEntity> results = vos.stream()
-                .map(TaskEntityVoMapper::toCompleteEntity)
+                .map(TaskEntityVoMapper::toEntity)
                 .collect(Collectors.toList());
 
         entityListEquals(expectedEntities, results);

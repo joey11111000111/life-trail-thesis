@@ -38,7 +38,7 @@ public class TaskEntityVoMapper {
                 .build();
     }
 
-    public static TaskEntity toCompleteEntity(@NonNull TaskVo vo) {
+    public static TaskEntity toEntity(@NonNull TaskVo vo) {
         TaskEntity entity = toStandaloneEntity(vo);
         entity.setSubTaskIds(buildSubTaskIdsString(vo));
         return entity;
