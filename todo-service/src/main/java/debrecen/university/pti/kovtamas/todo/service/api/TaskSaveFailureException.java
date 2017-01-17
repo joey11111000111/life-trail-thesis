@@ -1,4 +1,4 @@
-package debrecen.university.pti.kovtamas.data.impl.todo.exceptions;
+package debrecen.university.pti.kovtamas.todo.service.api;
 
 public class TaskSaveFailureException extends Exception {
 

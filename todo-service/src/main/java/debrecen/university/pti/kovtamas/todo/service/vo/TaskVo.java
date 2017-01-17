@@ -17,4 +17,12 @@ public class TaskVo {
     private List<TaskVo> subTasks;
     private boolean repeating;
 
+    public boolean hasId() {
+        return id != null;
+    }
+
+    public boolean hasSubTasks() {
+        return subTasks != null && !subTasks.isEmpty();
+    }
+
 }

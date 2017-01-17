@@ -19,4 +19,8 @@ public class TaskEntity {
         return id != null;
     }
 
+    public boolean hasSubTasks() {
+        return subTaskIds != null && !subTaskIds.isEmpty();
+    }
+
 }

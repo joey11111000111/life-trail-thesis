@@ -16,8 +16,7 @@ public class TaskEntityVoMapperTest {
 
     @Test
     public void toStandaloneVoTest() {
-        List<TaskVo> expected = generateVos();
-        expected.forEach(vo -> vo.setSubTasks(null));
+        List<TaskVo> expected = generateStandaloneVos();
         List<TaskVo> results = generateEntities().stream()
                 .map(TaskEntityVoMapper::toStandaloneVo)
                 .collect(Collectors.toList());
@@ -25,25 +24,23 @@ public class TaskEntityVoMapperTest {
         voListEquals(expected, results);
     }
 
-    @Test
-    public void setRelationsTest() {
-        List<TaskVo> expectedVos = generateVos();
-
-        List<TaskEntity> entities = generateEntities();
-        List<TaskVo> vos = generateVos();
-        vos.forEach(vo -> vo.setSubTasks(null));
-
-        TaskEntityVoMapper.setRelations(vos, entities);
-
-        voListEquals(expectedVos, vos);
-    }
-
+//    @Test
+//    public void setRelationsTest() {
+//        List<TaskVo> expectedVos = generateVos();
+//
+//        List<TaskEntity> entities = generateEntities();
+//        List<TaskVo> vos = generateVos();
+//        vos.forEach(vo -> vo.setSubTasks(null));
+//
+//        TaskEntityVoMapper.setRelations(vos, entities);
+//
+//        voListEquals(expectedVos, vos);
+//    }
     @Test
     public void toStandaloneEntityTest() {
-        List<TaskEntity> expectedEntities = generateEntities();
-        expectedEntities.forEach(entity -> entity.setSubTaskIds(null));
+        List<TaskEntity> expectedEntities = generateStandaloneEntities();
 
-        List<TaskVo> vos = generateVos();
+        List<TaskVo> vos = generateStandaloneVos();
         List<TaskEntity> results = vos.stream()
                 .map(TaskEntityVoMapper::toStandaloneEntity)
                 .collect(Collectors.toList());
@@ -53,11 +50,14 @@ public class TaskEntityVoMapperTest {
 
     @Test
     public void toEntityTest() {
-        List<TaskEntity> expectedEntities = generateEntities();
+        List<TaskEntity> entities = generateEntities();
+        List<TaskEntity> expectedEntities = new ArrayList<>(2);
+        expectedEntities.add(entities.get(3));
+        expectedEntities.add(entities.get(4));
 
         List<TaskVo> vos = generateVos();
         List<TaskEntity> results = vos.stream()
-                .map(TaskEntityVoMapper::toEntity)
+                .map(vo -> TaskEntityVoMapper.toEntity(vo))
                 .collect(Collectors.toList());
 
         entityListEquals(expectedEntities, results);
@@ -133,10 +133,27 @@ public class TaskEntityVoMapperTest {
                 .build()
         );
 
+        entities.add(TaskEntity.builder()
+                .id(5)
+                .taskDef("Learn for the exam")
+                .priority(3)
+                .deadline("2017.01.12")
+                .category("School")
+                .subTaskIds(null)
+                .repeating(true)
+                .build()
+        );
+
         return entities;
     }
 
-    private List<TaskVo> generateVos() {
+    private List<TaskEntity> generateStandaloneEntities() {
+        List<TaskEntity> entities = generateEntities();
+        entities.forEach(entity -> entity.setSubTaskIds(null));
+        return entities;
+    }
+
+    private List<TaskVo> generateStandaloneVos() {
         List<TaskVo> vos = new ArrayList<>();
         vos.add(TaskVo.builder()
                 .id(1)
@@ -148,7 +165,6 @@ public class TaskEntityVoMapperTest {
                 .repeating(false)
                 .build()
         );
-
         vos.add(TaskVo.builder()
                 .id(2)
                 .taskDef("Eat fruits")
@@ -159,34 +175,56 @@ public class TaskEntityVoMapperTest {
                 .repeating(false)
                 .build()
         );
-
-        List<TaskVo> subs = new ArrayList<>();
-        vos.forEach(vo -> subs.add(vo));
         vos.add(TaskVo.builder()
                 .id(3)
                 .taskDef("Manage you health")
                 .priority(Priority.ofInteger(2))
                 .deadline(LocalDate.of(2017, 1, 10))
                 .category("personal")
-                .subTasks(subs)
+                .subTasks(null)
                 .repeating(false)
                 .build()
         );
-
-        List<TaskVo> subsOfLast = new ArrayList<>();
-        vos.stream()
-                .filter(vo -> vo.getId() == 3)
-                .forEach(vo -> subsOfLast.add(vo));
         vos.add(TaskVo.builder()
                 .id(4)
                 .taskDef("Live happily")
                 .priority(Priority.ofInteger(3))
                 .deadline(LocalDate.of(2017, 1, 10))
                 .category("personal")
-                .subTasks(subsOfLast)
+                .subTasks(null)
                 .repeating(true)
                 .build()
         );
+        vos.add(TaskVo.builder()
+                .id(5)
+                .taskDef("Learn for the exam")
+                .priority(Priority.ofInteger(3))
+                .deadline(LocalDate.of(2017, 1, 12))
+                .category("School")
+                .subTasks(null)
+                .repeating(true)
+                .build()
+        );
+
+        return vos;
+    }
+
+    private List<TaskVo> generateVos() {
+        List<TaskVo> standaloneVos = generateStandaloneVos();
+
+        // Set relations
+        List<TaskVo> subsOf2 = new ArrayList<>(2);
+        subsOf2.add(standaloneVos.get(0));
+        subsOf2.add(standaloneVos.get(1));
+        standaloneVos.get(2).setSubTasks(subsOf2);
+
+        List<TaskVo> subsOf3 = new ArrayList<>(1);
+        subsOf3.add(standaloneVos.get(2));
+        standaloneVos.get(3).setSubTasks(subsOf3);
+
+        List<TaskVo> vos = new ArrayList<>();
+        vos.add(standaloneVos.get(3));
+        vos.add(standaloneVos.get(4));
 
         return vos;
     }

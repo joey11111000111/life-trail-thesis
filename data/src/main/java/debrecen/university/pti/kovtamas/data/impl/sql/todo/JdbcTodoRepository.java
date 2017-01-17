@@ -3,7 +3,7 @@ package debrecen.university.pti.kovtamas.data.impl.sql.todo;
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DataSourceManager;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
-import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskSaveFailureException;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.UnsuccessfulDatabaseOperation;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TodoRepository;
 import java.sql.Connection;
@@ -137,18 +137,18 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
-    public void save(TaskEntity entity) throws TaskSaveFailureException {
+    public void save(TaskEntity entity) throws TaskPersistenceException {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             saveOrUpdate(entity, conn);
         } catch (SQLException sqle) {
             String message = "Exception while trying to update the database!";
             LOG.warn(message, sqle);
-            throw new TaskSaveFailureException(message, sqle);
+            throw new TaskPersistenceException(message, sqle);
         }
     }
 
     @Override
-    public void saveAll(Collection<TaskEntity> entities) throws TaskSaveFailureException {
+    public void saveAll(Collection<TaskEntity> entities) throws TaskPersistenceException {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             for (TaskEntity entity : entities) {
                 saveOrUpdate(entity, conn);
@@ -156,11 +156,11 @@ public class JdbcTodoRepository implements TodoRepository {
         } catch (SQLException sqle) {
             String message = "Exception while trying to update the database!";
             LOG.warn(message, sqle);
-            throw new TaskSaveFailureException(message, sqle);
+            throw new TaskPersistenceException(message, sqle);
         }
     }
 
-    private void saveOrUpdate(TaskEntity entity, Connection conn) throws SQLException, TaskSaveFailureException {
+    private void saveOrUpdate(TaskEntity entity, Connection conn) throws SQLException, TaskPersistenceException {
         PreparedStatement prStatement = createSaveOrUpdateStatement(entity, conn);
 
         // Set statement variables
@@ -176,7 +176,7 @@ public class JdbcTodoRepository implements TodoRepository {
 
         int affectedRows = prStatement.executeUpdate();
         if (affectedRows != 1) {
-            throw new TaskSaveFailureException("Failed to update task with id: " + entity.getId());
+            throw new TaskPersistenceException("Failed to update task with id: " + entity.getId());
         }
 
         if (entity.hasId()) {
@@ -243,14 +243,14 @@ public class JdbcTodoRepository implements TodoRepository {
         return conn.prepareStatement(TodoQueries.INSERT, Statement.RETURN_GENERATED_KEYS);
     }
 
-    private Integer extractGeneratedId(PreparedStatement prStatement) throws SQLException, TaskSaveFailureException {
+    private Integer extractGeneratedId(PreparedStatement prStatement) throws SQLException, TaskPersistenceException {
         ResultSet result = prStatement.getGeneratedKeys();
         if (result.next()) {
             return result.getInt(1);
         }
         String message = "Possible save error, generated ID could not be retrived!";
         LOG.warn(message);
-        throw new TaskSaveFailureException(message);
+        throw new TaskPersistenceException(message);
     }
 
     private TaskEntity convertRecordToEntity(ResultSet record) throws SQLException {

@@ -9,9 +9,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 
@@ -40,7 +37,10 @@ public class TaskEntityVoMapper {
 
     public static TaskEntity toEntity(@NonNull TaskVo vo) {
         TaskEntity entity = toStandaloneEntity(vo);
-        entity.setSubTaskIds(buildSubTaskIdsString(vo));
+        if (vo.hasSubTasks()) {
+            entity.setSubTaskIds(buildSubTaskIdsString(vo));
+        }
+
         return entity;
     }
 
@@ -85,6 +85,24 @@ public class TaskEntityVoMapper {
         }
     }
 
+//    public static List<TaskVo> toVo(@NonNull Collection<TaskEntity> entities) {
+//        List<TaskVo> vos = new ArrayList<>(entities.size());
+//        if (vos.size() == 0) {
+//            return vos;
+//        }
+//
+//        entities.forEach((entity) -> {
+//            if (!entity.hasSubTasks()) {
+//                vos.add(TaskEntityVoMapper.toStandaloneVo(entity));
+//            } else {
+//
+//            }
+//        });
+//
+//        return null;
+//    }
+//
+//    private static TaskVo innerTaskToVo()
     private static List<Integer> extractSubIds(String ids) {
         if (ids.isEmpty()) {
             throw new IllegalArgumentException("Sub task id string is empty!");
@@ -103,31 +121,32 @@ public class TaskEntityVoMapper {
         return extractedIds;
     }
 
-    private static void setSubTasksOf(TaskVo parent, Collection<TaskVo> vos, Collection<Integer> subIds) {
-        SortedSet<TaskVo> allSubTasks = new TreeSet<TaskVo>();
-        for (Integer id : subIds) {
-            Optional<TaskVo> subTask = vos.stream()
-                    .filter(vo -> vo.getId() == id)
-                    .findFirst();
-            if (!subTask.isPresent()) {
-                throw new IllegalArgumentException("Required subtask is not present in the collection!");
-            }
-
-            allSubTasks.add(subTask.get());
-        }
-    }
-
+//    private static void setSubTasksOf(TaskVo parent, Collection<TaskVo> vos, Collection<Integer> subIds) {
+//        SortedSet<TaskVo> allSubTasks = new TreeSet<TaskVo>();
+//        for (Integer id : subIds) {
+//            Optional<TaskVo> subTask = vos.stream()
+//                    .filter(vo -> vo.getId() == id)
+//                    .findFirst();
+//            if (!subTask.isPresent()) {
+//                throw new IllegalArgumentException("Required subtask is not present in the collection!");
+//            }
+//
+//            allSubTasks.add(subTask.get());
+//        }
+//    }
     private static String buildSubTaskIdsString(TaskVo vo) {
+        @NonNull
         List<TaskVo> subTasks = vo.getSubTasks();
-        if (subTasks == null) {
-            return null;
-        }
+
         if (subTasks.isEmpty()) {
             return null;
         }
 
         subTasks.forEach(sub -> {
             if (sub == null) {
+                throw new IllegalArgumentException("Sub task is null in sub task list!");
+            }
+            if (!sub.hasId()) {
                 throw new IllegalArgumentException("TaskVo has a subtask whose id is null!");
             }
         });

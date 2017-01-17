@@ -4,7 +4,7 @@ import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DataSourceManager;
 import debrecen.university.pti.kovtamas.data.impl.sql.todo.JdbcTodoRepository;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
-import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskSaveFailureException;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TodoRepository;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -108,7 +108,7 @@ public class JdbcTodoRepositoryTest {
         entities.forEach(entity -> {
             try {
                 repo.save(entity);
-            } catch (TaskSaveFailureException ex) {
+            } catch (TaskPersistenceException ex) {
                 String message = "Could not save entity:" + System.getProperty("line.separator") + entity.toString();
                 LOG.warn(message, ex);
             }
@@ -217,7 +217,7 @@ public class JdbcTodoRepositoryTest {
 
         try {
             repo.save(toUpdate);
-        } catch (TaskSaveFailureException tsfe) {
+        } catch (TaskPersistenceException tsfe) {
             String message = "Exception while trying to update entity!";
             LOG.error(message, tsfe);
             fail(message);
@@ -241,7 +241,7 @@ public class JdbcTodoRepositoryTest {
         TaskEntity toUpdate = entities.iterator().next();
         try {
             repo.save(toUpdate);
-        } catch (TaskSaveFailureException tsfe) {
+        } catch (TaskPersistenceException tsfe) {
             String message = "Could not save single entity!";
             LOG.error(message, tsfe);
             fail(message);
@@ -253,7 +253,7 @@ public class JdbcTodoRepositoryTest {
 
         try {
             repo.saveAll(entities);
-        } catch (TaskSaveFailureException tsfe) {
+        } catch (TaskPersistenceException tsfe) {
             String message = "Could not saveAll entities!";
             LOG.error(message, tsfe);
             fail(message);
@@ -265,7 +265,7 @@ public class JdbcTodoRepositoryTest {
     private void populateDatabase(Collection<TaskEntity> entities) {
         try {
             repo.saveAll(entities);
-        } catch (TaskSaveFailureException ex) {
+        } catch (TaskPersistenceException ex) {
             String message = "Could not populate table for the test!";
             LOG.error(message, ex);
             fail(message);

@@ -2,7 +2,7 @@ package debrecen.university.pti.kovtamas.data.interfaces.todo;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
-import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskSaveFailureException;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import java.util.Collection;
 import java.util.Set;
 
@@ -18,9 +18,9 @@ public interface TodoRepository {
 
     Set<TaskEntity> findByIds(Collection<Integer> ids) throws TaskNotFoundException;
 
-    void save(TaskEntity entity) throws TaskSaveFailureException;
+    void save(TaskEntity entity) throws TaskPersistenceException;
 
-    void saveAll(Collection<TaskEntity> entities) throws TaskSaveFailureException;
+    void saveAll(Collection<TaskEntity> entities) throws TaskPersistenceException;
 
     void remove(int id) throws TaskNotFoundException;
 

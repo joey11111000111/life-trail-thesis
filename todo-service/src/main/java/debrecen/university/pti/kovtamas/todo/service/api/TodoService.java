@@ -13,9 +13,9 @@ public interface TodoService {
 
     List<TaskVo> getTasksOfFollowingDays(int days);
 
-    void save(TaskVo task);
+    void save(TaskVo task) throws TaskSaveFailureException;
 
-    void saveAll(List<TaskVo> tasks);
+    void saveAll(List<TaskVo> tasks) throws TaskSaveFailureException;
 
     void delete(TaskVo task);
 
