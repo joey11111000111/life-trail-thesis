@@ -5,6 +5,7 @@ import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DataSourceManag
 import debrecen.university.pti.kovtamas.data.impl.sql.todo.JdbcTodoRepository;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TodoRepository;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -199,9 +200,37 @@ public class JdbcTodoRepositoryTest {
             String message = "Could not find task with id: " + id + " to remove!";
             LOG.warn(message, tnfe);
             fail(message);
+        } catch (TaskRemovalException tre) {
+            String message = "Could not remove task with id : " + id;
+            LOG.error(message, tre);
+            fail(message);
         }
 
         collectionEquals(originalEntities, repo.findAll());
+    }
+
+    @Test
+    public void removeAllTest() {
+        Set<TaskEntity> entities = generateEntities();
+        populateDatabase(entities);
+        assertEquals(entities.size(), repo.getRowCount());
+
+        try {
+            Set<Integer> ids = entities.stream()
+                    .map(entity -> entity.getId())
+                    .collect(Collectors.toSet());
+            repo.removeAll(ids);
+        } catch (TaskNotFoundException tnfe) {
+            String message = "Could not find task from collection to remove!";
+            LOG.warn(message, tnfe);
+            fail(message);
+        } catch (TaskRemovalException tre) {
+            String message = "Could not remove task specified in the collection!";
+            LOG.error(message, tre);
+            fail(message);
+        }
+
+        assertEquals(0, repo.getRowCount());
     }
 
     @Test
@@ -253,13 +282,29 @@ public class JdbcTodoRepositoryTest {
 
         try {
             repo.saveAll(entities);
-        } catch (TaskPersistenceException tsfe) {
+        } catch (TaskPersistenceException tpe) {
             String message = "Could not saveAll entities!";
-            LOG.error(message, tsfe);
+            LOG.error(message, tpe);
             fail(message);
         }
 
         collectionEquals(entities, repo.findAll());
+    }
+
+    @Test
+    public void IdsAreSetTest() {
+        Set<TaskEntity> entities = generateEntities();
+        entities.forEach(entity -> entity.setId(null));
+
+        try {
+            repo.saveAll(entities);
+        } catch (TaskPersistenceException tpe) {
+            String message = "Could not saveAll entities!";
+            LOG.error(message, tpe);
+            fail(message);
+        }
+
+        entities.forEach(entity -> assertNotNull(entity.getId()));
     }
 
     private void populateDatabase(Collection<TaskEntity> entities) {
@@ -296,38 +341,38 @@ public class JdbcTodoRepositoryTest {
     private Set<TaskEntity> generateEntities() {
         Set<TaskEntity> entities = new HashSet<>();
         entities.add(TaskEntity.builder()
-                        .taskDef("Go to the gym")
-                        .priority(1)
-                        .deadline("2017.1.10")
-                        .category("personal")
-                        .subTaskIds(null)
-                        .repeating(false)
-                        .build()
+                .taskDef("Go to the gym")
+                .priority(1)
+                .deadline("2017.1.10")
+                .category("personal")
+                .subTaskIds(null)
+                .repeating(false)
+                .build()
         );
         entities.add(TaskEntity.builder()
-                        .taskDef("Go shopping")
-                        .priority(2)
-                        .deadline("2017.1.12")
-                        .category("everyday life")
-                        .subTaskIds("3, 4")
-                        .repeating(true)
-                        .build()
+                .taskDef("Go shopping")
+                .priority(2)
+                .deadline("2017.1.12")
+                .category("everyday life")
+                .subTaskIds("3, 4")
+                .repeating(true)
+                .build()
         );
         entities.add(TaskEntity.builder()
-                        .taskDef("Prepare the bike")
-                        .priority(2)
-                        .deadline("2017.1.12")
-                        .category("everyday life")
-                        .subTaskIds(null)
-                        .build()
+                .taskDef("Prepare the bike")
+                .priority(2)
+                .deadline("2017.1.12")
+                .category("everyday life")
+                .subTaskIds(null)
+                .build()
         );
         entities.add(TaskEntity.builder()
-                        .taskDef("Lock the door")
-                        .priority(1)
-                        .deadline("2017.1.12")
-                        .category("everyday life")
-                        .subTaskIds(null)
-                        .build()
+                .taskDef("Lock the door")
+                .priority(1)
+                .deadline("2017.1.12")
+                .category("everyday life")
+                .subTaskIds(null)
+                .build()
         );
 
         return entities;

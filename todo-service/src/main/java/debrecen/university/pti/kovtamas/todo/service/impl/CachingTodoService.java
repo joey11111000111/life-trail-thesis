@@ -8,12 +8,18 @@ import debrecen.university.pti.kovtamas.todo.service.api.TaskSaveFailureExceptio
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
 import debrecen.university.pti.kovtamas.todo.service.mapper.TaskEntityVoMapper;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CachingTodoService implements TodoService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CachingTodoService.class);
 
     private final TodoRepository repo;
 
@@ -108,7 +114,23 @@ public class CachingTodoService implements TodoService {
 
     @Override
     public void delete(TaskVo task) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Set<Integer> allTaskIds = extractAllTaskIdsOf(task);
+
+    }
+
+    private Set<Integer> extractAllTaskIdsOf(TaskVo rootTask) {
+        Set<Integer> ids = new HashSet<>();
+        if (!rootTask.hasId()) {
+            return ids;
+        }
+        ids.add(rootTask.getId());
+
+        if (rootTask.hasSubTasks()) {
+            rootTask.getSubTasks()
+                    .forEach(sub -> ids.addAll(extractAllTaskIdsOf(sub)));
+        }
+
+        return ids;
     }
 
     @Override

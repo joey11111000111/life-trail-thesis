@@ -4,6 +4,7 @@ import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DataSourceManager;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.UnsuccessfulDatabaseOperation;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TodoRepository;
 import java.sql.Connection;
@@ -11,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -138,13 +140,7 @@ public class JdbcTodoRepository implements TodoRepository {
 
     @Override
     public void save(TaskEntity entity) throws TaskPersistenceException {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            saveOrUpdate(entity, conn);
-        } catch (SQLException sqle) {
-            String message = "Exception while trying to update the database!";
-            LOG.warn(message, sqle);
-            throw new TaskPersistenceException(message, sqle);
-        }
+        saveAll(Arrays.asList(entity));
     }
 
     @Override
@@ -187,19 +183,31 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
-    public void remove(int id) throws TaskNotFoundException {
+    public void remove(int id) throws TaskNotFoundException, TaskRemovalException {
+        removeAll(Arrays.asList(id));
+    }
+
+    @Override
+    public void removeAll(Collection<Integer> ids) throws TaskNotFoundException, TaskRemovalException {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            PreparedStatement prStatement = conn.prepareStatement(TodoQueries.REMOVE_BY_ID);
-            prStatement.setInt(1, id);
-            int modifiedRowCount = prStatement.executeUpdate();
-            if (modifiedRowCount == 0) {
-                throw new TaskNotFoundException("Cannot delete a row that doesn't exist!"
-                        + "The id " + id + " was not found in the database.");
+            for (int id : ids) {
+                removeTask(id, conn);
             }
         } catch (SQLException sqle) {
-            LOG.warn("Exception while trying to remove from the database!", sqle);
+            String message = "Exception while trying to remove from the database!";
+            LOG.warn(message, sqle);
+            throw new TaskRemovalException(message, sqle);
         }
+    }
 
+    private void removeTask(int id, Connection conn) throws SQLException, TaskNotFoundException {
+        PreparedStatement prStatement = conn.prepareStatement(TodoQueries.REMOVE_BY_ID);
+        prStatement.setInt(1, id);
+        int modifiedRowCount = prStatement.executeUpdate();
+        if (modifiedRowCount == 0) {
+            throw new TaskNotFoundException("Cannot delete a row that doesn't exist!"
+                    + "The id " + id + " was not found in the database.");
+        }
     }
 
     @Override
