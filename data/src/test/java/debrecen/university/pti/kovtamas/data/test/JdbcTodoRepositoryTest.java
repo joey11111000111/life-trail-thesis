@@ -10,12 +10,13 @@ import debrecen.university.pti.kovtamas.data.interfaces.todo.TodoRepository;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,9 +34,11 @@ public class JdbcTodoRepositoryTest {
     private static final Logger LOG = LoggerFactory.getLogger(JdbcTodoRepositoryTest.class.getName());
 
     private static TodoRepository repo;
+    private static DateTimeFormatter formatter;
 
     public JdbcTodoRepositoryTest() {
-        repo = new JdbcTodoRepository();
+        formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+        repo = new JdbcTodoRepository(formatter);
     }
 
     @BeforeClass
@@ -100,12 +103,12 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void saveFindAllAndCleanTest() {
-        Set<TaskEntity> entities = generateEntities();
+        Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
         populateDatabase(entities);
         collectionEquals(entities, repo.findAll());
         clean();
 
-        entities = generateEntities();
+        entities = TestDataGenerator.generateOriginalEntitySet();
         entities.forEach(entity -> {
             try {
                 repo.save(entity);
@@ -119,7 +122,7 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void findByIdTest() {
-        Set<TaskEntity> entities = generateEntities();
+        Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
         populateDatabase(entities);
 
         int id = 1;
@@ -142,7 +145,7 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void findIdCollectionTest() {
-        Set<TaskEntity> entities = generateEntities();
+        Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
         populateDatabase(entities);
 
         List<Integer> ids = Arrays.asList(1, 2);
@@ -161,7 +164,7 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void findByCategoryTest() {
-        Set<TaskEntity> entities = generateEntities();
+        Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
         populateDatabase(entities);
 
         String category = "everyday life";
@@ -174,7 +177,7 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void findByNotCategory() {
-        Set<TaskEntity> entities = generateEntities();
+        Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
         populateDatabase(entities);
 
         String catToSkip = "personal";
@@ -185,8 +188,41 @@ public class JdbcTodoRepositoryTest {
     }
 
     @Test
+    public void findTodayTasksTest() {
+        Set<TaskEntity> entities = TestDataGenerator.generateEntitiesForTodayTest(formatter);
+        populateDatabase(entities);
+
+        Set<TaskEntity> expectedEntities = entities.stream()
+                .filter(entity -> !"exclude me".equals(entity.getCategory()))
+                .collect(Collectors.toSet());
+
+        Set<TaskEntity> results = repo.findTodayTasks();
+        collectionEquals(expectedEntities, results);
+    }
+
+    @Test
+    public void findTasksUntilTest() {
+        Set<TaskEntity> entities = TestDataGenerator.generateEntitiesForUntilTest(formatter);
+        populateDatabase(entities);
+
+        Set<TaskEntity> expectedEntities = entities.stream()
+                .filter(entity -> !"exclude me".equals(entity.getCategory()))
+                .collect(Collectors.toSet());
+//        System.out.println("-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --");
+//        expectedEntities.forEach(System.out::println);
+//        System.out.println("-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --");
+
+        Set<TaskEntity> results = repo.findTasksUntil(LocalDate.now().plusWeeks(2).format(formatter), formatter);
+//        System.out.println("-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --");
+//        results.forEach(System.out::println);
+//        System.out.println("-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --");
+
+        collectionEquals(expectedEntities, results);
+    }
+
+    @Test
     public void removeTest() {
-        Set<TaskEntity> entities = generateEntities();
+        Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
         populateDatabase(entities);
 
         int id = 1;
@@ -211,7 +247,7 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void removeAllTest() {
-        Set<TaskEntity> entities = generateEntities();
+        Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
         populateDatabase(entities);
         assertEquals(entities.size(), repo.getRowCount());
 
@@ -235,7 +271,7 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void singleUpdateTest() {
-        Set<TaskEntity> entities = generateEntities();
+        Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
         populateDatabase(entities);
 
         TaskEntity toUpdate = entities.iterator().next();
@@ -266,7 +302,7 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void mixedSaveUpdateTest() {
-        Set<TaskEntity> entities = generateEntities();
+        Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
         TaskEntity toUpdate = entities.iterator().next();
         try {
             repo.save(toUpdate);
@@ -293,7 +329,7 @@ public class JdbcTodoRepositoryTest {
 
     @Test
     public void IdsAreSetTest() {
-        Set<TaskEntity> entities = generateEntities();
+        Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
         entities.forEach(entity -> entity.setId(null));
 
         try {
@@ -338,43 +374,4 @@ public class JdbcTodoRepositoryTest {
         assertEquals(0, rowCount);
     }
 
-    private Set<TaskEntity> generateEntities() {
-        Set<TaskEntity> entities = new HashSet<>();
-        entities.add(TaskEntity.builder()
-                .taskDef("Go to the gym")
-                .priority(1)
-                .deadline("2017.1.10")
-                .category("personal")
-                .subTaskIds(null)
-                .repeating(false)
-                .build()
-        );
-        entities.add(TaskEntity.builder()
-                .taskDef("Go shopping")
-                .priority(2)
-                .deadline("2017.1.12")
-                .category("everyday life")
-                .subTaskIds("3, 4")
-                .repeating(true)
-                .build()
-        );
-        entities.add(TaskEntity.builder()
-                .taskDef("Prepare the bike")
-                .priority(2)
-                .deadline("2017.1.12")
-                .category("everyday life")
-                .subTaskIds(null)
-                .build()
-        );
-        entities.add(TaskEntity.builder()
-                .taskDef("Lock the door")
-                .priority(1)
-                .deadline("2017.1.12")
-                .category("everyday life")
-                .subTaskIds(null)
-                .build()
-        );
-
-        return entities;
-    }
 }

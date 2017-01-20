@@ -8,10 +8,13 @@ import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalExc
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.UnsuccessfulDatabaseOperation;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TodoRepository;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -23,6 +26,11 @@ import org.slf4j.LoggerFactory;
 public class JdbcTodoRepository implements TodoRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(JdbcTodoRepository.class);
+    private DateTimeFormatter requiredDateFormat;
+
+    public JdbcTodoRepository(DateTimeFormatter requiredDateFormat) {
+        this.requiredDateFormat = requiredDateFormat;
+    }
 
     @Override
     public Set<TaskEntity> findAll() {
@@ -139,6 +147,54 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
+    public Set<TaskEntity> findTodayTasks() {
+        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
+            return findTodayTasks(conn);
+        } catch (SQLException sqle) {
+            LOG.warn("Failied attempt to find today tasks!", sqle);
+            return new HashSet<>();
+        }
+    }
+
+    private Set<TaskEntity> findTodayTasks(Connection conn) throws SQLException {
+        PreparedStatement prStatement = conn.prepareStatement(TodoQueries.FIND_TODAY_TASKS);
+        LocalDate today = LocalDate.now();
+        Date sqlToday = Date.valueOf(today);
+        prStatement.setDate(1, sqlToday);
+
+        ResultSet results = prStatement.executeQuery();
+        Set<TaskEntity> entities = new HashSet<>();
+        while (results.next()) {
+            entities.add(convertRecordToEntity(results));
+        }
+
+        return entities;
+    }
+
+    @Override
+    public Set<TaskEntity> findTasksUntil(String lastDate, DateTimeFormatter format) {
+        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
+            Set<TaskEntity> tasksUntil = findTodayTasks(conn);
+            Date now = Date.valueOf(LocalDate.now().plusDays(1));   // Today tasks are already in the set, so plusDays(1)
+            Date until = Date.valueOf(LocalDate.parse(lastDate, format));
+            PreparedStatement prStatement = conn.prepareStatement(TodoQueries.FIND_TASKS_BETWEEN_DATE);
+            prStatement.setDate(1, now);
+            prStatement.setDate(2, until);
+
+            ResultSet results = prStatement.executeQuery();
+            while (results.next()) {
+                LOG.debug("++ ++ ++ ++ ++ Found one, not of today! ++ ++ ++ ++ ++ ");
+                tasksUntil.add(convertRecordToEntity(results));
+            }
+
+            return tasksUntil;
+        } catch (SQLException sqle) {
+            LOG.warn("Failed attempt to find tasks until date: " + lastDate, sqle);
+            return new HashSet<>();
+        }
+    }
+
+    @Override
     public void save(TaskEntity entity) throws TaskPersistenceException {
         saveAll(Arrays.asList(entity));
     }
@@ -162,7 +218,7 @@ public class JdbcTodoRepository implements TodoRepository {
         // Set statement variables
         prStatement.setString(1, entity.getTaskDef());
         prStatement.setInt(2, entity.getPriority());
-        prStatement.setString(3, entity.getDeadline());
+        prStatement.setDate(3, parseToSqlDate(entity.getDeadline()));
         prStatement.setString(4, entity.getCategory());
         prStatement.setString(5, entity.getSubTaskIds());
         prStatement.setString(6, Boolean.toString(entity.isRepeating()));
@@ -262,15 +318,34 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     private TaskEntity convertRecordToEntity(ResultSet record) throws SQLException {
+        String deadlineString = formatToRequiredDateFormat(record.getDate("DEADLINE"));
         return TaskEntity.builder()
                 .id(record.getInt("ID"))
                 .taskDef(record.getString("TASK_DEF"))
                 .priority(record.getInt("PRIORITY"))
-                .deadline(record.getString("DEADLINE"))
+                .deadline(deadlineString)
                 .category(record.getString("CATEGORY"))
                 .subTaskIds(record.getString("SUB_TASK_IDS"))
                 .repeating(Boolean.parseBoolean(record.getString("REPEATING")))
                 .build();
+    }
+
+    private String formatToRequiredDateFormat(Date date) {
+        if (date == null) {
+            return null;
+        }
+
+        LocalDate localDate = date.toLocalDate();
+        return localDate.format(requiredDateFormat);
+    }
+
+    private Date parseToSqlDate(String dateString) {
+        if (dateString == null) {
+            return null;
+        }
+
+        LocalDate localDate = LocalDate.parse(dateString, requiredDateFormat);
+        return Date.valueOf(localDate);
     }
 
 }

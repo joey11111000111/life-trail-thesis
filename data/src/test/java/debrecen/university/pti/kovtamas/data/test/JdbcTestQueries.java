@@ -14,7 +14,7 @@ public class JdbcTestQueries {
             + "	ID SERIAL PRIMARY KEY,\n"
             + "	TASK_DEF TEXT NOT NULL,\n"
             + "	PRIORITY INTEGER NOT NULL,\n"
-            + "	DEADLINE VARCHAR(15) DEFAULT NULL,\n"
+            + "	DEADLINE DATE DEFAULT NULL,\n"
             + "	CATEGORY VARCHAR(100) NOT NULL,\n"
             + "	SUB_TASK_IDS TEXT DEFAULT NULL,\n"
             + "	REPEATING VARCHAR(5) DEFAULT \"FALSE\"\n"

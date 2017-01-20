@@ -2,12 +2,17 @@ package debrecen.university.pti.kovtamas.todo.service.impl;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import debrecen.university.pti.kovtamas.data.impl.sql.todo.JdbcTodoRepository;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TodoRepository;
+import debrecen.university.pti.kovtamas.todo.service.api.TaskDeletionException;
 import debrecen.university.pti.kovtamas.todo.service.api.TaskSaveFailureException;
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
 import debrecen.university.pti.kovtamas.todo.service.mapper.TaskEntityVoMapper;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +34,8 @@ public class CachingTodoService implements TodoService {
 
     @Override
     public List<TaskVo> getByCategory(String category) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return TaskEntityVoMapper.toVo(repo.findByCategory(category));
+
     }
 
     @Override
@@ -83,7 +89,7 @@ public class CachingTodoService implements TodoService {
     }
 
     @Override
-    public void saveAll(List<TaskVo> tasks) throws TaskSaveFailureException {
+    public void saveAll(Collection<TaskVo> tasks) throws TaskSaveFailureException {
         final boolean STANDALONE = true;
         final boolean NESTED = false;
         Predicate<TaskVo> isStandalone = (task) -> !task.hasSubTasks();
@@ -113,9 +119,22 @@ public class CachingTodoService implements TodoService {
     }
 
     @Override
-    public void delete(TaskVo task) {
+    public void delete(TaskVo task) throws TaskDeletionException {
         Set<Integer> allTaskIds = extractAllTaskIdsOf(task);
+        String lnSep = System.getProperty("line.separator");
+        try {
+            repo.removeAll(allTaskIds);
+        } catch (TaskRemovalException tre) {
 
+            throw new TaskDeletionException("Could not remove task:"
+                    + lnSep
+                    + task.toString(),
+                    tre);
+
+        } catch (TaskNotFoundException tnfe) {
+            LOG.warn("Tried to delete a task which was not present in the database!{}{}",
+                    lnSep, task.toString(), tnfe);
+        }
     }
 
     private Set<Integer> extractAllTaskIdsOf(TaskVo rootTask) {
@@ -134,8 +153,21 @@ public class CachingTodoService implements TodoService {
     }
 
     @Override
-    public void deleteAll(List<TaskVo> tasks) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void deleteAll(Collection<TaskVo> tasks) throws TaskDeletionException {
+        Set<Integer> allTaskIds = new HashSet<>();
+        tasks.forEach(task -> allTaskIds.addAll(extractAllTaskIdsOf(task)));
+
+        String lnSep = System.getProperty("line.separator");
+        try {
+            repo.removeAll(allTaskIds);
+        } catch (TaskRemovalException tre) {
+
+            throw new TaskDeletionException("Could not remove task specified in the task collection!", tre);
+
+        } catch (TaskNotFoundException tnfe) {
+            LOG.warn("Tried to delete a task which was not present in the database!", tnfe);
+        }
+
     }
 
 }

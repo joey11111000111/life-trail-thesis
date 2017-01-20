@@ -1,6 +1,7 @@
 package debrecen.university.pti.kovtamas.todo.service.api;
 
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
+import java.util.Collection;
 import java.util.List;
 
 public interface TodoService {
@@ -15,10 +16,10 @@ public interface TodoService {
 
     void save(TaskVo task) throws TaskSaveFailureException;
 
-    void saveAll(List<TaskVo> tasks) throws TaskSaveFailureException;
+    void saveAll(Collection<TaskVo> tasks) throws TaskSaveFailureException;
 
-    void delete(TaskVo task);
+    void delete(TaskVo task) throws TaskDeletionException;
 
-    void deleteAll(List<TaskVo> tasks);
+    void deleteAll(Collection<TaskVo> tasks) throws TaskDeletionException;
 
 }

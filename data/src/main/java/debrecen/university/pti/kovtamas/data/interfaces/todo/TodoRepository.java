@@ -4,6 +4,7 @@ import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Set;
 
@@ -18,6 +19,10 @@ public interface TodoRepository {
     TaskEntity findById(int id) throws TaskNotFoundException;
 
     Set<TaskEntity> findByIds(Collection<Integer> ids) throws TaskNotFoundException;
+
+    Set<TaskEntity> findTodayTasks();
+
+    Set<TaskEntity> findTasksUntil(String lastDate, DateTimeFormatter format);
 
     void save(TaskEntity entity) throws TaskPersistenceException;
 

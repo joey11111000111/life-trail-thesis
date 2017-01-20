@@ -8,7 +8,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 
@@ -56,7 +58,16 @@ public class TaskEntityVoMapper {
                 .build();
     }
 
-    public static void setRelations(@NonNull Collection<TaskVo> vos, @NonNull Collection<TaskEntity> entities) {
+    public static List<TaskVo> toVo(Collection<TaskEntity> entities) {
+        List<TaskVo> vos = entities.stream()
+                .map(TaskEntityVoMapper::toStandaloneVo)
+                .collect(Collectors.toList());
+
+        setRelations(vos, entities);
+        return vos;
+    }
+
+    private static void setRelations(@NonNull Collection<TaskVo> vos, @NonNull Collection<TaskEntity> entities) {
         if (vos.size() != entities.size()) {
             throw new IllegalArgumentException("The vo and entity collections differ in size!");
         }
@@ -71,6 +82,7 @@ public class TaskEntityVoMapper {
         sortedEntities.sort(cmpEntity);
 
         // Set the relations
+        Set<TaskVo> allSubTasks = new HashSet<>();
         for (int i = 0; i < sortedEntities.size(); i++) {
             TaskEntity entity = sortedEntities.get(i);
 
@@ -80,9 +92,12 @@ public class TaskEntityVoMapper {
                 List<TaskVo> subTasks = vos.stream()
                         .filter(vo -> subIds.contains(vo.getId()))
                         .collect(Collectors.toList());
+                allSubTasks.addAll(subTasks);
                 sortedVos.get(i).setSubTasks(subTasks);
             }
         }
+
+        vos.removeAll(allSubTasks);
     }
 
 //    public static List<TaskVo> toVo(@NonNull Collection<TaskEntity> entities) {

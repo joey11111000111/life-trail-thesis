@@ -8,6 +8,10 @@ public class TodoQueries {
     public static final String FIND_BY_ID = "SELECT * FROM " + TASK_TABLE_NAME + " WHERE ID = ?";
     public static final String FIND_BY_CATEGORY = "SELECT * FROM " + TASK_TABLE_NAME + " WHERE CATEGORY = ?";
     public static final String FIND_BY_NOT_CATEGORY = "SELECT * FROM " + TASK_TABLE_NAME + " WHERE CATEGORY <> ?";
+    public static final String FIND_TODAY_TASKS = "SELECT * FROM " + TASK_TABLE_NAME
+            + " WHERE DEADLINE = ? OR REPEATING = 'TRUE'";
+    public static final String FIND_TASKS_BETWEEN_DATE = "SELECT * FROM " + TASK_TABLE_NAME
+            + " WHERE DEADLINE BETWEEN ? AND ?";
 
     public static final String INSERT = "INSERT INTO " + TASK_TABLE_NAME
             + " (TASK_DEF, PRIORITY, DEADLINE, CATEGORY, SUB_TASK_IDS, REPEATING)"
