@@ -22,4 +22,5 @@ public interface TodoService {
 
     void deleteAll(Collection<TaskVo> tasks) throws TaskDeletionException;
 
+    void addSubTask(TaskVo mainTask, TaskVo subTask);
 }

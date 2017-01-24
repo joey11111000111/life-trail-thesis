@@ -15,11 +15,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +48,7 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
-    public Set<TaskEntity> findByCategory(String category) {
+    public Set<TaskEntity> findByCategory(@NonNull String category) {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             PreparedStatement prStatement = conn.prepareStatement(TodoQueries.FIND_BY_CATEGORY);
             prStatement.setString(1, category);
@@ -60,7 +62,7 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
-    public Set<TaskEntity> findByNotCategory(String categoryToSkip) {
+    public Set<TaskEntity> findByNotCategory(@NonNull String categoryToSkip) {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             PreparedStatement prStatement = conn.prepareStatement(TodoQueries.FIND_BY_NOT_CATEGORY);
             prStatement.setString(1, categoryToSkip);
@@ -92,7 +94,11 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
-    public Set<TaskEntity> findByIds(Collection<Integer> ids) throws TaskNotFoundException {
+    public Set<TaskEntity> findByIds(@NonNull Collection<Integer> ids) throws TaskNotFoundException {
+        if (ids.isEmpty()) {
+            return new HashSet<>();
+        }
+
         // Search for duplication in ids
         Set<Integer> idSet = new HashSet<>(ids);
         if (idSet.size() < ids.size()) {
@@ -131,7 +137,7 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
-    public Set<TaskEntity> findTasksUntil(String lastDate, DateTimeFormatter format) {
+    public Set<TaskEntity> findTasksUntil(@NonNull String lastDate, @NonNull DateTimeFormatter format) {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             Set<TaskEntity> tasksUntil = findTodayTasks(conn);
             Date now = Date.valueOf(LocalDate.now().plusDays(1));   // Today tasks are already in the set, so plusDays(1)
@@ -146,16 +152,18 @@ public class JdbcTodoRepository implements TodoRepository {
         } catch (SQLException sqle) {
             LOG.warn("Failed attempt to find tasks until date: " + lastDate, sqle);
             return new HashSet<>();
+        } catch (DateTimeParseException dtpe) {
+            throw new IllegalArgumentException("Given date string could not be parsed!", dtpe);
         }
     }
 
     @Override
-    public void save(TaskEntity entity) throws TaskPersistenceException {
+    public void save(@NonNull TaskEntity entity) throws TaskPersistenceException {
         saveAll(Arrays.asList(entity));
     }
 
     @Override
-    public void saveAll(Collection<TaskEntity> entities) throws TaskPersistenceException {
+    public void saveAll(@NonNull Collection<TaskEntity> entities) throws TaskPersistenceException {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             for (TaskEntity entity : entities) {
                 saveOrUpdate(entity, conn);
@@ -171,7 +179,11 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
-    public void removeAll(Collection<Integer> ids) throws TaskNotFoundException, TaskRemovalException {
+    public void removeAll(@NonNull Collection<Integer> ids) throws TaskNotFoundException, TaskRemovalException {
+        if (ids.isEmpty()) {
+            return;
+        }
+
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             for (int id : ids) {
                 removeTask(id, conn);

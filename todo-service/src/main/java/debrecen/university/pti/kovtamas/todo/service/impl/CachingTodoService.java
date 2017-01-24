@@ -11,7 +11,9 @@ import debrecen.university.pti.kovtamas.todo.service.api.TaskSaveFailureExceptio
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
 import debrecen.university.pti.kovtamas.todo.service.mapper.TaskEntityVoMapper;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -19,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,36 +30,40 @@ public class CachingTodoService implements TodoService {
     private static final Logger LOG = LoggerFactory.getLogger(CachingTodoService.class);
 
     private final TodoRepository repo;
+    private final DateTimeFormatter dateFormat;
 
     public CachingTodoService() {
-        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+        dateFormat = DateTimeFormatter.ofPattern("yyyy.MM.dd");
         TaskEntityVoMapper.setDateFormat(dateFormat);
         repo = new JdbcTodoRepository(dateFormat);
     }
 
     @Override
-    public List<TaskVo> getByCategory(String category) {
+    public List<TaskVo> getByCategory(@NonNull String category) {
         return TaskEntityVoMapper.toVo(repo.findByCategory(category));
-
     }
 
     @Override
     public List<TaskVo> getTodayTasks() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return TaskEntityVoMapper.toVo(repo.findTodayTasks());
     }
 
     @Override
     public List<TaskVo> getTomorrowTasks() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return getTasksOfFollowingDays(1);
     }
 
     @Override
     public List<TaskVo> getTasksOfFollowingDays(int days) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (days < 1) {
+            throw new IllegalArgumentException("The given day count, as following days must be at least 1");
+        }
+        LocalDate until = LocalDate.now().plusDays(days);
+        return TaskEntityVoMapper.toVo(repo.findTasksUntil(until.format(dateFormat), dateFormat));
     }
 
     @Override
-    public void save(TaskVo task) throws TaskSaveFailureException {
+    public void save(@NonNull TaskVo task) throws TaskSaveFailureException {
         try {
             saveTaskTree(task);
         } catch (TaskPersistenceException tpe) {
@@ -66,32 +73,12 @@ public class CachingTodoService implements TodoService {
         }
     }
 
-    private void saveTaskTree(TaskVo rootTask) throws TaskPersistenceException {
-        if (!rootTask.hasSubTasks()) {
-            saveStandaloneTask(rootTask);
-        }
-
-        for (TaskVo subTask : rootTask.getSubTasks()) {
-            saveTaskTree(subTask);
-        }
-
-        TaskEntity rootEntity = TaskEntityVoMapper.toEntity(rootTask);
-        repo.save(rootEntity);
-        if (!rootTask.hasId()) {
-            rootTask.setId(rootEntity.getId());
-        }
-    }
-
-    private void saveStandaloneTask(TaskVo task) throws TaskPersistenceException {
-        TaskEntity entity = TaskEntityVoMapper.toStandaloneEntity(task);
-        repo.save(entity);
-        if (!task.hasId()) {
-            task.setId(entity.getId());
-        }
-    }
-
     @Override
-    public void saveAll(Collection<TaskVo> tasks) throws TaskSaveFailureException {
+    public void saveAll(@NonNull Collection<TaskVo> tasks) throws TaskSaveFailureException {
+        if (tasks.isEmpty()) {
+            return;
+        }
+
         final boolean STANDALONE = true;
         final boolean NESTED = false;
         Predicate<TaskVo> isStandalone = (task) -> !task.hasSubTasks();
@@ -121,7 +108,7 @@ public class CachingTodoService implements TodoService {
     }
 
     @Override
-    public void delete(TaskVo task) throws TaskDeletionException {
+    public void delete(@NonNull TaskVo task) throws TaskDeletionException {
         Set<Integer> allTaskIds = extractAllTaskIdsOf(task);
         String lnSep = System.getProperty("line.separator");
         try {
@@ -139,6 +126,61 @@ public class CachingTodoService implements TodoService {
         }
     }
 
+    @Override
+    public void deleteAll(@NonNull Collection<TaskVo> tasks) throws TaskDeletionException {
+        Set<Integer> allTaskIds = new HashSet<>();
+        tasks.forEach(task -> allTaskIds.addAll(extractAllTaskIdsOf(task)));
+
+        try {
+            repo.removeAll(allTaskIds);
+        } catch (TaskRemovalException tre) {
+            throw new TaskDeletionException("Could not remove task specified in the task collection!", tre);
+        } catch (TaskNotFoundException tnfe) {
+            LOG.warn("Tried to delete a task which was not present in the database!", tnfe);
+        }
+    }
+
+    @Override
+    public void addSubTask(@NonNull TaskVo mainTask, @NonNull TaskVo subTask) {
+        // The "category, priority, deadline, repeating" fields are inherited to the sub task from the main task
+        subTask.setCategory(mainTask.getCategory());
+        subTask.setPriority(mainTask.getPriority());
+        subTask.setDeadline(mainTask.getDeadline());
+        subTask.setRepeating(mainTask.isRepeating());
+
+        List<TaskVo> subsList = mainTask.getSubTasks();
+        if (subsList == null) {
+            subsList = new ArrayList<>();
+            mainTask.setSubTasks(subsList);
+        }
+
+        subsList.add(subTask);
+    }
+
+    private void saveTaskTree(TaskVo rootTask) throws TaskPersistenceException {
+        if (!rootTask.hasSubTasks()) {
+            saveStandaloneTask(rootTask);
+        }
+
+        for (TaskVo subTask : rootTask.getSubTasks()) {
+            saveTaskTree(subTask);
+        }
+
+        TaskEntity rootEntity = TaskEntityVoMapper.toEntity(rootTask);
+        repo.save(rootEntity);
+        if (!rootTask.hasId()) {
+            rootTask.setId(rootEntity.getId());
+        }
+    }
+
+    private void saveStandaloneTask(TaskVo task) throws TaskPersistenceException {
+        TaskEntity entity = TaskEntityVoMapper.toStandaloneEntity(task);
+        repo.save(entity);
+        if (!task.hasId()) {
+            task.setId(entity.getId());
+        }
+    }
+
     private Set<Integer> extractAllTaskIdsOf(TaskVo rootTask) {
         Set<Integer> ids = new HashSet<>();
         if (!rootTask.hasId()) {
@@ -152,24 +194,6 @@ public class CachingTodoService implements TodoService {
         }
 
         return ids;
-    }
-
-    @Override
-    public void deleteAll(Collection<TaskVo> tasks) throws TaskDeletionException {
-        Set<Integer> allTaskIds = new HashSet<>();
-        tasks.forEach(task -> allTaskIds.addAll(extractAllTaskIdsOf(task)));
-
-        String lnSep = System.getProperty("line.separator");
-        try {
-            repo.removeAll(allTaskIds);
-        } catch (TaskRemovalException tre) {
-
-            throw new TaskDeletionException("Could not remove task specified in the task collection!", tre);
-
-        } catch (TaskNotFoundException tnfe) {
-            LOG.warn("Tried to delete a task which was not present in the database!", tnfe);
-        }
-
     }
 
 }
