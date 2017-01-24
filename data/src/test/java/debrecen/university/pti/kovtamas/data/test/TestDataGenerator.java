@@ -115,6 +115,15 @@ public class TestDataGenerator {
                 .repeating(true)
                 .build()
         );
+        entities.add(TaskEntity.builder()
+                .taskDef("Past day, not repeating")
+                .priority(3)
+                .deadline(pastDayString)
+                .category("exclude me")
+                .subTaskIds(null)
+                .repeating(false)
+                .build()
+        );
         String twoDaysLater = NOW.plusDays(2).format(formatter);
         entities.add(TaskEntity.builder()
                 .taskDef("Two days later")
@@ -137,7 +146,7 @@ public class TestDataGenerator {
         );
         String twoWeeksLaterString = NOW.plusWeeks(2).format(formatter);
         entities.add(TaskEntity.builder()
-                .taskDef("Not today, not repeating, should not be found")
+                .taskDef("Two weeks later")
                 .priority(1)
                 .deadline(twoWeeksLaterString)
                 .category("still in")

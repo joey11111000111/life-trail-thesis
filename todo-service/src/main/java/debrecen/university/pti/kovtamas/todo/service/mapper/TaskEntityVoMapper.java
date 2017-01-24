@@ -19,7 +19,11 @@ public class TaskEntityVoMapper {
     private TaskEntityVoMapper() {
     }
 
-    private static DateTimeFormatter dateFormat;
+    private static DateTimeFormatter dateFormat = null;
+
+    public static void setDateFormat(DateTimeFormatter dateFormat) {
+        TaskEntityVoMapper.dateFormat = dateFormat;
+    }
 
     static {
         dateFormat = DateTimeFormatter.ofPattern("yyyy.MM.dd");

@@ -11,7 +11,7 @@ import debrecen.university.pti.kovtamas.todo.service.api.TaskSaveFailureExceptio
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
 import debrecen.university.pti.kovtamas.todo.service.mapper.TaskEntityVoMapper;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
-import java.util.ArrayList;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -29,7 +29,9 @@ public class CachingTodoService implements TodoService {
     private final TodoRepository repo;
 
     public CachingTodoService() {
-        repo = new JdbcTodoRepository();
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+        TaskEntityVoMapper.setDateFormat(dateFormat);
+        repo = new JdbcTodoRepository(dateFormat);
     }
 
     @Override

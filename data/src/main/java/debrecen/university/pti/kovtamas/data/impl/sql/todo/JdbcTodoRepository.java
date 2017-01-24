@@ -141,7 +141,8 @@ public class JdbcTodoRepository implements TodoRepository {
             prStatement.setDate(2, until);
 
             ResultSet results = prStatement.executeQuery();
-            return jdbcUtils.extractEntities(results);
+            tasksUntil.addAll(jdbcUtils.extractEntities(results));
+            return tasksUntil;
         } catch (SQLException sqle) {
             LOG.warn("Failed attempt to find tasks until date: " + lastDate, sqle);
             return new HashSet<>();
