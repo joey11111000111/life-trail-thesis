@@ -208,15 +208,8 @@ public class JdbcTodoRepositoryTest {
         Set<TaskEntity> expectedEntities = entities.stream()
                 .filter(entity -> !"exclude me".equals(entity.getCategory()))
                 .collect(Collectors.toSet());
-//        System.out.println("-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --");
-//        expectedEntities.forEach(System.out::println);
-//        System.out.println("-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --");
 
         Set<TaskEntity> results = repo.findTasksUntil(LocalDate.now().plusWeeks(2).format(formatter), formatter);
-//        System.out.println("-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --");
-//        results.forEach(System.out::println);
-//        System.out.println("-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --");
-
         collectionEquals(expectedEntities, results);
     }
 

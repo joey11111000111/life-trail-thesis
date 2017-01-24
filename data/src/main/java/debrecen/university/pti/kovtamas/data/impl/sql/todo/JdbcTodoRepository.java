@@ -26,10 +26,10 @@ import org.slf4j.LoggerFactory;
 public class JdbcTodoRepository implements TodoRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(JdbcTodoRepository.class);
-    private DateTimeFormatter requiredDateFormat;
+    private final JdbcTaskUtils jdbcUtils;
 
     public JdbcTodoRepository(DateTimeFormatter requiredDateFormat) {
-        this.requiredDateFormat = requiredDateFormat;
+        jdbcUtils = new JdbcTaskUtils(requiredDateFormat);
     }
 
     @Override
@@ -38,12 +38,7 @@ public class JdbcTodoRepository implements TodoRepository {
             Statement statement = conn.createStatement();
             ResultSet results = statement.executeQuery(TodoQueries.FIND_ALL);
 
-            Set<TaskEntity> entities = new HashSet<>();
-            while (results.next()) {
-                entities.add(convertRecordToEntity(results));
-            }
-
-            return entities;
+            return jdbcUtils.extractEntities(results);
         } catch (SQLException sqle) {
             LOG.warn("Exception while trying to read from database!", sqle);
             return new HashSet<>();
@@ -57,12 +52,7 @@ public class JdbcTodoRepository implements TodoRepository {
             prStatement.setString(1, category);
             ResultSet results = prStatement.executeQuery();
 
-            Set<TaskEntity> entities = new HashSet<>();
-            while (results.next()) {
-                entities.add(convertRecordToEntity(results));
-            }
-
-            return entities;
+            return jdbcUtils.extractEntities(results);
         } catch (SQLException sqle) {
             LOG.warn("Exception while trying to read from database!", sqle);
             return new HashSet<>();
@@ -76,12 +66,7 @@ public class JdbcTodoRepository implements TodoRepository {
             prStatement.setString(1, categoryToSkip);
             ResultSet results = prStatement.executeQuery();
 
-            Set<TaskEntity> entities = new HashSet<>();
-            while (results.next()) {
-                entities.add(convertRecordToEntity(results));
-            }
-
-            return entities;
+            return jdbcUtils.extractEntities(results);
         } catch (SQLException sqle) {
             LOG.warn("Exception while trying to read from database!", sqle);
             return new HashSet<>();
@@ -97,16 +82,12 @@ public class JdbcTodoRepository implements TodoRepository {
             ResultSet results = prStatement.executeQuery();
 
             if (results.next()) {
-                return convertRecordToEntity(results);
+                return jdbcUtils.convertRecordToEntity(results);
             }
 
-            String exceptionMessage = "The id " + id + " doesn't belong to any object in the database!";
-            LOG.warn(exceptionMessage);
-            throw new TaskNotFoundException(exceptionMessage);
+            throw new TaskNotFoundException("The id " + id + " doesn't belong to any object in the database!");
         } catch (SQLException sqle) {
-            String message = "Exception while trying to read from database!";
-            LOG.warn(message, sqle);
-            throw new TaskNotFoundException(message, sqle);
+            throw new TaskNotFoundException("Exception while trying to read from database!", sqle);
         }
     }
 
@@ -127,22 +108,15 @@ public class JdbcTodoRepository implements TodoRepository {
             }
 
             ResultSet results = prStatement.executeQuery();
-            Set<TaskEntity> entities = new HashSet<>();
-            while (results.next()) {
-                entities.add(convertRecordToEntity(results));
-            }
+            Set<TaskEntity> entities = jdbcUtils.extractEntities(results);
 
             if (entities.size() < ids.size()) {
-                String exceptionMessage = "One or some of the given IDs don't belong to any objects in the database!";
-                LOG.warn(exceptionMessage);
-                throw new TaskNotFoundException(exceptionMessage);
+                throw new TaskNotFoundException("One or some of the given IDs don't belong to any objects in the database!");
             }
 
             return entities;
         } catch (SQLException sqle) {
-            String message = "Exception while trying to read from database!";
-            LOG.warn(message, sqle);
-            throw new TaskNotFoundException(message, sqle);
+            throw new TaskNotFoundException("Exception while trying to read from database!", sqle);
         }
     }
 
@@ -156,21 +130,6 @@ public class JdbcTodoRepository implements TodoRepository {
         }
     }
 
-    private Set<TaskEntity> findTodayTasks(Connection conn) throws SQLException {
-        PreparedStatement prStatement = conn.prepareStatement(TodoQueries.FIND_TODAY_TASKS);
-        LocalDate today = LocalDate.now();
-        Date sqlToday = Date.valueOf(today);
-        prStatement.setDate(1, sqlToday);
-
-        ResultSet results = prStatement.executeQuery();
-        Set<TaskEntity> entities = new HashSet<>();
-        while (results.next()) {
-            entities.add(convertRecordToEntity(results));
-        }
-
-        return entities;
-    }
-
     @Override
     public Set<TaskEntity> findTasksUntil(String lastDate, DateTimeFormatter format) {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
@@ -182,12 +141,7 @@ public class JdbcTodoRepository implements TodoRepository {
             prStatement.setDate(2, until);
 
             ResultSet results = prStatement.executeQuery();
-            while (results.next()) {
-                LOG.debug("++ ++ ++ ++ ++ Found one, not of today! ++ ++ ++ ++ ++ ");
-                tasksUntil.add(convertRecordToEntity(results));
-            }
-
-            return tasksUntil;
+            return jdbcUtils.extractEntities(results);
         } catch (SQLException sqle) {
             LOG.warn("Failed attempt to find tasks until date: " + lastDate, sqle);
             return new HashSet<>();
@@ -206,36 +160,8 @@ public class JdbcTodoRepository implements TodoRepository {
                 saveOrUpdate(entity, conn);
             }
         } catch (SQLException sqle) {
-            String message = "Exception while trying to update the database!";
-            LOG.warn(message, sqle);
-            throw new TaskPersistenceException(message, sqle);
+            throw new TaskPersistenceException("Exception while trying to update the database!", sqle);
         }
-    }
-
-    private void saveOrUpdate(TaskEntity entity, Connection conn) throws SQLException, TaskPersistenceException {
-        PreparedStatement prStatement = createSaveOrUpdateStatement(entity, conn);
-
-        // Set statement variables
-        prStatement.setString(1, entity.getTaskDef());
-        prStatement.setInt(2, entity.getPriority());
-        prStatement.setDate(3, parseToSqlDate(entity.getDeadline()));
-        prStatement.setString(4, entity.getCategory());
-        prStatement.setString(5, entity.getSubTaskIds());
-        prStatement.setString(6, Boolean.toString(entity.isRepeating()));
-        if (entity.hasId()) {
-            prStatement.setInt(7, entity.getId());
-        }
-
-        int affectedRows = prStatement.executeUpdate();
-        if (affectedRows != 1) {
-            throw new TaskPersistenceException("Failed to update task with id: " + entity.getId());
-        }
-
-        if (entity.hasId()) {
-            return;
-        }
-
-        entity.setId(extractGeneratedId(prStatement));
     }
 
     @Override
@@ -250,19 +176,7 @@ public class JdbcTodoRepository implements TodoRepository {
                 removeTask(id, conn);
             }
         } catch (SQLException sqle) {
-            String message = "Exception while trying to remove from the database!";
-            LOG.warn(message, sqle);
-            throw new TaskRemovalException(message, sqle);
-        }
-    }
-
-    private void removeTask(int id, Connection conn) throws SQLException, TaskNotFoundException {
-        PreparedStatement prStatement = conn.prepareStatement(TodoQueries.REMOVE_BY_ID);
-        prStatement.setInt(1, id);
-        int modifiedRowCount = prStatement.executeUpdate();
-        if (modifiedRowCount == 0) {
-            throw new TaskNotFoundException("Cannot delete a row that doesn't exist!"
-                    + "The id " + id + " was not found in the database.");
+            throw new TaskRemovalException("Exception while trying to remove from the database!", sqle);
         }
     }
 
@@ -280,7 +194,6 @@ public class JdbcTodoRepository implements TodoRepository {
                 }
             }
         } catch (SQLException sqle) {
-            LOG.warn("Exception while trying to clean the database table!", sqle);
             throw new UnsuccessfulDatabaseOperation(exceptionMessage);
         }
     }
@@ -300,6 +213,42 @@ public class JdbcTodoRepository implements TodoRepository {
         }
     }
 
+    private void saveOrUpdate(TaskEntity entity, Connection conn) throws SQLException, TaskPersistenceException {
+        PreparedStatement prStatement = createSaveOrUpdateStatement(entity, conn);
+
+        // Set statement variables
+        prStatement.setString(1, entity.getTaskDef());
+        prStatement.setInt(2, entity.getPriority());
+        prStatement.setDate(3, jdbcUtils.parseToSqlDate(entity.getDeadline()));
+        prStatement.setString(4, entity.getCategory());
+        prStatement.setString(5, entity.getSubTaskIds());
+        prStatement.setString(6, Boolean.toString(entity.isRepeating()));
+        if (entity.hasId()) {
+            prStatement.setInt(7, entity.getId());
+        }
+
+        int affectedRows = prStatement.executeUpdate();
+        if (affectedRows != 1) {
+            throw new TaskPersistenceException("Failed to update task with id: " + entity.getId());
+        }
+
+        if (entity.hasId()) {
+            return;
+        }
+
+        entity.setId(jdbcUtils.extractGeneratedId(prStatement));
+    }
+
+    private void removeTask(int id, Connection conn) throws SQLException, TaskNotFoundException {
+        PreparedStatement prStatement = conn.prepareStatement(TodoQueries.REMOVE_BY_ID);
+        prStatement.setInt(1, id);
+        int modifiedRowCount = prStatement.executeUpdate();
+        if (modifiedRowCount == 0) {
+            throw new TaskNotFoundException("Cannot delete a row that doesn't exist!"
+                    + "The id " + id + " was not found in the database.");
+        }
+    }
+
     private PreparedStatement createSaveOrUpdateStatement(TaskEntity entity, Connection conn) throws SQLException {
         if (entity.hasId()) {
             return conn.prepareStatement(TodoQueries.UPDATE);
@@ -307,45 +256,14 @@ public class JdbcTodoRepository implements TodoRepository {
         return conn.prepareStatement(TodoQueries.INSERT, Statement.RETURN_GENERATED_KEYS);
     }
 
-    private Integer extractGeneratedId(PreparedStatement prStatement) throws SQLException, TaskPersistenceException {
-        ResultSet result = prStatement.getGeneratedKeys();
-        if (result.next()) {
-            return result.getInt(1);
-        }
-        String message = "Possible save error, generated ID could not be retrived!";
-        LOG.warn(message);
-        throw new TaskPersistenceException(message);
-    }
+    private Set<TaskEntity> findTodayTasks(Connection conn) throws SQLException {
+        PreparedStatement prStatement = conn.prepareStatement(TodoQueries.FIND_TODAY_TASKS);
+        LocalDate today = LocalDate.now();
+        Date sqlToday = Date.valueOf(today);
+        prStatement.setDate(1, sqlToday);
 
-    private TaskEntity convertRecordToEntity(ResultSet record) throws SQLException {
-        String deadlineString = formatToRequiredDateFormat(record.getDate("DEADLINE"));
-        return TaskEntity.builder()
-                .id(record.getInt("ID"))
-                .taskDef(record.getString("TASK_DEF"))
-                .priority(record.getInt("PRIORITY"))
-                .deadline(deadlineString)
-                .category(record.getString("CATEGORY"))
-                .subTaskIds(record.getString("SUB_TASK_IDS"))
-                .repeating(Boolean.parseBoolean(record.getString("REPEATING")))
-                .build();
-    }
-
-    private String formatToRequiredDateFormat(Date date) {
-        if (date == null) {
-            return null;
-        }
-
-        LocalDate localDate = date.toLocalDate();
-        return localDate.format(requiredDateFormat);
-    }
-
-    private Date parseToSqlDate(String dateString) {
-        if (dateString == null) {
-            return null;
-        }
-
-        LocalDate localDate = LocalDate.parse(dateString, requiredDateFormat);
-        return Date.valueOf(localDate);
+        ResultSet results = prStatement.executeQuery();
+        return jdbcUtils.extractEntities(results);
     }
 
 }
