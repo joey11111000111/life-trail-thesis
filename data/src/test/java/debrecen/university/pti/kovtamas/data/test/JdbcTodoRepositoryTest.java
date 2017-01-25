@@ -1,15 +1,11 @@
 package debrecen.university.pti.kovtamas.data.test;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
-import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DataSourceManager;
 import debrecen.university.pti.kovtamas.data.impl.sql.todo.JdbcTodoRepository;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TodoRepository;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -32,98 +28,89 @@ import static org.junit.Assert.*;
 public class JdbcTodoRepositoryTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(JdbcTodoRepositoryTest.class.getName());
+    private static final JdbcTestUtils JDBC_TEST_UTILS;
 
-    private static TodoRepository repo;
-    private static DateTimeFormatter formatter;
+    private static final TodoRepository REPO;
+    private static final DateTimeFormatter FORMATTER;
+
+    static {
+        FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+        REPO = new JdbcTodoRepository(FORMATTER);
+        JDBC_TEST_UTILS = new JdbcTestUtils(REPO);
+    }
 
     public JdbcTodoRepositoryTest() {
-        formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
-        repo = new JdbcTodoRepository(formatter);
     }
 
     @BeforeClass
     public static void switchToTestTable() {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            Statement statement = conn.createStatement();
-            statement.executeUpdate(JdbcTestQueries.RENAME_ORIGINAL_TABLE);
-            statement.executeUpdate(JdbcTestQueries.CREATE_TEST_TABLE);
-        } catch (SQLException sqle) {
-            LOG.error("Could not switch to test table!", sqle);
-            fail();     // Do not start the tests on the original table
-        }
+        JDBC_TEST_UTILS.switchToTestTable();
     }
 
     @AfterClass
     public static void switchToOriginalTable() {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            Statement statement = conn.createStatement();
-            statement.executeUpdate(JdbcTestQueries.DROP_TEST_TABLE);
-            statement.executeUpdate(JdbcTestQueries.RESTORE_ORIGINAL_TABLE);
-        } catch (SQLException sqle) {
-            LOG.error("Could not switch back to the original table!", sqle);
-            fail();
-        }
+        JDBC_TEST_UTILS.switchToOriginalTable();
     }
 
     @After
     public void cleanTestTable() {
-        clean();
+        JDBC_TEST_UTILS.cleanTestTable();
     }
 
     @Test
     public void queryMethodsOnEmptyTableTest() {
         // find all
-        Set<TaskEntity> entities = repo.findAll();
+        Set<TaskEntity> entities = REPO.findAll();
         assertNotNull(entities);
         assertEquals(0, entities.size());
 
         // find by id/ids
         try {
-            TaskEntity entity = repo.findById(0);
+            TaskEntity entity = REPO.findById(0);
             fail("Found item by id in empty database table!");
         } catch (TaskNotFoundException tnfe) {
         }
         try {
-            entities = repo.findByIds(Arrays.asList(1, 2, 3, 4, 5, 6));
+            entities = REPO.findByIds(Arrays.asList(1, 2, 3, 4, 5, 6));
             fail("Found items by id collection in empty database table!");
         } catch (TaskNotFoundException tnfe) {
         }
 
         // find by category/not category
-        entities = repo.findByCategory("non existing category");
+        entities = REPO.findByCategory("non existing category");
         assertNotNull(entities);
         assertEquals(0, entities.size());
-        entities = repo.findByNotCategory("skip this if you can");
+        entities = REPO.findByNotCategory("skip this if you can");
         assertNotNull(entities);
         assertEquals(0, entities.size());
 
-        int rowCount = repo.getRowCount();
+        int rowCount = REPO.getRowCount();
         assertEquals(0, rowCount);
     }
 
     @Test
     public void saveFindAllAndCleanTest() {
         Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
-        populateDatabase(entities);
-        collectionEquals(entities, repo.findAll());
-        clean();
+        JDBC_TEST_UTILS.populateDatabase(entities);
+        collectionEquals(entities, REPO.findAll());
+        JDBC_TEST_UTILS.cleanTestTable();
 
         entities = TestDataGenerator.generateOriginalEntitySet();
         entities.forEach(entity -> {
             try {
-                repo.save(entity);
+                REPO.save(entity);
             } catch (TaskPersistenceException ex) {
                 String message = "Could not save entity:" + System.getProperty("line.separator") + entity.toString();
                 LOG.warn(message, ex);
             }
         });
-        collectionEquals(entities, repo.findAll());
+        collectionEquals(entities, REPO.findAll());
     }
 
     @Test
     public void findByIdTest() {
         Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
-        populateDatabase(entities);
+        JDBC_TEST_UTILS.populateDatabase(entities);
 
         int id = 1;
         TaskEntity originalEntity = entities.stream()
@@ -133,7 +120,7 @@ public class JdbcTodoRepositoryTest {
 
         TaskEntity foundEntity = null;
         try {
-            foundEntity = repo.findById(id);
+            foundEntity = REPO.findById(id);
         } catch (TaskNotFoundException tnfe) {
             String message = "Could not find task with id: " + id;
             LOG.warn(message, tnfe);
@@ -146,7 +133,7 @@ public class JdbcTodoRepositoryTest {
     @Test
     public void findIdCollectionTest() {
         Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
-        populateDatabase(entities);
+        JDBC_TEST_UTILS.populateDatabase(entities);
 
         List<Integer> ids = Arrays.asList(1, 2);
         Set<TaskEntity> originalEntities = entities.stream()
@@ -154,7 +141,7 @@ public class JdbcTodoRepositoryTest {
                 .collect(Collectors.toSet());
 
         try {
-            collectionEquals(originalEntities, repo.findByIds(ids));
+            collectionEquals(originalEntities, REPO.findByIds(ids));
         } catch (TaskNotFoundException tnfe) {
             String message = "Could not find task(s) by id";
             LOG.warn(message, tnfe);
@@ -165,58 +152,58 @@ public class JdbcTodoRepositoryTest {
     @Test
     public void findByCategoryTest() {
         Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
-        populateDatabase(entities);
+        JDBC_TEST_UTILS.populateDatabase(entities);
 
         String category = "everyday life";
         Set<TaskEntity> originalEntities = entities.stream()
                 .filter(e -> category.equals(e.getCategory()))
                 .collect(Collectors.toSet());
 
-        collectionEquals(originalEntities, repo.findByCategory(category));
+        collectionEquals(originalEntities, REPO.findByCategory(category));
     }
 
     @Test
     public void findByNotCategory() {
         Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
-        populateDatabase(entities);
+        JDBC_TEST_UTILS.populateDatabase(entities);
 
         String catToSkip = "personal";
         Set<TaskEntity> originalEntities = entities.stream()
                 .filter(e -> !catToSkip.equals(e.getCategory()))
                 .collect(Collectors.toSet());
-        collectionEquals(originalEntities, repo.findByNotCategory(catToSkip));
+        collectionEquals(originalEntities, REPO.findByNotCategory(catToSkip));
     }
 
     @Test
     public void findTodayTasksTest() {
-        Set<TaskEntity> entities = TestDataGenerator.generateEntitiesForTodayTest(formatter);
-        populateDatabase(entities);
+        Set<TaskEntity> entities = TestDataGenerator.generateEntitiesForTodayTest(FORMATTER);
+        JDBC_TEST_UTILS.populateDatabase(entities);
 
         Set<TaskEntity> expectedEntities = entities.stream()
                 .filter(entity -> !"exclude me".equals(entity.getCategory()))
                 .collect(Collectors.toSet());
 
-        Set<TaskEntity> results = repo.findTodayTasks();
+        Set<TaskEntity> results = REPO.findTodayTasks();
         collectionEquals(expectedEntities, results);
     }
 
     @Test
     public void findTasksUntilTest() {
-        Set<TaskEntity> entities = TestDataGenerator.generateEntitiesForUntilTest(formatter);
-        populateDatabase(entities);
+        Set<TaskEntity> entities = TestDataGenerator.generateEntitiesForUntilTest(FORMATTER);
+        JDBC_TEST_UTILS.populateDatabase(entities);
 
         Set<TaskEntity> expectedEntities = entities.stream()
                 .filter(entity -> !"exclude me".equals(entity.getCategory()))
                 .collect(Collectors.toSet());
 
-        Set<TaskEntity> results = repo.findTasksUntil(LocalDate.now().plusWeeks(2).format(formatter), formatter);
+        Set<TaskEntity> results = REPO.findTasksUntil(LocalDate.now().plusWeeks(2).format(FORMATTER), FORMATTER);
         collectionEquals(expectedEntities, results);
     }
 
     @Test
     public void removeTest() {
         Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
-        populateDatabase(entities);
+        JDBC_TEST_UTILS.populateDatabase(entities);
 
         int id = 1;
         Set<TaskEntity> originalEntities = entities.stream()
@@ -224,7 +211,7 @@ public class JdbcTodoRepositoryTest {
                 .collect(Collectors.toSet());
 
         try {
-            repo.remove(id);
+            REPO.remove(id);
         } catch (TaskNotFoundException tnfe) {
             String message = "Could not find task with id: " + id + " to remove!";
             LOG.warn(message, tnfe);
@@ -235,20 +222,20 @@ public class JdbcTodoRepositoryTest {
             fail(message);
         }
 
-        collectionEquals(originalEntities, repo.findAll());
+        collectionEquals(originalEntities, REPO.findAll());
     }
 
     @Test
     public void removeAllTest() {
         Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
-        populateDatabase(entities);
-        assertEquals(entities.size(), repo.getRowCount());
+        JDBC_TEST_UTILS.populateDatabase(entities);
+        assertEquals(entities.size(), REPO.getRowCount());
 
         try {
             Set<Integer> ids = entities.stream()
                     .map(entity -> entity.getId())
                     .collect(Collectors.toSet());
-            repo.removeAll(ids);
+            REPO.removeAll(ids);
         } catch (TaskNotFoundException tnfe) {
             String message = "Could not find task from collection to remove!";
             LOG.warn(message, tnfe);
@@ -259,13 +246,13 @@ public class JdbcTodoRepositoryTest {
             fail(message);
         }
 
-        assertEquals(0, repo.getRowCount());
+        assertEquals(0, REPO.getRowCount());
     }
 
     @Test
     public void singleUpdateTest() {
         Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
-        populateDatabase(entities);
+        JDBC_TEST_UTILS.populateDatabase(entities);
 
         TaskEntity toUpdate = entities.iterator().next();
         String newCategory = "new category";
@@ -274,7 +261,7 @@ public class JdbcTodoRepositoryTest {
         toUpdate.setRepeating(!toUpdate.isRepeating());
 
         try {
-            repo.save(toUpdate);
+            REPO.save(toUpdate);
         } catch (TaskPersistenceException tsfe) {
             String message = "Exception while trying to update entity!";
             LOG.error(message, tsfe);
@@ -283,7 +270,7 @@ public class JdbcTodoRepositoryTest {
 
         TaskEntity readEntity = null;
         try {
-            readEntity = repo.findById(toUpdate.getId());
+            readEntity = REPO.findById(toUpdate.getId());
         } catch (TaskNotFoundException tnfe) {
             String message = "Could not find the updated task!";
             LOG.error(message, tnfe);
@@ -298,7 +285,7 @@ public class JdbcTodoRepositoryTest {
         Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
         TaskEntity toUpdate = entities.iterator().next();
         try {
-            repo.save(toUpdate);
+            REPO.save(toUpdate);
         } catch (TaskPersistenceException tsfe) {
             String message = "Could not save single entity!";
             LOG.error(message, tsfe);
@@ -310,14 +297,14 @@ public class JdbcTodoRepositoryTest {
         toUpdate.setSubTaskIds("7,8,5,6,2");
 
         try {
-            repo.saveAll(entities);
+            REPO.saveAll(entities);
         } catch (TaskPersistenceException tpe) {
             String message = "Could not saveAll entities!";
             LOG.error(message, tpe);
             fail(message);
         }
 
-        collectionEquals(entities, repo.findAll());
+        collectionEquals(entities, REPO.findAll());
     }
 
     @Test
@@ -326,7 +313,7 @@ public class JdbcTodoRepositoryTest {
         entities.forEach(entity -> entity.setId(null));
 
         try {
-            repo.saveAll(entities);
+            REPO.saveAll(entities);
         } catch (TaskPersistenceException tpe) {
             String message = "Could not saveAll entities!";
             LOG.error(message, tpe);
@@ -338,7 +325,7 @@ public class JdbcTodoRepositoryTest {
 
     private void populateDatabase(Collection<TaskEntity> entities) {
         try {
-            repo.saveAll(entities);
+            REPO.saveAll(entities);
         } catch (TaskPersistenceException ex) {
             String message = "Could not populate table for the test!";
             LOG.error(message, ex);
@@ -359,12 +346,6 @@ public class JdbcTodoRepositoryTest {
         for (int i = 0; i < l1.size(); i++) {
             assertEquals(l1.get(i), l2.get(i));
         }
-    }
-
-    private void clean() {
-        repo.clean();
-        int rowCount = repo.getRowCount();
-        assertEquals(0, rowCount);
     }
 
 }

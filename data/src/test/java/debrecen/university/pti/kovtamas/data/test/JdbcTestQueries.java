@@ -7,9 +7,6 @@ public class JdbcTestQueries {
     private static final String ORIGINAL_NAME = "LIFE_TRAIL.TASK";
 
     // Create empty test table and drop test table
-//    public static final String CREATE_TEST_TABLE = "CREATE TABLE " + ORIGINAL_NAME
-//            + " AS SELECT * FROM " + NEW_NAME + " WHERE ID <> ID;"
-//            + " ALTER TABLE " + ORIGINAL_NAME + " CHANGE ID ID SERIAL;";
     public static final String CREATE_TEST_TABLE = "CREATE TABLE LIFE_TRAIL.TASK (\n"
             + "	ID SERIAL PRIMARY KEY,\n"
             + "	TASK_DEF TEXT NOT NULL,\n"

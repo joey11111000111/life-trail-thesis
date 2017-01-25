@@ -24,6 +24,13 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>debrecen.university.pti.kovtamas</groupId>
+            <artifactId>data</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
