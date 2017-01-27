@@ -19,14 +19,14 @@ public class TaskEntityVoMapper {
     private TaskEntityVoMapper() {
     }
 
-    private static DateTimeFormatter dateFormat = null;
-
-    public static void setDateFormat(DateTimeFormatter dateFormat) {
-        TaskEntityVoMapper.dateFormat = dateFormat;
-    }
+    static DateTimeFormatter dateFormat = null;
 
     static {
         dateFormat = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+    }
+
+    public static DateTimeFormatter getDateFormat() {
+        return dateFormat;
     }
 
     public static TaskEntity toStandaloneEntity(@NonNull TaskVo vo) {
@@ -62,7 +62,7 @@ public class TaskEntityVoMapper {
                 .build();
     }
 
-    public static List<TaskVo> toVo(Collection<TaskEntity> entities) {
+    public static List<TaskVo> toVo(@NonNull Collection<TaskEntity> entities) {
         List<TaskVo> vos = entities.stream()
                 .map(TaskEntityVoMapper::toStandaloneVo)
                 .collect(Collectors.toList());
@@ -71,7 +71,7 @@ public class TaskEntityVoMapper {
         return vos;
     }
 
-    private static void setRelations(@NonNull Collection<TaskVo> vos, @NonNull Collection<TaskEntity> entities) {
+    private static void setRelations(Collection<TaskVo> vos, Collection<TaskEntity> entities) {
         if (vos.size() != entities.size()) {
             throw new IllegalArgumentException("The vo and entity collections differ in size!");
         }
@@ -86,7 +86,7 @@ public class TaskEntityVoMapper {
         sortedEntities.sort(cmpEntity);
 
         // Set the relations
-        Set<TaskVo> allSubTasks = new HashSet<>();
+        Set<Integer> allSubTaskIds = new HashSet<>();
         for (int i = 0; i < sortedEntities.size(); i++) {
             TaskEntity entity = sortedEntities.get(i);
 
@@ -96,32 +96,27 @@ public class TaskEntityVoMapper {
                 List<TaskVo> subTasks = vos.stream()
                         .filter(vo -> subIds.contains(vo.getId()))
                         .collect(Collectors.toList());
-                allSubTasks.addAll(subTasks);
+
+                allSubTaskIds.addAll(
+                        subTasks.stream()
+                                .map(TaskVo::getId)
+                                .collect(Collectors.toSet())
+                );
                 sortedVos.get(i).setSubTasks(subTasks);
             }
         }
 
-        vos.removeAll(allSubTasks);
+        removeNestedDuplications(allSubTaskIds, vos);
     }
 
-//    public static List<TaskVo> toVo(@NonNull Collection<TaskEntity> entities) {
-//        List<TaskVo> vos = new ArrayList<>(entities.size());
-//        if (vos.size() == 0) {
-//            return vos;
-//        }
-//
-//        entities.forEach((entity) -> {
-//            if (!entity.hasSubTasks()) {
-//                vos.add(TaskEntityVoMapper.toStandaloneVo(entity));
-//            } else {
-//
-//            }
-//        });
-//
-//        return null;
-//    }
-//
-//    private static TaskVo innerTaskToVo()
+    private static void removeNestedDuplications(Collection<Integer> allSubIds, Collection<TaskVo> vos) {
+        List<TaskVo> vosToRemove = vos.stream()
+                .filter(vo -> allSubIds.contains(vo.getId()))
+                .collect(Collectors.toList());
+
+        vos.removeAll(vosToRemove);
+    }
+
     private static List<Integer> extractSubIds(String ids) {
         if (ids.isEmpty()) {
             throw new IllegalArgumentException("Sub task id string is empty!");
@@ -140,21 +135,7 @@ public class TaskEntityVoMapper {
         return extractedIds;
     }
 
-//    private static void setSubTasksOf(TaskVo parent, Collection<TaskVo> vos, Collection<Integer> subIds) {
-//        SortedSet<TaskVo> allSubTasks = new TreeSet<TaskVo>();
-//        for (Integer id : subIds) {
-//            Optional<TaskVo> subTask = vos.stream()
-//                    .filter(vo -> vo.getId() == id)
-//                    .findFirst();
-//            if (!subTask.isPresent()) {
-//                throw new IllegalArgumentException("Required subtask is not present in the collection!");
-//            }
-//
-//            allSubTasks.add(subTask.get());
-//        }
-//    }
     private static String buildSubTaskIdsString(TaskVo vo) {
-        @NonNull
         List<TaskVo> subTasks = vo.getSubTasks();
 
         if (subTasks.isEmpty()) {

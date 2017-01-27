@@ -33,8 +33,7 @@ public class CachingTodoService implements TodoService {
     private final DateTimeFormatter dateFormat;
 
     public CachingTodoService() {
-        dateFormat = DateTimeFormatter.ofPattern("yyyy.MM.dd");
-        TaskEntityVoMapper.setDateFormat(dateFormat);
+        dateFormat = TaskEntityVoMapper.getDateFormat();
         repo = new JdbcTodoRepository(dateFormat);
     }
 
@@ -155,6 +154,10 @@ public class CachingTodoService implements TodoService {
         }
 
         subsList.add(subTask);
+    }
+
+    public DateTimeFormatter getDateFormat() {
+        return dateFormat;
     }
 
     private void saveTaskTree(TaskVo rootTask) throws TaskPersistenceException {
