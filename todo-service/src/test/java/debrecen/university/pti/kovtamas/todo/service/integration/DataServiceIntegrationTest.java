@@ -104,6 +104,19 @@ public class DataServiceIntegrationTest {
         voListEquals(expectedVos, results);
     }
 
+    @Test
+    public void ofFollowingDaysTest() {
+        List<TaskVo> vos = DATA_GENERATOR.generateVosForFollowingDaysTest();
+        populateDatabase(vos);
+
+        List<TaskVo> expectedVos = vos.stream()
+                .filter(vo -> !"out".equals(vo.getCategory()))
+                .collect(Collectors.toList());
+
+        List<TaskVo> results = SERVICE.getTasksOfFollowingDays(7);
+        voListEquals(expectedVos, results);
+    }
+
     private void populateDatabase(List<TaskVo> vos) {
         try {
             SERVICE.saveAll(vos);

@@ -221,4 +221,105 @@ public class TestDataGenerator {
         return allVos;
     }
     // /Today tasks test ---------------------------------------------
+
+    // following days test -------------------------------------------
+    public List<TaskVo> generateVosForFollowingDaysTest() {
+        List<TaskVo> vos = new ArrayList<>();
+        vos.add(
+                TaskVo.builder()
+                        .taskDef("Task0")
+                        .category("in")
+                        .priority(Priority.HIGH)
+                        .deadline(LocalDate.now())
+                        .repeating(false)
+                        .subTasks(null)
+                        .build()
+        );
+        vos.add(
+                TaskVo.builder()
+                        .taskDef("Task1")
+                        .category("in-sub")
+                        .priority(Priority.HIGH)
+                        .deadline(LocalDate.now())
+                        .repeating(false)
+                        .subTasks(null)
+                        .build()
+        );
+        vos.add(
+                TaskVo.builder()
+                        .taskDef("Task2")
+                        .category("in")
+                        .priority(Priority.LOW)
+                        .deadline(LocalDate.now().minusDays(5))
+                        .repeating(true)
+                        .subTasks(null)
+                        .build()
+        );
+        vos.add(
+                TaskVo.builder()
+                        .taskDef("Task3")
+                        .category("in")
+                        .priority(Priority.HIGH)
+                        .deadline(LocalDate.now().plusDays(1))
+                        .repeating(false)
+                        .subTasks(null)
+                        .build()
+        );
+        vos.add(
+                TaskVo.builder()
+                        .taskDef("Task4")
+                        .category("in")
+                        .priority(Priority.NONE)
+                        .deadline(LocalDate.now().plusDays(7))
+                        .repeating(false)
+                        .subTasks(null)
+                        .build()
+        );
+        vos.add(
+                TaskVo.builder()
+                        .taskDef("Task5")
+                        .category("in")
+                        .priority(Priority.HIGH)
+                        .deadline(LocalDate.now().plusDays(10))
+                        .repeating(true)
+                        .subTasks(null)
+                        .build()
+        );
+        vos.add(
+                TaskVo.builder()
+                        .taskDef("Task6")
+                        .category("in")
+                        .priority(Priority.MEDIUM)
+                        .deadline(LocalDate.now().plusDays(7))
+                        .repeating(false)
+                        .subTasks(null)
+                        .build()
+        );
+        vos.add(
+                TaskVo.builder()
+                        .taskDef("Task7")
+                        .category("out")
+                        .priority(Priority.MEDIUM)
+                        .deadline(LocalDate.now().plusDays(8))
+                        .repeating(false)
+                        .subTasks(null)
+                        .build()
+        );
+        vos.add(
+                TaskVo.builder()
+                        .taskDef("Task8")
+                        .category("out")
+                        .priority(Priority.LOW)
+                        .deadline(LocalDate.now().plusDays(10))
+                        .repeating(false)
+                        .subTasks(null)
+                        .build()
+        );
+
+        vos.get(0).setSubTasks(Arrays.asList(vos.get(1)));
+        vos.remove(1);
+
+        return vos;
+    }
+    // /following days test ------------------------------------------
 }
