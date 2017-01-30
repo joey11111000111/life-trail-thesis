@@ -38,6 +38,12 @@ public class CachingTodoService implements TodoService {
     }
 
     @Override
+    public List<TaskVo> getAll() {
+        Set<TaskEntity> allEntities = repo.findAll();
+        return TaskEntityVoMapper.toVo(allEntities);
+    }
+
+    @Override
     public List<TaskVo> getByCategory(@NonNull String category) {
         return TaskEntityVoMapper.toVo(repo.findByCategory(category));
     }
@@ -165,8 +171,10 @@ public class CachingTodoService implements TodoService {
             saveStandaloneTask(rootTask);
         }
 
-        for (TaskVo subTask : rootTask.getSubTasks()) {
-            saveTaskTree(subTask);
+        if (rootTask.hasSubTasks()) {
+            for (TaskVo subTask : rootTask.getSubTasks()) {
+                saveTaskTree(subTask);
+            }
         }
 
         TaskEntity rootEntity = TaskEntityVoMapper.toEntity(rootTask);

@@ -3,7 +3,9 @@ package debrecen.university.pti.kovtamas.todo.service.integration;
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import debrecen.university.pti.kovtamas.data.test.JdbcTestUtils;
 import debrecen.university.pti.kovtamas.todo.service.mapper.TaskEntityVoMapper;
+import debrecen.university.pti.kovtamas.todo.service.vo.Priority;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,6 +20,7 @@ public class TestDataGenerator {
         this.jdbcTestUtils = jdbcTestUtils;
     }
 
+    // byCategoryTest ------------------------------------------------
     private List<TaskEntity> generateEntitiesForCategoryTest() {
         List<TaskEntity> entities = new ArrayList<>();
         entities.add(TaskEntity.builder()
@@ -95,5 +98,127 @@ public class TestDataGenerator {
 
         return expectedVos;
     }
+    // /byCategoryTest -----------------------------------------------
 
+    // save and find all test ----------------------------------------
+    public List<TaskVo> generateVosToSave() {
+        List<TaskVo> standaloneVos = new ArrayList<>();
+        standaloneVos.add(
+                TaskVo.builder()
+                        .taskDef("Task1")
+                        .category("category1")
+                        .priority(Priority.NONE)
+                        .deadline(LocalDate.now().plusMonths(2))
+                        .repeating(false)
+                        .subTasks(null)
+                        .build()
+        );
+        standaloneVos.add(
+                TaskVo.builder()
+                        .taskDef("Task2")
+                        .category("category1")
+                        .priority(Priority.NONE)
+                        .deadline(LocalDate.now().plusMonths(2))
+                        .repeating(false)
+                        .subTasks(null)
+                        .build()
+        );
+        standaloneVos.add(
+                TaskVo.builder()
+                        .taskDef("Task3")
+                        .category("category1")
+                        .priority(Priority.NONE)
+                        .deadline(LocalDate.now().plusMonths(2))
+                        .repeating(false)
+                        .subTasks(null)
+                        .build()
+        );
+        standaloneVos.add(
+                TaskVo.builder()
+                        .taskDef("Task5")
+                        .category("category1")
+                        .priority(Priority.NONE)
+                        .deadline(LocalDate.now().plusMonths(2))
+                        .repeating(false)
+                        .subTasks(null)
+                        .build()
+        );
+
+        standaloneVos.add(
+                TaskVo.builder()
+                        .taskDef("Task4")
+                        .category("category2")
+                        .priority(Priority.MEDIUM)
+                        .deadline(LocalDate.now())
+                        .repeating(true)
+                        .subTasks(null)
+                        .build()
+        );
+
+        List<TaskVo> expectedVos = new ArrayList<>();
+        expectedVos.add(standaloneVos.get(0));
+        List<TaskVo> subTasks = new ArrayList<>();
+        subTasks.add(standaloneVos.get(1));
+        subTasks.add(standaloneVos.get(2));
+        subTasks.get(1).setSubTasks(Arrays.asList(standaloneVos.get(3)));
+        expectedVos.get(0).setSubTasks(subTasks);
+
+        expectedVos.add(standaloneVos.get(4));
+        return expectedVos;
+    }
+    // /save and find all test ---------------------------------------
+
+    // Today tasks test ----------------------------------------------
+    public List<TaskVo> generateVosForTodayTest() {
+        List<TaskVo> standaloneVos = new ArrayList<>();
+        standaloneVos.add(
+                TaskVo.builder()
+                        .taskDef("Task1")
+                        .category("category1")
+                        .priority(Priority.HIGH)
+                        .deadline(LocalDate.now())
+                        .repeating(false)
+                        .subTasks(null)
+                        .build()
+        );
+        standaloneVos.add(
+                TaskVo.builder()
+                        .taskDef("Task2")
+                        .category("category1")
+                        .priority(Priority.HIGH)
+                        .deadline(LocalDate.now())
+                        .repeating(false)
+                        .subTasks(null)
+                        .build()
+        );
+        standaloneVos.add(
+                TaskVo.builder()
+                        .taskDef("Task1")
+                        .category("category1")
+                        .priority(Priority.HIGH)
+                        .deadline(LocalDate.now().minusYears(2))
+                        .repeating(true)
+                        .subTasks(null)
+                        .build()
+        );
+        standaloneVos.add(
+                TaskVo.builder()
+                        .taskDef("Task1")
+                        .category("uncategorized")
+                        .priority(Priority.LOW)
+                        .deadline(LocalDate.now().plusWeeks(3))
+                        .repeating(false)
+                        .subTasks(null)
+                        .build()
+        );
+
+        List<TaskVo> allVos = new ArrayList<>();
+        allVos.add(standaloneVos.get(0));
+        allVos.get(0).setSubTasks(Arrays.asList(standaloneVos.get(1)));
+        allVos.add(standaloneVos.get(2));
+        allVos.add(standaloneVos.get(3));
+
+        return allVos;
+    }
+    // /Today tasks test ---------------------------------------------
 }

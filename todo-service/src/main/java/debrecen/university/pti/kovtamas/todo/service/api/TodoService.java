@@ -6,6 +6,8 @@ import java.util.List;
 
 public interface TodoService {
 
+    List<TaskVo> getAll();
+
     List<TaskVo> getByCategory(String category);
 
     List<TaskVo> getTodayTasks();
