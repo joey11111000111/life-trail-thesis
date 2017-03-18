@@ -1,6 +1,6 @@
 package debrecen.university.pti.kovtamas.application;
 
-import debrecen.university.pti.kovtamas.application.controller.MainMenuController;
+import debrecen.university.pti.kovtamas.application.controller.MenuController;
 import debrecen.university.pti.kovtamas.display.utils.VoidNoArgMethod;
 import debrecen.university.pti.kovtamas.display.utils.display.DisplayLoadException;
 import debrecen.university.pti.kovtamas.display.utils.display.DisplayLoader;
@@ -54,7 +54,7 @@ public class ApplicationMain extends Application {
         TodoController todoController = (TodoController) todoDisplayVo.getController();
         todoController.setBackToMenuMethod(switchToMenu);
         todoController.setSwitchLanguageMethod(this::switchLanguage);
-        MainMenuController menuController = (MainMenuController) menuDisplayVo.getController();
+        MenuController menuController = (MenuController) menuDisplayVo.getController();
         menuController.setSwitchToTodoMethod(switchToTodo);
         menuController.setSwitchLanguageMethod(this::switchLanguage);
 
@@ -88,8 +88,7 @@ public class ApplicationMain extends Application {
 
         if (localeManager.setLanguage(lang)) {
             try {
-                initDisplayVos(localeManager.getLocale());
-                injectControllerDependencies();
+                createLocalizedDisplayVos();
             } catch (DisplayLoadException dle) {
                 System.out.println("Failed to set language to " + lang);
                 // TODO: handle exception with at least real logging
@@ -98,6 +97,29 @@ public class ApplicationMain extends Application {
 
             switchScene(activeModule);
         }
+    }
+
+    private void createLocalizedDisplayVos() throws DisplayLoadException {
+        // Create new, re-localized display vos
+        DisplayVo newMenuDisplayVo = DisplayLoader.fromFxml(DisplayLoader.Modules.MENU, localeManager.getLocale());
+        DisplayVo newTodoDisplayVo = DisplayLoader.fromFxml(DisplayLoader.Modules.TODO, localeManager.getLocale());
+
+        // Inject dependencies of menu controller from the previous one
+        MenuController oldMenuController = (MenuController) menuDisplayVo.getController();
+        MenuController newMenuController = (MenuController) newMenuDisplayVo.getController();
+        newMenuController.setSwitchLanguageMethod(oldMenuController.getSwitchLanguageMethod());
+        newMenuController.setSwitchToTodoMethod(oldMenuController.getSwitchToTodoMethod());
+
+        // Inject dependencies of todo controller from the previous one
+        TodoController oldTodoController = (TodoController) todoDisplayVo.getController();
+        TodoController newTodoController = (TodoController) newTodoDisplayVo.getController();
+        newTodoController.setSwitchLanguageMethod(oldTodoController.getSwitchLanguageMethod());
+        newTodoController.setBackToMenuMethod(oldTodoController.getBackToMenuMethod());
+        newTodoController.setService(oldTodoController.getService());
+
+        // Do the switch from old to new
+        menuDisplayVo = newMenuDisplayVo;
+        todoDisplayVo = newTodoDisplayVo;
     }
 
     public static void main(String[] args) {

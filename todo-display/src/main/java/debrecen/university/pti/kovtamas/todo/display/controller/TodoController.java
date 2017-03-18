@@ -81,18 +81,27 @@ public class TodoController {
         switchLanguageMethod.accept("hu");
     }
 
-    public void setBackToMenuMethod(VoidNoArgMethod method) {
-        backToMenuMethod = method;
+    public TodoService getService() {
+        return service;
     }
 
     public void setService(TodoService service) {
         this.service = service;
     }
 
+    public VoidNoArgMethod getBackToMenuMethod() {
+        return backToMenuMethod;
+    }
+
+    public void setBackToMenuMethod(VoidNoArgMethod backToMenuMethod) {
+        this.backToMenuMethod = backToMenuMethod;
+    }
+
+    public Consumer<String> getSwitchLanguageMethod() {
+        return switchLanguageMethod;
+    }
+
     public void setSwitchLanguageMethod(Consumer<String> switchLanguageMethod) {
-        if (switchLanguageMethod == null) {
-            throw new IllegalArgumentException("Language method must not be null!");
-        }
         this.switchLanguageMethod = switchLanguageMethod;
     }
 
