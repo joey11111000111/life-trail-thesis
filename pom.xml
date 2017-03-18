@@ -12,6 +12,7 @@
         <module>todo-display</module>
         <module>journal-display</module>
         <module>application</module>
+        <module>display-utils</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

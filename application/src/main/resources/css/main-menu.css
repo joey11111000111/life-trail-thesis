@@ -1,0 +1,32 @@
+.app-root {
+    -fx-background-color: black;
+    -fx-border-color: black;
+    -fx-border-width: 2 2 2 2;
+}
+
+.main-container {
+    -fx-background-color: rgb(100, 100, 60);
+    -fx-border-color: gold;
+    -fx-border-width:  2 2 2 2;
+}
+
+.logo-text {
+    -fx-font-family: IncisedBlackWide;
+    -fx-font-size: 30;
+    -fx-fill: radial-gradient(radius 120%, wheat, derive(burlywood, -15%), derive(wheat, 15%));
+}
+
+.button {
+    -fx-background-color: rgb(120, 120, 50);
+    -fx-border-color: rgba(0,0,0,.5);
+    -fx-text-fill: wheat;
+}
+
+.button:hover {
+    -fx-background-color: rgb(160, 145, 50);
+}
+
+.button:pressed {
+    -fx-background-color: #aabaab;
+    -fx-text-fill: gold;
+}

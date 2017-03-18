@@ -15,6 +15,11 @@
             <artifactId>todo-service</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>debrecen.university.pti.kovtamas</groupId>
+            <artifactId>display-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

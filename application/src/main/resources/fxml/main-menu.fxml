@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+
+<VBox alignment="TOP_CENTER" prefWidth="289.0" spacing="10.0" styleClass="app-root" stylesheets="@/css/main-menu.css" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="debrecen.university.pti.kovtamas.application.controller.MainMenuController">
+   <children>
+      <VBox alignment="CENTER" minHeight="200.0" minWidth="200.0" spacing="10.0" style="-fx-border-color: gold; -fx-border-width: 2 2 2 2; -fx-background-color: rgb(100, 100, 60);" styleClass="main-container" VBox.vgrow="ALWAYS">
+         <children>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0" style="-fx-border-color: ; -fx-border-width: 0 0 1 0; -fx-border-image-insets: 10 10 10 10;" VBox.vgrow="ALWAYS">
+               <children>
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="logo-text" text="Life" underline="true" />
+                  <ImageView fitHeight="76.0" fitWidth="108.0" opacity="0.8" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="/img/footsteps.png" />
+                     </image>
+                  </ImageView>
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="logo-text" text="Trail" underline="true" />
+               </children>
+               <padding>
+                  <Insets bottom="5.0" />
+               </padding>
+            </HBox>
+            <Button mnemonicParsing="false" onAction="#swtichToJournal" prefHeight="28.0" prefWidth="250.0" text="%button_journal" />
+            <Button minWidth="250.0" mnemonicParsing="false" onAction="#switchToTodo" text="%button_todo" />
+            <HBox alignment="CENTER" prefWidth="200.0" spacing="10.0" style="-fx-border-color: ; -fx-border-width: 0 0 1 0;" VBox.vgrow="ALWAYS">
+               <children>
+                  <Button mnemonicParsing="false" onAction="#setEnLocale" text="EN" />
+                  <Button mnemonicParsing="false" onAction="#setHuLocale" text="HU" />
+               </children>
+               <padding>
+                  <Insets bottom="10.0" />
+               </padding>
+            </HBox>
+         </children>
+         <padding>
+            <Insets bottom="10.0" left="4.0" right="4.0" top="10.0" />
+         </padding>
+      </VBox>
+   </children>
+   <padding>
+      <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+   </padding>
+</VBox>
