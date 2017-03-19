@@ -3,10 +3,17 @@ package debrecen.university.pti.kovtamas.todo.service.api;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface TodoService {
 
     List<TaskVo> getAll();
+
+    Set<String> getAllCategories();
+
+    Set<String> getFixCategories();
+
+    Set<String> getCustomCategories();
 
     List<TaskVo> getByCategory(String category);
 

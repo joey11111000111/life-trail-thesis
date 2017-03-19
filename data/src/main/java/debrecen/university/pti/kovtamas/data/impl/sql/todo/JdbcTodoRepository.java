@@ -48,6 +48,24 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
+    public Set<String> findAllCategories() {
+        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
+            Statement statement = conn.createStatement();
+            ResultSet results = statement.executeQuery(TodoQueries.FIND_ALL_CATEGORIES);
+
+            Set<String> categories = new HashSet<>();
+            while (results.next()) {
+                categories.add(results.getString("CATEGORY"));
+            }
+            return categories;
+        } catch (SQLException sqle) {
+            LOG.warn("Exception while trying to read from database!", sqle);
+            return new HashSet<>();
+        }
+
+    }
+
+    @Override
     public Set<TaskEntity> findByCategory(@NonNull String category) {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             PreparedStatement prStatement = conn.prepareStatement(TodoQueries.FIND_BY_CATEGORY);

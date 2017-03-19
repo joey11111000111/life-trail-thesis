@@ -1,5 +1,6 @@
 package debrecen.university.pti.kovtamas.display.utils.display;
 
+import debrecen.university.pti.kovtamas.display.utils.Modules;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -14,30 +15,7 @@ public final class DisplayLoader {
     private DisplayLoader() {
     }
 
-    public enum Modules {
-        MENU("/fxml/main-menu.fxml", "i18n.menu-localization"),
-        TODO("/fxml/todo.fxml", "i18n.todo-localization"),
-        JOURNAL(null, null);
-
-        private final String fxmlPath;
-        private final String resPath;
-
-        Modules(final String fxmlPath, final String resPath) {
-            this.fxmlPath = fxmlPath;
-            this.resPath = resPath;
-        }
-
-        public String getFxmlPath() {
-            return fxmlPath;
-        }
-
-        public String getResPath() {
-            return resPath;
-        }
-
-    }
-
-    public static DisplayVo fromFxml(Modules module, final Locale locale) throws DisplayLoadException {
+    public static DisplayVo load(Modules module, final Locale locale) throws DisplayLoadException {
         final String fxmlPath = module.getFxmlPath();
         final String resPath = module.getResPath();
         URL appUrl = DisplayLoader.class.getResource(fxmlPath);
@@ -70,8 +48,8 @@ public final class DisplayLoader {
         return new DisplayVo(scene, controller);
     }
 
-    public static DisplayVo fromFxml(Modules module) throws DisplayLoadException {
-        return fromFxml(module, null);
+    public static DisplayVo load(Modules module) throws DisplayLoadException {
+        return load(module, null);
     }
 
 }

@@ -167,4 +167,43 @@ public class TestDataGenerator {
 
         return entities;
     }
+
+    public static Set<TaskEntity> generateEntitiesForFindCategoriesTest() {
+        Set<TaskEntity> entities = new HashSet<>();
+        entities.add(TaskEntity.builder()
+                .taskDef("personal_1")
+                .priority(1)
+                .category("personal")
+                .subTaskIds(null)
+                .repeating(false)
+                .build()
+        );
+        entities.add(TaskEntity.builder()
+                .taskDef("personal_2")
+                .priority(2)
+                .category("personal")
+                .subTaskIds(null)
+                .repeating(false)
+                .build()
+        );
+        entities.add(TaskEntity.builder()
+                .taskDef("work_1")
+                .priority(1)
+                .category("work")
+                .subTaskIds(null)
+                .repeating(false)
+                .build()
+        );
+        entities.add(TaskEntity.builder()
+                .taskDef("work_2")
+                .priority(1)
+                .category("work")
+                .subTaskIds(null)
+                .repeating(true)
+                .build()
+        );
+
+        return entities;
+    }
+
 }

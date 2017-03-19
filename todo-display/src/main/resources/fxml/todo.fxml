@@ -80,7 +80,7 @@
                <bottom>
                   <HBox alignment="CENTER" prefWidth="200.0" style="-fx-border-color: wheat; -fx-border-width: 1 0 0 0;" styleClass="title-text" BorderPane.alignment="CENTER">
                      <children>
-                        <Text fx:id="motivationText" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="motivational-text" text="You never fail until you stop trying" wrappingWidth="450.7294921875" HBox.hgrow="ALWAYS" />
+                        <Text fx:id="motivationText" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="motivational-text" wrappingWidth="450.7294921875" HBox.hgrow="ALWAYS" />
                      </children>
                      <padding>
                         <Insets top="2.0" />

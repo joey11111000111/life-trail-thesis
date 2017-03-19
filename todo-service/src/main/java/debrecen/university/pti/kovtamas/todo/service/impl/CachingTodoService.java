@@ -44,6 +44,32 @@ public class CachingTodoService implements TodoService {
     }
 
     @Override
+    public Set<String> getAllCategories() {
+        Set<String> allCategories = getFixCategories();
+        allCategories.addAll(getCustomCategories());
+        return allCategories;
+    }
+
+    @Override
+    public Set<String> getFixCategories() {
+        Set<String> fixCategories = new HashSet<>();
+        fixCategories.add("today");
+        fixCategories.add("this week");
+        fixCategories.add("uncategorized------------------------------------------------");
+        fixCategories.add("done");
+        return fixCategories;
+    }
+
+    @Override
+    public Set<String> getCustomCategories() {
+        Set<String> fixCategories = getFixCategories();
+        Set<String> allCategories = repo.findAllCategories();
+
+        allCategories.removeAll(fixCategories);
+        return allCategories;
+    }
+
+    @Override
     public List<TaskVo> getByCategory(@NonNull String category) {
         return TaskEntityVoMapper.toVo(repo.findByCategory(category));
     }

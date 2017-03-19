@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -321,6 +322,21 @@ public class JdbcTodoRepositoryTest {
         }
 
         entities.forEach(entity -> assertNotNull(entity.getId()));
+    }
+
+    @Test
+    public void findAllCategoriesTest() {
+        Set<TaskEntity> entities = TestDataGenerator.generateEntitiesForFindCategoriesTest();
+        JDBC_TEST_UTILS.populateDatabase(entities);
+
+        Set<String> expected = new HashSet<>();
+        expected.add("personal");
+        expected.add("work");
+
+        Set<String> result = REPO.findAllCategories();
+        assertEquals(expected.size(), result.size());
+        result.removeAll(expected);
+        assertEquals(0, result.size());
     }
 
     private void populateDatabase(Collection<TaskEntity> entities) {

@@ -12,6 +12,8 @@ public interface TodoRepository {
 
     Set<TaskEntity> findAll();
 
+    Set<String> findAllCategories();
+
     Set<TaskEntity> findByCategory(String category);
 
     Set<TaskEntity> findByNotCategory(String categoryToSkip);

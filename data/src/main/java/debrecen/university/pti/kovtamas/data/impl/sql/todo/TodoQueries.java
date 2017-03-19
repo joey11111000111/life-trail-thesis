@@ -6,6 +6,7 @@ public class TodoQueries {
 
     public static final String FIND_ALL = "SELECT * FROM " + TASK_TABLE_NAME;
     public static final String FIND_BY_ID = "SELECT * FROM " + TASK_TABLE_NAME + " WHERE ID = ?";
+    public static final String FIND_ALL_CATEGORIES = "SELECT DISTINCT CATEGORY FROM " + TASK_TABLE_NAME;
     public static final String FIND_BY_CATEGORY = "SELECT * FROM " + TASK_TABLE_NAME + " WHERE CATEGORY = ?";
     public static final String FIND_BY_NOT_CATEGORY = "SELECT * FROM " + TASK_TABLE_NAME + " WHERE CATEGORY <> ?";
     public static final String FIND_TODAY_TASKS = "SELECT * FROM " + TASK_TABLE_NAME
