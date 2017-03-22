@@ -1,0 +1,68 @@
+.task-root {
+    /*-fx-background-color: radial-gradient(radius 180%, rgb(30,30,10), derive(rgb(100,100,60), -30%), derive(rgb(100,100,60), 30%));*/
+    /*-fx-background-color: rgb(70,70,30);*/
+    -fx-background-color: transparent;
+}
+
+.transparent-bkg {
+    -fx-background-color: transparent;
+}
+
+.check-box .box {
+    -fx-background-color: radial-gradient(radius 180%, silver, derive(black, 30%), derive(black, -30%));
+    -fx-border-color: rgba(0, 0, 0, .5);
+}
+
+.check-box:selected .box .mark {
+    /*-fx-background-color: radial-gradient(radius 180%, burlywood, derive(black, -30%), derive(black, 30%));*/
+    /*-fx-background-color: #C5AD8E;*/
+    -fx-background-color: wheat;
+}
+
+.priority-indicator {
+    /*-fx-fill: radial-gradient(radius 180%, burlywood, derive(red, -30%), derive(red, 30%));*/
+}
+
+.text-field {
+    /*-fx-text-fill: #E3865D;*/
+    /*-fx-text-fill: #E3865D;*/
+    -fx-text-fill:  #E1B5A1;
+    -fx-font-size: 16;
+    -fx-font-family: monospace;
+}
+
+.combo-box .list-cell {
+    -fx-font-size: 15;
+    -fx-font-family: monospace;
+    -fx-text-fill: #E3865D;
+    -fx-prompt-text-fill: #E3865D;
+    -fx-background-color: transparent;
+    -fx-font-weight: normal;
+}
+
+.combo-box .combo-box-popup .list-view, .combo-box .combo-box-popup .list-view .list-cell {
+    -fx-background-color: rgba(100, 100, 60, .7);
+    -fx-text-fill: lightblue;
+}
+
+.date-picker > .text-field {
+    -fx-background-color: transparent;
+    -fx-font-size: 15;
+    -fx-font-family: monospace;
+    -fx-text-fill: #E3865D;
+    -fx-prompt-text-fill: #E3865D;
+    -fx-font-weight: normal;
+}
+
+.date-picker-popup {
+    -fx-background-color: black;
+}
+
+.date-picker > .arrow-button {
+    -fx-background-color: radial-gradient(radius 180%, rgb(100,100,60), derive(rgb(100,100,60), 30%), derive(rgb(100,100,60), -30%));
+}
+
+
+.date-picker > .arrow-button > .arrow {
+    -fx-background-color: goldenrod;
+}

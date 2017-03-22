@@ -13,6 +13,10 @@
     -fx-background-color: rgb(100, 100, 60);
 }
 
+.task-container {
+    -fx-background-color: radial-gradient(radius 180%, rgb(104,74,30), derive(rgb(70, 70, 30), -30%), derive(rgb(70, 70, 30), 30%));
+}
+
 /*.ttip, tooltip {
     -fx-background-radius: 7 7 7 7;
 }
@@ -64,6 +68,11 @@
 .separator:horizontal .line {
     -fx-border-color: burlywood;
     -fx-border-width: .5, 0, 0, 0;
+}
+
+.motivation-text-container {
+    -fx-alignment: bottom-center;
+    -fx-background-color: transparent;
 }
 
 

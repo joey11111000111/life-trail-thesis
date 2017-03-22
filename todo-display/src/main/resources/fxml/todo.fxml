@@ -21,9 +21,6 @@
          <HBox.margin>
             <Insets bottom="2.0" left="2.0" top="2.0" />
          </HBox.margin>
-         <padding>
-            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
-         </padding>
          <top>
             <HBox alignment="CENTER_LEFT" prefHeight="34.0" prefWidth="490.0" spacing="2.0" styleClass="menubox" BorderPane.alignment="TOP_CENTER">
                <children>
@@ -78,26 +75,41 @@
          <center>
             <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                <bottom>
-                  <HBox alignment="CENTER" prefWidth="200.0" style="-fx-border-color: wheat; -fx-border-width: 1 0 0 0;" styleClass="title-text" BorderPane.alignment="CENTER">
+                  <HBox alignment="CENTER" style="-fx-border-color: wheat; -fx-border-width: 1 0 0 0;" styleClass="motivation-text-container" BorderPane.alignment="BOTTOM_CENTER">
                      <children>
                         <Text fx:id="motivationText" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="motivational-text" wrappingWidth="450.7294921875" HBox.hgrow="ALWAYS" />
                      </children>
+                     <BorderPane.margin>
+                        <Insets />
+                     </BorderPane.margin>
                      <padding>
-                        <Insets top="2.0" />
+                        <Insets top="4.0" />
                      </padding>
                   </HBox>
                </bottom>
                <center>
                   <ScrollPane prefHeight="200.0" prefWidth="200.0" styleClass="scrollable-container" BorderPane.alignment="CENTER">
                      <content>
-                        <VBox fx:id="taskBox" prefHeight="200.0" prefWidth="100.0" />
+                        <VBox fx:id="taskBox" styleClass="task-container" />
                      </content>
+                     <BorderPane.margin>
+                        <Insets bottom="4.0" top="4.0" />
+                     </BorderPane.margin>
                   </ScrollPane>
                </center>
+               <padding>
+                  <Insets left="4.0" right="4.0" top="4.0" />
+               </padding>
+               <BorderPane.margin>
+                  <Insets left="2.0" right="2.0" top="2.0" />
+               </BorderPane.margin>
             </BorderPane>
          </center>
+         <padding>
+            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+         </padding>
       </BorderPane>
-      <BorderPane minWidth="250.0" HBox.hgrow="ALWAYS">
+      <BorderPane minWidth="250.0" HBox.hgrow="SOMETIMES">
          <HBox.margin>
             <Insets bottom="2.0" right="2.0" top="2.0" />
          </HBox.margin>
@@ -105,7 +117,7 @@
             <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
          </padding>
          <bottom>
-            <BorderPane prefHeight="32.0" prefWidth="201.0" styleClass="cat-menu-border-pane" BorderPane.alignment="CENTER">
+            <BorderPane prefHeight="34.0" prefWidth="201.0" styleClass="cat-menu-border-pane" BorderPane.alignment="CENTER">
                <left>
                   <Button mnemonicParsing="false" onAction="#addNewCategory" styleClass="image-button" text="+" textFill="#e1dca5" BorderPane.alignment="CENTER">
                      <tooltip>
@@ -139,10 +151,10 @@
             <String fx:value="category-border-pane" />
          </styleClass>
          <center>
-            <ListView fx:id="categoryListView" prefHeight="200.0" prefWidth="200.0" styleClass="container" BorderPane.alignment="CENTER">
-               <padding>
+            <ListView fx:id="categoryListView" styleClass="container" BorderPane.alignment="CENTER">
+               <BorderPane.margin>
                   <Insets bottom="4.0" top="4.0" />
-               </padding></ListView>
+               </BorderPane.margin></ListView>
          </center>
          <top>
             <VBox alignment="CENTER" prefWidth="100.0" styleClass="title-container" BorderPane.alignment="TOP_CENTER">

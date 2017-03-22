@@ -2,6 +2,7 @@ package debrecen.university.pti.kovtamas.todo.display.controller;
 
 import debrecen.university.pti.kovtamas.display.utils.VoidNoArgMethod;
 import debrecen.university.pti.kovtamas.display.utils.locale.LocaleManager;
+import debrecen.university.pti.kovtamas.todo.display.component.TaskManager;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.CategorySubController;
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
 import java.util.Set;
@@ -20,6 +21,7 @@ import lombok.Data;
 public class TodoController {
 
     private TodoService service;
+    private TaskManager taskManager;
     private CategorySubController catSubController;
     private LocaleManager localeManager;
     private boolean quoteSwitcherBlocked;

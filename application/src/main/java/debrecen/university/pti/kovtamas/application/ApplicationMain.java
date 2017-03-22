@@ -7,6 +7,7 @@ import debrecen.university.pti.kovtamas.display.utils.display.DisplayLoadExcepti
 import debrecen.university.pti.kovtamas.display.utils.display.DisplayLoader;
 import debrecen.university.pti.kovtamas.display.utils.locale.LocaleManager;
 import debrecen.university.pti.kovtamas.display.utils.display.DisplayVo;
+import debrecen.university.pti.kovtamas.todo.display.component.TaskManager;
 import debrecen.university.pti.kovtamas.todo.display.controller.TodoController;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.CategorySubController;
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
@@ -67,6 +68,7 @@ public class ApplicationMain extends Application {
         ListView listView = todoController.getCategoryListView();
         Set<String> allCategories = todoService.getAllCategories();
         CategorySubController catSubController = new CategorySubController(listView, allCategories);
+        todoController.setTaskManager(new TaskManager(todoService, todoController.getTaskBox().getChildren()));
         todoController.setCatSubController(catSubController);
         todoController.startUp();
 
@@ -132,6 +134,7 @@ public class ApplicationMain extends Application {
         newTodoController.setBackToMenuMethod(oldTodoController.getBackToMenuMethod());
         newTodoController.setService(oldTodoController.getService());
         newTodoController.setLocaleManager(localeManager);
+        newTodoController.setTaskManager(oldTodoController.getTaskManager());
         // Inject new category sub controller
         CategorySubController oldCatSubCtrl = oldTodoController.getCatSubController();
         CategorySubController newCatSubCrtl = new CategorySubController(newTodoController.getCategoryListView(), oldCatSubCtrl.getCategoryList());
