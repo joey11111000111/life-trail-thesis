@@ -4,6 +4,7 @@ import debrecen.university.pti.kovtamas.display.utils.Modules;
 import debrecen.university.pti.kovtamas.display.utils.locale.Localizer;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.NonNull;
 
 import static debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.LogicalCategoryNames.LogicalCategories.COMPLETED;
 import static debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.LogicalCategoryNames.LogicalCategories.THIS_WEEK;
@@ -20,6 +21,25 @@ public class LogicalCategoryNames {
         UNCATEGORIZED("category_uncategorized"),
         COMPLETED("category_completed");
 
+        private static final List<LogicalCategories> allLogicalCategories;
+
+        static {
+            allLogicalCategories = new ArrayList<>();
+            allLogicalCategories.add(TODAY);
+            allLogicalCategories.add(TOMORROW);
+            allLogicalCategories.add(THIS_WEEK);
+            allLogicalCategories.add(UNCATEGORIZED);
+            allLogicalCategories.add(COMPLETED);
+        }
+
+        public static int getLogicalCategoryCount() {
+            return allLogicalCategories.size();
+        }
+
+        public static List<LogicalCategories> getAllLogicalCategories() {
+            return allLogicalCategories;
+        }
+
         private final String localizationKey;
 
         private LogicalCategories(String localizationKey) {
@@ -29,33 +49,77 @@ public class LogicalCategoryNames {
         public String getLocalizationKey() {
             return localizationKey;
         }
+
     }
 
-    private final Localizer localizer;
-    private final List<String> currentNames;
+    private static final LogicalCategoryNames INSTANCE;
 
-    public LogicalCategoryNames() {
-        localizer = Localizer.getInstance();
-        currentNames = getLocalizedLogicalCategoryNames();
+    static {
+        INSTANCE = new LogicalCategoryNames();
+    }
+
+    public static LogicalCategoryNames getInstance() {
+        return INSTANCE;
+    }
+
+    private Localizer localizer;
+    private List<String> currentCategoryNames;
+
+    private LogicalCategoryNames() {
+        initFields();
+        setupListeningToLanguageChange();
     }
 
     public List<String> getLocalizedNames() {
-        return new ArrayList<>(currentNames);
+        return new ArrayList<>(currentCategoryNames);
     }
 
     public boolean isLogicalCategory(String categoryName) {
-        return currentNames.contains(categoryName);
+        return currentCategoryNames.contains(categoryName);
+    }
+
+    public LogicalCategories whichLogicalCategory(@NonNull final String categoryName) {
+        int listIndex = currentCategoryNames.indexOf(categoryName);
+        if (listIndex == -1) {
+            return null;
+        }
+
+        return LogicalCategories.getAllLogicalCategories().get(listIndex);
+    }
+
+    private void initFields() {
+        localizer = Localizer.getInstance();
+        localizeCategoryNames();
+    }
+
+    private void setupListeningToLanguageChange() {
+        localizer.registerLanguageChangeAction(
+                (fromLang, toLang) -> localizeCategoryNames()
+        );
+    }
+
+    private void localizeCategoryNames() {
+        currentCategoryNames = getLocalizedLogicalCategoryNames();
     }
 
     private List<String> getLocalizedLogicalCategoryNames() {
-        List<String> localizedLogicalCategoryNames = new ArrayList<>();
-        localizedLogicalCategoryNames.add(localizer.localize(TODAY.getLocalizationKey(), Modules.TODO));
-        localizedLogicalCategoryNames.add(localizer.localize(TOMORROW.getLocalizationKey(), Modules.TODO));
-        localizedLogicalCategoryNames.add(localizer.localize(THIS_WEEK.getLocalizationKey(), Modules.TODO));
-        localizedLogicalCategoryNames.add(localizer.localize(UNCATEGORIZED.getLocalizationKey(), Modules.TODO));
-        localizedLogicalCategoryNames.add(localizer.localize(COMPLETED.getLocalizationKey(), Modules.TODO));
+        List<LogicalCategories> allCategories = LogicalCategories.getAllLogicalCategories();
+        List<String> allLocalizedCategories = new ArrayList<>();
 
-        return localizedLogicalCategoryNames;
+        // Localize all categories into the localized list
+        final int categoryCount = LogicalCategories.getLogicalCategoryCount();
+        for (int i = 0; i < categoryCount; i++) {
+            LogicalCategories currentCategory = allCategories.get(i);
+            String localizedCategoryName = localizeCategory(currentCategory);
+            allLocalizedCategories.add(localizedCategoryName);
+        }
+
+        return allLocalizedCategories;
+    }
+
+    private String localizeCategory(LogicalCategories logicalCategorie) {
+        String key = logicalCategorie.getLocalizationKey();
+        return localizer.localize(key, Modules.TODO);
     }
 
 }

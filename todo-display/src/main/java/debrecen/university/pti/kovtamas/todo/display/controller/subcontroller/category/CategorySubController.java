@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CategorySubController {
 
     private ListView<String> categoryListView;
-    private LogicalCategoryNames logicalCategorySubController;
+    private LogicalCategoryNames logicalCategoryNames;
     private CategoryPositioner categoryPositioner;
     private boolean isListEventBlocked;
     private Set<ValueChangeAction<String>> registeredCategoryChangeActions;
@@ -30,7 +30,7 @@ public class CategorySubController {
 
     public void removeSelectedCategory() {
         String selectedCategoryName = getSelectedCategory();
-        if (!logicalCategorySubController.isLogicalCategory(selectedCategoryName)) {
+        if (!logicalCategoryNames.isLogicalCategory(selectedCategoryName)) {
             categoryListView.getItems().remove(selectedCategoryName);
         }
     }
@@ -54,7 +54,7 @@ public class CategorySubController {
     private void initFields(ListView<String> categoryListView) {
         this.categoryListView = categoryListView;
         this.categoryPositioner = buildCategoryPositioner();
-        this.logicalCategorySubController = new LogicalCategoryNames();
+        this.logicalCategoryNames = LogicalCategoryNames.getInstance();
         this.registeredCategoryChangeActions = new HashSet<>();
         this.isListEventBlocked = false;
     }
@@ -81,7 +81,7 @@ public class CategorySubController {
 
     private ObservableList<String> collectCategories(Collection<String> customCategories) {
         ObservableList<String> categories = FXCollections.observableArrayList();
-        categories.addAll(logicalCategorySubController.getLocalizedNames());
+        categories.addAll(logicalCategoryNames.getLocalizedNames());
         categories.addAll(customCategories);
         return categories;
     }
@@ -98,7 +98,7 @@ public class CategorySubController {
             String fromCategory, String toCategory) {
 
         if (!isListEventBlocked) {
-            log.info("Selected category changed from " + fromCategory + " to " + toCategory);
+            log.info("Selected category changed from '" + fromCategory + "' to '" + toCategory + "'");
             registeredCategoryChangeActions.forEach(action -> action.accept(fromCategory, toCategory));
         }
     }
