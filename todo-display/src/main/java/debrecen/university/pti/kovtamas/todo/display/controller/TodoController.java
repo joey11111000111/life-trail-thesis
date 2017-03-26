@@ -1,6 +1,5 @@
 package debrecen.university.pti.kovtamas.todo.display.controller;
 
-import debrecen.university.pti.kovtamas.display.utils.ValueChangeAction;
 import debrecen.university.pti.kovtamas.display.utils.VoidNoArgMethod;
 import debrecen.university.pti.kovtamas.display.utils.locale.Localizer;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.TaskSubController;
@@ -11,7 +10,6 @@ import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
@@ -53,12 +51,12 @@ public class TodoController {
 
     public void startUp(TodoControllerDependencies dependencies) {
         initFields(dependencies);
-        connectTaskDisplayToCategoryChange();
+        bindTaskDisplayToSelectedCategory();
     }
 
     private void initFields(TodoControllerDependencies dependencies) {
         initDependencies(dependencies);
-        initSubControllers();
+        createSubControllers();
     }
 
     private void initDependencies(TodoControllerDependencies dependencies) {
@@ -67,19 +65,18 @@ public class TodoController {
         this.switchLanguageMethod = dependencies.getSwitchLanguageMethod();
     }
 
-    private void initSubControllers() {
+    private void createSubControllers() {
         List<String> customCategories = new ArrayList<>(service.getCustomCategories());
         categorySubController = new CategorySubController(categoryListView, customCategories);
         motivationSubController = new MotivationSubController(motivationText);
         taskSubController = new TaskSubController(service, taskBox);
     }
 
-    private void connectTaskDisplayToCategoryChange() {
-        StringProperty chosenCategoryProperty = taskSubController.chosenCategoryProperty();
-        ValueChangeAction<String> chosenCategoryChangedAction = (fromCategory, toCategory) -> {
-            chosenCategoryProperty.set(toCategory);
-        };
-        categorySubController.registerCategoryChangeAction(chosenCategoryChangedAction);
+    private void bindTaskDisplayToSelectedCategory() {
+        categorySubController.getCategoryActions()
+                .registerSelectionChangeAction(
+                        taskSubController::selectedCategoryChangedAction
+                );
     }
 
     @FXML
@@ -122,12 +119,12 @@ public class TodoController {
     }
 
     @FXML
-    void setEnLocale(ActionEvent event) {
+    void switchToEnglishLanguage(ActionEvent event) {
         switchLanguageMethod.accept(Localizer.SupportedLanguages.ENGLISH);
     }
 
     @FXML
-    void setHuLocale(ActionEvent event) {
+    void switchToHungarianLanguage(ActionEvent event) {
         switchLanguageMethod.accept(Localizer.SupportedLanguages.HUNGARIAN);
     }
 

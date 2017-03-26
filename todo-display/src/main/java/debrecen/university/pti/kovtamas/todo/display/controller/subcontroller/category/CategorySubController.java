@@ -1,10 +1,6 @@
 package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category;
 
-import debrecen.university.pti.kovtamas.display.utils.ValueChangeAction;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
@@ -16,8 +12,7 @@ public class CategorySubController {
     private ListView<String> categoryListView;
     private LogicalCategoryNames logicalCategoryNames;
     private CategoryPositioner categoryPositioner;
-    private boolean isListEventBlocked;
-    private Set<ValueChangeAction<String>> registeredCategoryChangeActions;
+    private CategoryActions categoryActions;
 
     public CategorySubController(ListView<String> categoryListView, Collection<String> customCategories) {
         initFields(categoryListView);
@@ -43,8 +38,8 @@ public class CategorySubController {
         categoryListView.getSelectionModel().select(category);
     }
 
-    public void registerCategoryChangeAction(ValueChangeAction<String> action) {
-        registeredCategoryChangeActions.add(action);
+    public CategoryActions getCategoryActions() {
+        return categoryActions;
     }
 
     private String getSelectedCategory() {
@@ -52,18 +47,18 @@ public class CategorySubController {
     }
 
     private void initFields(ListView<String> categoryListView) {
+        // Init order is important between categoryActions and categoryPositioner
         this.categoryListView = categoryListView;
-        this.categoryPositioner = buildCategoryPositioner();
+        this.categoryActions = new CategoryActions();
         this.logicalCategoryNames = LogicalCategoryNames.getInstance();
-        this.registeredCategoryChangeActions = new HashSet<>();
-        this.isListEventBlocked = false;
+        this.categoryPositioner = buildCategoryPositioner();
     }
 
     private CategoryPositioner buildCategoryPositioner() {
         return CategoryPositioner.builder()
                 .categoryListView(categoryListView)
-                .blockListEvent(this::blockListEvent)
-                .releaseListEvent(this::releaseListEvent)
+                .blockSelectionActions(categoryActions::blockSelectionActions)
+                .releaseSelectionActions(categoryActions::releaseSelectionActions)
                 .build();
     }
 
@@ -76,7 +71,10 @@ public class CategorySubController {
         categoryListView.setItems(allCategories);
         categoryListView.getSelectionModel()
                 .selectedItemProperty()
-                .addListener(this::categorySelectionAction);
+                .addListener((observable, fromCategory, toCategory) -> {
+                    categoryActions.selectedCategoryChangedFromTo(fromCategory, toCategory);
+                });
+
     }
 
     private ObservableList<String> collectCategories(Collection<String> customCategories) {
@@ -84,23 +82,6 @@ public class CategorySubController {
         categories.addAll(logicalCategoryNames.getLocalizedNames());
         categories.addAll(customCategories);
         return categories;
-    }
-
-    private void blockListEvent() {
-        isListEventBlocked = true;
-    }
-
-    private void releaseListEvent() {
-        isListEventBlocked = false;
-    }
-
-    private void categorySelectionAction(ObservableValue<? extends String> observable,
-            String fromCategory, String toCategory) {
-
-        if (!isListEventBlocked) {
-            log.info("Selected category changed from '" + fromCategory + "' to '" + toCategory + "'");
-            registeredCategoryChangeActions.forEach(action -> action.accept(fromCategory, toCategory));
-        }
     }
 
 }

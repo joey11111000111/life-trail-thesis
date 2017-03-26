@@ -7,25 +7,55 @@ import debrecen.university.pti.kovtamas.todo.display.controller.TaskRowControlle
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 
 public class TaskDisplayer {
 
     private final VBox taskBox;
+    private final List<TaskRowController> displayedTaskControllers;
     private List<String> customCategories;
 
     public TaskDisplayer(VBox taskBox) {
         this.taskBox = taskBox;
+        displayedTaskControllers = new ArrayList<>();
     }
 
-    public void setCustomCategories(Collection<String> customCategories) {
-        this.customCategories = new ArrayList<>(customCategories);
+    public void setCustomCategories(Collection<String> newCustomCategories) {
+        customCategories = new ArrayList<>(newCustomCategories);
+        Collections.sort(customCategories);
+        updateCategoryComboBoxes();
+    }
+
+    public void addNewCategory(String newCategory) {
+        customCategories.add(newCategory);
+        Collections.sort(customCategories);
+        updateCategoryComboBoxes();
     }
 
     public void displayTaskTree(TaskVo rootTask) throws DisplayLoadException {
         final int defaultIndentWidth = 0;
         displayTaskTree(rootTask, defaultIndentWidth);
+    }
+
+    public void clear() {
+        taskBox.getChildren().clear();
+    }
+
+    public void displayErrorMessage(String errorMessage) {
+        Text errorText = new Text(errorMessage);
+        errorText.setFill(Color.RED);
+        taskBox.getChildren().add(errorText);
+    }
+
+    private void updateCategoryComboBoxes() {
+        displayedTaskControllers.forEach(controller -> {
+            TaskDisplayState currentTaskState = controller.getTaskStateDetached();
+            currentTaskState.setSelectableCategories(customCategories);
+        });
     }
 
     private void displayTaskTree(TaskVo taskData, int currentIndentWidth) throws DisplayLoadException {
@@ -46,6 +76,7 @@ public class TaskDisplayer {
     private void displayTask(TaskDisplayState taskDisplayState) throws DisplayLoadException {
         TaskRowController taskController = getNewTaskController();
         taskController.setDisplayedTaskState(taskDisplayState);
+        displayedTaskControllers.add(taskController);
         putControllerToScreen(taskController);
     }
 

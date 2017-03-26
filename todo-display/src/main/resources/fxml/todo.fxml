@@ -50,8 +50,8 @@
                         <Insets />
                      </HBox.margin>
                   </Region>
-                  <Button mnemonicParsing="false" onAction="#setEnLocale" styleClass="image-button" text="EN" textFill="#e1dca5" />
-                  <Button mnemonicParsing="false" onAction="#setHuLocale" styleClass="image-button" text="HU" textFill="#e1dca5" />
+                  <Button mnemonicParsing="false" onAction="#switchToEnglishLanguage" styleClass="image-button" text="EN" textFill="#e1dca5" />
+                  <Button mnemonicParsing="false" onAction="#switchToHungarianLanguage" styleClass="image-button" text="HU" textFill="#e1dca5" />
                </children>
             </HBox>
          </top>

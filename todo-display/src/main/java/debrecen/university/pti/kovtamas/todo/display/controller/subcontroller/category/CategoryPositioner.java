@@ -23,8 +23,8 @@ public class CategoryPositioner {
     }
 
     private final ListView<String> categoryListView;
-    private final VoidNoArgMethod blockListEvent;
-    private final VoidNoArgMethod releaseListEvent;
+    private final VoidNoArgMethod blockSelectionActions;
+    private final VoidNoArgMethod releaseSelectionActions;
 
     public void moveSelectedCategoryIfPossible(Directions direction) {
         final int newIndex = getNewIndexOfSelectedCategory(direction);
@@ -37,12 +37,12 @@ public class CategoryPositioner {
     }
 
     private void moveCategoryFromToWithoutChangeEvent(int fromIndex, int toIndex) {
-        blockListEvent.execute();
+        blockSelectionActions.execute();
         List<String> displayedCategories = categoryListView.getItems();
         String movingCategoryName = displayedCategories.get(fromIndex);
         displayedCategories.remove(fromIndex);
         displayedCategories.add(toIndex, movingCategoryName);
-        releaseListEvent.execute();
+        releaseSelectionActions.execute();
     }
 
     private int getSelectedCategoryIndex() {
