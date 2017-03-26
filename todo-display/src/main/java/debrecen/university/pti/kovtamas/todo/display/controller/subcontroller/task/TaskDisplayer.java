@@ -19,20 +19,21 @@ public class TaskDisplayer {
     private final List<TaskRowController> displayedTaskControllers;
     private List<String> customCategories;
 
-    public TaskDisplayer(VBox taskBox) {
+    public TaskDisplayer(VBox taskBox, Collection<String> customCategories) {
         this.taskBox = taskBox;
+        this.customCategories = new ArrayList<>(customCategories);
         displayedTaskControllers = new ArrayList<>();
     }
 
-    public void setCustomCategories(Collection<String> newCustomCategories) {
-        customCategories = new ArrayList<>(newCustomCategories);
+    public void newCategoryAddedAction(String newCategory) {
+        customCategories.add(newCategory);
         Collections.sort(customCategories);
         updateCategoryComboBoxes();
     }
 
-    public void addNewCategory(String newCategory) {
-        customCategories.add(newCategory);
-        Collections.sort(customCategories);
+    public void categoryRemovedAction(String removedCategory) {
+        System.out.println("Task Displayer: category removed - " + removedCategory);
+        customCategories.remove(removedCategory);
         updateCategoryComboBoxes();
     }
 
@@ -55,6 +56,7 @@ public class TaskDisplayer {
         displayedTaskControllers.forEach(controller -> {
             TaskDisplayState currentTaskState = controller.getTaskStateDetached();
             currentTaskState.setSelectableCategories(customCategories);
+            controller.setDisplayedTaskState(currentTaskState);
         });
     }
 

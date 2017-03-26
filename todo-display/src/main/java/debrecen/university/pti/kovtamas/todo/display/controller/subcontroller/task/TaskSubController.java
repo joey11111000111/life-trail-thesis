@@ -19,12 +19,16 @@ public class TaskSubController {
         initTaskDisplayer(taskBox);
     }
 
-    public void selectedCategoryChangedAction(String fromCategory, String toCategory) {
-        switchCategory(toCategory);
+    public void newCategoryAddedAction(String newCategory) {
+        taskDisplayer.newCategoryAddedAction(newCategory);
     }
 
-    public void newCategoryAddedAction(String newCategory) {
-        taskDisplayer.addNewCategory(newCategory);
+    public void categoryRemovedAction(String removedCategory) {
+        taskDisplayer.categoryRemovedAction(removedCategory);
+    }
+
+    public void selectedCategoryChangedAction(String fromCategory, String toCategory) {
+        switchCategory(toCategory);
     }
 
     public void switchCategory(@NonNull final String category) {
@@ -47,8 +51,7 @@ public class TaskSubController {
     }
 
     private void initTaskDisplayer(final VBox taskBox) {
-        taskDisplayer = new TaskDisplayer(taskBox);
-        taskDisplayer.setCustomCategories(service.getCustomCategories());
+        taskDisplayer = new TaskDisplayer(taskBox, service.getCustomCategories());
     }
 
 }

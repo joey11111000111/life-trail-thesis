@@ -32,17 +32,25 @@ public class CategoryPositioner {
             return;
         }
 
-        moveCategoryFromToWithoutChangeEvent(getSelectedCategoryIndex(), newIndex);
-        categoryListView.getSelectionModel().select(newIndex);
+        moveSelectedCategoryToWithoutActions(newIndex);
     }
 
-    private void moveCategoryFromToWithoutChangeEvent(int fromIndex, int toIndex) {
+    private void moveSelectedCategoryToWithoutActions(int toIndex) {
         blockSelectionActions.execute();
-        List<String> displayedCategories = categoryListView.getItems();
-        String movingCategoryName = displayedCategories.get(fromIndex);
-        displayedCategories.remove(fromIndex);
-        displayedCategories.add(toIndex, movingCategoryName);
+        moveSelectedCategoryTo(toIndex);
         releaseSelectionActions.execute();
+    }
+
+    private void moveSelectedCategoryTo(int toIndex) {
+        final int fromIndex = getSelectedCategoryIndex();
+
+        List<String> categoryList = categoryListView.getItems();
+        String movingCategoryName = categoryList.get(fromIndex);
+
+        categoryList.remove(fromIndex);
+        categoryList.add(toIndex, movingCategoryName);
+
+        categoryListView.getSelectionModel().select(toIndex);
     }
 
     private int getSelectedCategoryIndex() {

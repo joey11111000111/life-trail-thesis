@@ -1,7 +1,7 @@
 .task-root {
-    /*-fx-background-color: radial-gradient(radius 180%, rgb(30,30,10), derive(rgb(100,100,60), -30%), derive(rgb(100,100,60), 30%));*/
-    /*-fx-background-color: rgb(70,70,30);*/
     -fx-background-color: transparent;
+    -fx-border-color: rgba(0,0,0,.5);
+    -fx-border-width: 0 1 1 1;
 }
 
 .transparent-bkg {
@@ -14,18 +14,10 @@
 }
 
 .check-box:selected .box .mark {
-    /*-fx-background-color: radial-gradient(radius 180%, burlywood, derive(black, -30%), derive(black, 30%));*/
-    /*-fx-background-color: #C5AD8E;*/
     -fx-background-color: wheat;
 }
 
-.priority-indicator {
-    /*-fx-fill: radial-gradient(radius 180%, burlywood, derive(red, -30%), derive(red, 30%));*/
-}
-
 .text-field {
-    /*-fx-text-fill: #E3865D;*/
-    /*-fx-text-fill: #E3865D;*/
     -fx-text-fill:  #E1B5A1;
     -fx-font-size: 16;
     -fx-font-family: monospace;

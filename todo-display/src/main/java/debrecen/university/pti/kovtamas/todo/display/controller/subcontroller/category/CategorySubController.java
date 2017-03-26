@@ -27,6 +27,7 @@ public class CategorySubController {
         String selectedCategoryName = getSelectedCategory();
         if (!logicalCategoryNames.isLogicalCategory(selectedCategoryName)) {
             categoryListView.getItems().remove(selectedCategoryName);
+            categoryActions.categoryRemoved(selectedCategoryName);
         }
     }
 
@@ -64,17 +65,16 @@ public class CategorySubController {
 
     private void setupListView(Collection<String> customCategories) {
         ObservableList<String> allCategories = collectCategories(customCategories);
-        setupListView(allCategories);
+        categoryListView.setItems(allCategories);
+        setupListViewSelectionEvent();
     }
 
-    private void setupListView(ObservableList<String> allCategories) {
-        categoryListView.setItems(allCategories);
+    private void setupListViewSelectionEvent() {
         categoryListView.getSelectionModel()
                 .selectedItemProperty()
                 .addListener((observable, fromCategory, toCategory) -> {
                     categoryActions.selectedCategoryChangedFromTo(fromCategory, toCategory);
                 });
-
     }
 
     private ObservableList<String> collectCategories(Collection<String> customCategories) {

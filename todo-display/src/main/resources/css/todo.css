@@ -17,14 +17,6 @@
     -fx-background-color: radial-gradient(radius 180%, rgb(104,74,30), derive(rgb(70, 70, 30), -30%), derive(rgb(70, 70, 30), 30%));
 }
 
-/*.ttip, tooltip {
-    -fx-background-radius: 7 7 7 7;
-}
-
-.page-corner {
-    -fx-shape: " ";
-}*/
-
 /* Task side --------------------------------------------- */
 .task-border-pane {
     -fx-border-color: wheat;
@@ -51,7 +43,6 @@
 }
 
 .image-button:pressed {
-    /*-fx-background-color: #aabadd;*/
     -fx-background-color: #aabaab;
     -fx-text-fill: gold;
 }
@@ -87,8 +78,6 @@
     -fx-font-family: IncisedBlackWide;
     -fx-font-size: 24;
     -fx-fill: radial-gradient(radius 120%, wheat, derive(burlywood, -15%), derive(wheat, 15%));
-    /*-fx-fill: #e1dca5;*/
-    /*-fx-fill: burlywood;*/
 }
 
 .subtitle-container {
@@ -126,15 +115,12 @@
     -fx-background-color: rgb(100, 100, 65);
     -fx-font-family: FreeMono;
     -fx-font-weight: bold;
-    /*-fx-alignment: left;*/
     -fx-text-fill: #d8ded0;
     -fx-font-size: 16;
 }
 
 .list-cell:filled:selected:focused, .list-cell:filled:selected {
     -fx-background-color: linear-gradient(#aabadd 0%, #808BCF 25%, #4973C9 75%, #2A65BF 100%);
-    /*-fx-text-fill: rgb(60, 250, 250);*/
-    /*-fx-text-fill: rgba(255, 215, 0, 1);*/
     -fx-text-fill: radial-gradient(radius 180%, burlywood, derive(gold, 40%), derive(gold, -40%));
 }
 
@@ -152,6 +138,5 @@
 }
 
 .corner {
-    /*-fx-background-color: rgba(255, 214, 0, .6);*/
     -fx-background-color: radial-gradient(radius 180%, burlywood, derive(gold, -30%), derive(gold, 30%));
 }

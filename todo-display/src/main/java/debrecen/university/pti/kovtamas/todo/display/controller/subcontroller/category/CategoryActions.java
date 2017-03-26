@@ -31,7 +31,7 @@ public class CategoryActions {
         newCategoryActions.add(newCategoryAction);
     }
 
-    public void registerRemoveAction(@NonNull final Consumer<String> removeAction) {
+    public void registerRemoveCategoryAction(@NonNull final Consumer<String> removeAction) {
         removeCategoryActions.add(removeAction);
     }
 

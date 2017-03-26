@@ -5,6 +5,7 @@ import debrecen.university.pti.kovtamas.display.utils.locale.Localizer;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.TaskSubController;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategorySubController;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.MotivationSubController;
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategoryActions;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategoryPositioner;
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
 import java.util.ArrayList;
@@ -21,11 +22,13 @@ import lombok.Getter;
 public class TodoController {
 
     private TodoService service;
+
     // Sub controllers
     private TaskSubController taskSubController;
     private CategorySubController categorySubController;
     private MotivationSubController motivationSubController;
 
+    // Methods from higher layers
     private VoidNoArgMethod backToMenuMethod;
     private Consumer<Localizer.SupportedLanguages> switchLanguageMethod;
 
@@ -51,7 +54,7 @@ public class TodoController {
 
     public void startUp(TodoControllerDependencies dependencies) {
         initFields(dependencies);
-        bindTaskDisplayToSelectedCategory();
+        makeBindingsBetweenSubControllers();
     }
 
     private void initFields(TodoControllerDependencies dependencies) {
@@ -72,11 +75,11 @@ public class TodoController {
         taskSubController = new TaskSubController(service, taskBox);
     }
 
-    private void bindTaskDisplayToSelectedCategory() {
-        categorySubController.getCategoryActions()
-                .registerSelectionChangeAction(
-                        taskSubController::selectedCategoryChangedAction
-                );
+    private void makeBindingsBetweenSubControllers() {
+        CategoryActions categoryActions = categorySubController.getCategoryActions();
+        categoryActions.registerSelectionChangeAction(taskSubController::selectedCategoryChangedAction);
+        categoryActions.registerNewCategoryAction(taskSubController::newCategoryAddedAction);
+        categoryActions.registerRemoveCategoryAction(taskSubController::categoryRemovedAction);
     }
 
     @FXML
