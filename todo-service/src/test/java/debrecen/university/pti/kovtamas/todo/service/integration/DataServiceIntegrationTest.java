@@ -6,7 +6,7 @@ import debrecen.university.pti.kovtamas.data.test.JdbcTestUtils;
 import debrecen.university.pti.kovtamas.todo.service.api.TaskDeletionException;
 import debrecen.university.pti.kovtamas.todo.service.api.TaskSaveFailureException;
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
-import debrecen.university.pti.kovtamas.todo.service.impl.CachingTodoService;
+import debrecen.university.pti.kovtamas.todo.service.impl.TodoServiceImpl;
 import debrecen.university.pti.kovtamas.todo.service.mapper.TaskEntityVoMapper;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
 import java.time.LocalDate;
@@ -35,7 +35,7 @@ public class DataServiceIntegrationTest {
     private static final TodoService SERVICE;
 
     static {
-        SERVICE = new CachingTodoService();
+        SERVICE = new TodoServiceImpl();
         DATE_FORMAT = TaskEntityVoMapper.getDateFormat();
         REPO = new JdbcTodoRepository(DATE_FORMAT);
         JDBC_TEST_UTILS = new JdbcTestUtils(REPO);
@@ -63,7 +63,7 @@ public class DataServiceIntegrationTest {
     @Test
     public void getByCategoryTest() {
         List<TaskVo> expectedVos = DATA_GENERATOR.generateAndPersistExpectedVosForCategoryTest();
-        List<TaskVo> results = SERVICE.getByCategory("personal");
+        List<TaskVo> results = SERVICE.getActiveByCategory("personal");
 
         voListEquals(expectedVos, results);
     }

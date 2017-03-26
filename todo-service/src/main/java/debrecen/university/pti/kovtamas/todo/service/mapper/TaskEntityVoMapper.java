@@ -38,6 +38,7 @@ public class TaskEntityVoMapper {
                 .category(vo.getCategory())
                 .subTaskIds(null)
                 .repeating(vo.isRepeating())
+                .completed(vo.isCompleted())
                 .build();
     }
 
@@ -59,6 +60,7 @@ public class TaskEntityVoMapper {
                 .category(entity.getCategory())
                 .subTasks(null)
                 .repeating(entity.isRepeating())
+                .completed(entity.isCompleted())
                 .build();
     }
 

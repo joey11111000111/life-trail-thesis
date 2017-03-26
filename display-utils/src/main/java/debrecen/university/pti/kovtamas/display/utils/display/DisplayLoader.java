@@ -1,88 +1,92 @@
 package debrecen.university.pti.kovtamas.display.utils.display;
 
-import debrecen.university.pti.kovtamas.display.utils.Modules;
+import debrecen.university.pti.kovtamas.display.utils.locale.Localizer;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Locale;
+import java.nio.file.Path;
 import java.util.ResourceBundle;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 
 public final class DisplayLoader {
+
+    private static final Localizer LOCALIZER;
+
+    public static enum FxmlFiles {
+        MENU_FXML("/fxml/main-menu.fxml"),
+        TODO_FXML("/fxml/todo.fxml"),
+        TASK_FXML("/fxml/task.fxml");
+
+        private final URL fxmlUrl;
+
+        private FxmlFiles(String path) {
+            fxmlUrl = FxmlFiles.class.getResource(path);
+            if (fxmlUrl == null) {
+                String message = "Failed to create URL for fxml from path: " + path;
+                throw new RuntimeException(message);
+            }
+        }
+
+        public URL getFxmlUrl() {
+            return fxmlUrl;
+        }
+    }
+
+    static {
+        LOCALIZER = Localizer.getInstance();
+    }
 
     private DisplayLoader() {
     }
 
-    public static DisplayVo load(Modules module, final Locale locale) throws DisplayLoadException {
-        final String fxmlPath = module.getFxmlPath();
-        final String resPath = module.getResPath();
-
-        URL appUrl = getResourceUrl(fxmlPath);
-        InputStream openedStream = openStreamFromUrl(appUrl);
-
-        FXMLLoader fxmlLoader = new FXMLLoader();
-        if (resPath != null && locale != null) {
-            fxmlLoader.setResources(ResourceBundle.getBundle(resPath, locale));
+    public static DisplayVo loadFxmlWithResource(final FxmlFiles fxml, final Localizer.ResourcePaths resourcePath) throws DisplayLoadException {
+        if (fxml == null) {
+            throw new IllegalArgumentException("Cannot load display. No display specified, fxml is null.");
         }
 
-        Parent root = loadFxml(fxmlLoader, openedStream);
+        FXMLLoader fxmlLoader = createConfiguredFxmlLoader(resourcePath);
+        InputStream fxmlStream = openStreamFromUrl(fxml.getFxmlUrl());
 
-        Scene scene = new Scene(root);
+        Parent rootViewComponent = loadFxmlFromStream(fxmlLoader, fxmlStream);
         Object controller = fxmlLoader.getController();
 
-        return new DisplayVo(scene, controller);
+        return new DisplayVo(rootViewComponent, controller);
     }
 
-    public static DisplayVo load(Modules module) throws DisplayLoadException {
-        return load(module, null);
-    }
-
-    public static Object loadTaskDisplay() throws DisplayLoadException {
-        String fxmlPath = "/fxml/task.fxml";
-
-        URL url = getResourceUrl(fxmlPath);
-        InputStream openedStream = openStreamFromUrl(url);
+    private static FXMLLoader createConfiguredFxmlLoader(Localizer.ResourcePaths resourcePath) {
         FXMLLoader fxmlLoader = new FXMLLoader();
-        loadFxml(fxmlLoader, openedStream);
-
-        return fxmlLoader.getController();
-    }
-
-    private static URL getResourceUrl(String path) throws DisplayLoadException {
-        URL url = DisplayLoader.class.getResource(path);
-        if (url == null) {
-            throw new DisplayLoadException("Could not get url for task root!");
+        if (resourcePath != null) {
+            fxmlLoader.setResources(ResourceBundle.getBundle(resourcePath.getPath(), LOCALIZER.getCurrentLocale()));
         }
-
-        return url;
+        return fxmlLoader;
     }
 
     private static InputStream openStreamFromUrl(URL url) throws DisplayLoadException {
-        InputStream openedStream = null;
+        InputStream fxmlStream = null;
         try {
-            openedStream = url.openStream();
+            fxmlStream = url.openStream();
         } catch (IOException ioe) {
             throw new DisplayLoadException("Failed to open stream for task from URL!", ioe);
         }
 
-        return openedStream;
+        return fxmlStream;
     }
 
-    private static Parent loadFxml(FXMLLoader fxmlLoader, InputStream openedStream) throws DisplayLoadException {
-        Parent root = null;
+    private static Parent loadFxmlFromStream(FXMLLoader fxmlLoader, InputStream fxmlStream) throws DisplayLoadException {
+        Parent rootComponent = null;
         try {
-            root = fxmlLoader.load(openedStream);
+            rootComponent = fxmlLoader.load(fxmlStream);
         } catch (IOException ioe) {
             throw new DisplayLoadException("Could not load task fxml!", ioe);
         }
 
-        if (root == null) {
+        if (rootComponent == null) {
             throw new DisplayLoadException("Parent loaded from fxml is null!");
         }
 
-        return root;
+        return rootComponent;
     }
 
 }

@@ -14,6 +14,7 @@ public class TaskEntity {
     private String category;
     private String subTaskIds;
     private boolean repeating;
+    private boolean completed;
 
     public boolean hasId() {
         return id != null;

@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.shape.Circle?>
 
-<HBox fx:id="taskRow" alignment="CENTER_LEFT" spacing="4.0" style="-fx-border-color: rgba(0,0,0,.5); -fx-border-width: 0 1 1 1;" styleClass="task-root" stylesheets="@/css/task.css" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="debrecen.university.pti.kovtamas.todo.display.controller.TaskController">
+<HBox fx:id="taskRow" alignment="CENTER_LEFT" spacing="4.0" style="-fx-border-color: rgba(0,0,0,.5); -fx-border-width: 0 1 1 1;" styleClass="task-root" stylesheets="@/css/task.css" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="debrecen.university.pti.kovtamas.todo.display.controller.TaskRowController">
     <children>
         <Region fx:id="indentRegion" minWidth="0.0" />
         <CheckBox fx:id="doneCheckBox" mnemonicParsing="false" HBox.hgrow="NEVER" />

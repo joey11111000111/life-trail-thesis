@@ -6,6 +6,7 @@ import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenc
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public interface TodoRepository {
@@ -16,13 +17,15 @@ public interface TodoRepository {
 
     Set<TaskEntity> findByCategory(String category);
 
-    Set<TaskEntity> findByNotCategory(String categoryToSkip);
+    List<TaskEntity> findActiveByCategory(String category);
 
     TaskEntity findById(int id) throws TaskNotFoundException;
 
     Set<TaskEntity> findByIds(Collection<Integer> ids) throws TaskNotFoundException;
 
     Set<TaskEntity> findTodayTasks();
+
+    List<TaskEntity> findCompletedTasks();
 
     Set<TaskEntity> findTasksUntil(String lastDate, DateTimeFormatter format);
 

@@ -14,7 +14,8 @@ public class JdbcTestQueries {
             + "	DEADLINE DATE DEFAULT NULL,\n"
             + "	CATEGORY VARCHAR(100) NOT NULL,\n"
             + "	SUB_TASK_IDS TEXT DEFAULT NULL,\n"
-            + "	REPEATING VARCHAR(5) DEFAULT \"FALSE\"\n"
+            + "	REPEATING VARCHAR(5) DEFAULT \"FALSE\",\n"
+            + " COMPLETED VARCHAR(5) DEFAULT \"FALSE\""
             + ");";
     public static final String DROP_TEST_TABLE = "DROP TABLE " + ORIGINAL_NAME;
 

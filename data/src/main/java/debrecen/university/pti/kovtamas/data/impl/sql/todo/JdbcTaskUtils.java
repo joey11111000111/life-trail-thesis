@@ -29,6 +29,7 @@ public class JdbcTaskUtils {
                 .category(record.getString("CATEGORY"))
                 .subTaskIds(record.getString("SUB_TASK_IDS"))
                 .repeating(Boolean.parseBoolean(record.getString("REPEATING")))
+                .completed(Boolean.parseBoolean(record.getString("COMPLETED")))
                 .build();
     }
 

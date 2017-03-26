@@ -1,7 +1,8 @@
 package debrecen.university.pti.kovtamas.todo.display.controller;
 
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.TaskDisplayState;
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.Collection;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -13,7 +14,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.Circle;
 
-public class TaskController {
+public class TaskRowController {
 
     @FXML
     private HBox taskRow;
@@ -36,47 +37,59 @@ public class TaskController {
     @FXML
     private DatePicker datePicker;
 
-    public void startup() {
-        final int textLength = taskDefText.getText().length();
-        final double multiplier = 27;
+    private TaskDisplayState currentTaskState;
 
-        taskDefText.setMinWidth(textLength * multiplier);
-        taskDefText.setPrefWidth(textLength * multiplier);
-        taskDefText.setMaxWidth(textLength * multiplier);
+    public Parent getRootViewComponent() {
+        return taskRow;
     }
 
-    public void setPriorityColor(String colorStyle) {
+    public void setDisplayedTaskState(TaskDisplayState taskState) {
+        this.currentTaskState = taskState;
+        updateTaskDisplay();
+    }
+
+    public TaskDisplayState getTaskStateDetached() {
+        return currentTaskState;
+    }
+
+    private void setPriorityColor(String colorStyle) {
         priorityIndicator.setStyle(colorStyle);
     }
 
-    public void setCategories(Set<String> selectableCategories) {
+    private void setSelectableCategories(Collection<String> selectableCategories) {
         categoryBox.setItems(FXCollections.observableArrayList(selectableCategories));
     }
 
-    public void selectCategory(String selectedCategory) {
+    private void setSelectedCategory(String selectedCategory) {
         categoryBox.getSelectionModel().select(selectedCategory);
     }
 
-    public void setDeadline(LocalDate deadline) {
+    private void setDeadline(LocalDate deadline) {
         datePicker.setValue(deadline);
     }
 
-    public void setTaskDef(String taskDef) {
+    private void setTaskDef(String taskDef) {
         taskDefText.setText(taskDef);
     }
 
-    public void setIndentWidth(int width) {
+    private void setIndentWidth(int width) {
         indentRegion.setMinWidth(width);
         indentRegion.setPrefWidth(width);
         indentRegion.setMaxWidth(width);
     }
 
-    public void setDone(boolean done) {
+    private void setCompleted(boolean done) {
         doneCheckBox.setSelected(done);
     }
 
-    public Parent getParent() {
-        return taskRow;
+    private void updateTaskDisplay() {
+        setIndentWidth(currentTaskState.getIndentWidth());
+        setCompleted(currentTaskState.isCompleted());
+        setPriorityColor(currentTaskState.getPriorityColorStyle());
+        setSelectableCategories(currentTaskState.getSelectableCategories());
+        setSelectedCategory(currentTaskState.getSelectedCategory());
+        setTaskDef(currentTaskState.getTaskDef());
+        setDeadline(currentTaskState.getDeadline());
     }
 
     @Override

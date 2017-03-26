@@ -9,19 +9,21 @@ public interface TodoService {
 
     List<TaskVo> getAll();
 
-    Set<String> getAllCategories();
-
-    Set<String> getFixCategories();
-
     Set<String> getCustomCategories();
 
-    List<TaskVo> getByCategory(String category);
+    List<TaskVo> getActiveByCategory(String category);
 
+    // Methods for fixed categories ---------------------------------------
     List<TaskVo> getTodayTasks();
 
     List<TaskVo> getTomorrowTasks();
 
     List<TaskVo> getTasksOfFollowingDays(int days);
+
+    List<TaskVo> getCompletedTasks();
+
+    List<TaskVo> getUncategorizedTasks();
+    // /Methods for fixed categories --------------------------------------
 
     void save(TaskVo task) throws TaskSaveFailureException;
 

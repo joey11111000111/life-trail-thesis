@@ -1,51 +1,85 @@
 package debrecen.university.pti.kovtamas.todo.display.controller;
 
+import debrecen.university.pti.kovtamas.display.utils.ValueChangeAction;
 import debrecen.university.pti.kovtamas.display.utils.VoidNoArgMethod;
-import debrecen.university.pti.kovtamas.display.utils.locale.LocaleManager;
-import debrecen.university.pti.kovtamas.todo.display.component.TaskManager;
-import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.CategorySubController;
+import debrecen.university.pti.kovtamas.display.utils.locale.Localizer;
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.TaskSubController;
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategorySubController;
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.MotivationSubController;
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategoryPositioner;
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
-import javafx.animation.FadeTransition;
+import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
-import javafx.util.Duration;
-import lombok.Data;
+import lombok.Getter;
 
-@Data
 public class TodoController {
 
     private TodoService service;
-    private TaskManager taskManager;
-    private CategorySubController catSubController;
-    private LocaleManager localeManager;
-    private boolean quoteSwitcherBlocked;
+    // Sub controllers
+    private TaskSubController taskSubController;
+    private CategorySubController categorySubController;
+    private MotivationSubController motivationSubController;
 
     private VoidNoArgMethod backToMenuMethod;
-    private Consumer<String> switchLanguageMethod;
+    private Consumer<Localizer.SupportedLanguages> switchLanguageMethod;
 
     @FXML
+    @Getter
     private VBox progressContainer;
 
     @FXML
+    @Getter
     private Rectangle progressRect;
 
     @FXML
+    @Getter
     private Text motivationText;
 
     @FXML
+    @Getter
     private VBox taskBox;
 
     @FXML
+    @Getter
     private ListView<String> categoryListView;
 
-    public void startUp() {
-        startMotivationTextHandler();
+    public void startUp(TodoControllerDependencies dependencies) {
+        initFields(dependencies);
+        connectTaskDisplayToCategoryChange();
+    }
+
+    private void initFields(TodoControllerDependencies dependencies) {
+        initDependencies(dependencies);
+        initSubControllers();
+    }
+
+    private void initDependencies(TodoControllerDependencies dependencies) {
+        this.service = dependencies.getService();
+        this.backToMenuMethod = dependencies.getBackToMenuMethod();
+        this.switchLanguageMethod = dependencies.getSwitchLanguageMethod();
+    }
+
+    private void initSubControllers() {
+        List<String> customCategories = new ArrayList<>(service.getCustomCategories());
+        categorySubController = new CategorySubController(categoryListView, customCategories);
+        motivationSubController = new MotivationSubController(motivationText);
+        taskSubController = new TaskSubController(service, taskBox);
+    }
+
+    private void connectTaskDisplayToCategoryChange() {
+        StringProperty chosenCategoryProperty = taskSubController.chosenCategoryProperty();
+        ValueChangeAction<String> chosenCategoryChangedAction = (fromCategory, toCategory) -> {
+            chosenCategoryProperty.set(toCategory);
+        };
+        categorySubController.registerCategoryChangeAction(chosenCategoryChangedAction);
     }
 
     @FXML
@@ -65,91 +99,44 @@ public class TodoController {
 
     @FXML
     void goBack(ActionEvent event) {
-        switchedFromTodo();
         backToMenuMethod.execute();
     }
 
     @FXML
     void moveCategoryDown(ActionEvent event) {
-        catSubController.moveSelectedCategory(CategorySubController.Directions.DOWN);
+        categorySubController.moveSelectedCategoryIfPossible(CategoryPositioner.Directions.DOWN);
     }
 
     @FXML
     void moveCategoryUp(ActionEvent event) {
-        catSubController.moveSelectedCategory(CategorySubController.Directions.UP);
+        categorySubController.moveSelectedCategoryIfPossible(CategoryPositioner.Directions.UP);
     }
 
     @FXML
     void removeCategory(ActionEvent event) {
-        // TEMPORARY IMPLEMENTATION
-        Set<String> fixCategories = service.getFixCategories();
-        String category = catSubController.getSelectedCategory();
-        if (!fixCategories.contains(category)) {
-            catSubController.removeCategory(category);
-        }
+        categorySubController.removeSelectedCategory();
     }
 
     @FXML
     void removeSelectedTask(ActionEvent event) {
-
     }
 
     @FXML
     void setEnLocale(ActionEvent event) {
-        switchLanguageMethod.accept("en");
+        switchLanguageMethod.accept(Localizer.SupportedLanguages.ENGLISH);
     }
 
     @FXML
     void setHuLocale(ActionEvent event) {
-        switchLanguageMethod.accept("hu");
+        switchLanguageMethod.accept(Localizer.SupportedLanguages.HUNGARIAN);
     }
 
-    private void startMotivationTextHandler() {
-        Runnable quotesRunnable = () -> {
-            while (true) {
-                if (!quoteSwitcherBlocked) {
-                    FadeTransition fadeOutText = createEffectAndQuoteChange();
-                    fadeOutText.play();
-                }
-
-                try {
-                    final int quoteOnScreenTime = 90000;
-                    Thread.sleep(quoteOnScreenTime);
-                } catch (InterruptedException ex) {
-                    System.out.println("Interrupted quotes thread!");
-                    return;
-                }
-            }
-        };
-
-        Thread quotesThread = new Thread(quotesRunnable);
-        quotesThread.setDaemon(true);
-        quotesThread.start();
+    public void todoScreenActivatedAction() {
+        motivationSubController.startMotivationTextChanger();
     }
 
-    private FadeTransition createEffectAndQuoteChange() {
-        FadeTransition fadeOutText = new FadeTransition(Duration.seconds(3), motivationText);
-        fadeOutText.setFromValue(1);
-        fadeOutText.setToValue(0);
-        fadeOutText.setOnFinished((event) -> {
-            String nextQuote = localeManager.getNextMotivationalQuote();
-            motivationText.setText(nextQuote);
-
-            FadeTransition fadeInText = new FadeTransition(Duration.seconds(3), motivationText);
-            fadeInText.setFromValue(0);
-            fadeInText.setToValue(1);
-            fadeInText.play();
-        });
-
-        return fadeOutText;
-    }
-
-    public void switchedToTodo() {
-        quoteSwitcherBlocked = false;
-    }
-
-    private void switchedFromTodo() {
-        quoteSwitcherBlocked = true;
+    public void todoScreenDeactivatedAction() {
+        motivationSubController.stopMotivationTextChanger();
     }
 
 }

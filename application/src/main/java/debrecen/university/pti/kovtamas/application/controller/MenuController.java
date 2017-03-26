@@ -1,6 +1,7 @@
 package debrecen.university.pti.kovtamas.application.controller;
 
 import debrecen.university.pti.kovtamas.display.utils.VoidNoArgMethod;
+import debrecen.university.pti.kovtamas.display.utils.locale.Localizer;
 import java.util.function.Consumer;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -8,16 +9,23 @@ import javafx.fxml.FXML;
 public class MenuController {
 
     private VoidNoArgMethod switchToTodoMethod;
-    private Consumer<String> switchLanguageMethod;
+    private Consumer<Localizer.SupportedLanguages> switchLanguageMethod;
+
+    public void startup(VoidNoArgMethod switchToTodoMethod,
+            Consumer<Localizer.SupportedLanguages> switchLanguageMethod) {
+
+        this.switchToTodoMethod = switchToTodoMethod;
+        this.switchLanguageMethod = switchLanguageMethod;
+    }
 
     @FXML
     void setEnLocale(ActionEvent event) {
-        switchLanguageMethod.accept("en");
+        switchLanguageMethod.accept(Localizer.SupportedLanguages.ENGLISH);
     }
 
     @FXML
     void setHuLocale(ActionEvent event) {
-        switchLanguageMethod.accept("hu");
+        switchLanguageMethod.accept(Localizer.SupportedLanguages.HUNGARIAN);
     }
 
     @FXML
@@ -32,18 +40,6 @@ public class MenuController {
 
     public VoidNoArgMethod getSwitchToTodoMethod() {
         return switchToTodoMethod;
-    }
-
-    public void setSwitchToTodoMethod(VoidNoArgMethod switchToTodoMethod) {
-        this.switchToTodoMethod = switchToTodoMethod;
-    }
-
-    public Consumer<String> getSwitchLanguageMethod() {
-        return switchLanguageMethod;
-    }
-
-    public void setSwitchLanguageMethod(Consumer<String> switchLanguageMethod) {
-        this.switchLanguageMethod = switchLanguageMethod;
     }
 
 }

@@ -8,17 +8,20 @@ public class TodoQueries {
     public static final String FIND_BY_ID = "SELECT * FROM " + TASK_TABLE_NAME + " WHERE ID = ?";
     public static final String FIND_ALL_CATEGORIES = "SELECT DISTINCT CATEGORY FROM " + TASK_TABLE_NAME;
     public static final String FIND_BY_CATEGORY = "SELECT * FROM " + TASK_TABLE_NAME + " WHERE CATEGORY = ?";
-    public static final String FIND_BY_NOT_CATEGORY = "SELECT * FROM " + TASK_TABLE_NAME + " WHERE CATEGORY <> ?";
+    public static final String FIND_ACTIVE_BY_CATEGORY = "SELECT * FROM " + TASK_TABLE_NAME
+            + " WHERE CATEGORY = ? AND COMPLETED = FALSE";
     public static final String FIND_TODAY_TASKS = "SELECT * FROM " + TASK_TABLE_NAME
             + " WHERE DEADLINE = ? OR REPEATING = 'TRUE'";
     public static final String FIND_TASKS_BETWEEN_DATE = "SELECT * FROM " + TASK_TABLE_NAME
             + " WHERE DEADLINE BETWEEN ? AND ?";
+    public static final String FIND_COMPLETED_TASKS = "SELECT * FROM " + TASK_TABLE_NAME
+            + " WHERE COMPLETED = TRUE";
 
     public static final String INSERT = "INSERT INTO " + TASK_TABLE_NAME
-            + " (TASK_DEF, PRIORITY, DEADLINE, CATEGORY, SUB_TASK_IDS, REPEATING)"
-            + " VALUES(?, ?, ?, ?, ?, ?)";
+            + " (TASK_DEF, PRIORITY, DEADLINE, CATEGORY, SUB_TASK_IDS, REPEATING, COMPLETED)"
+            + " VALUES(?, ?, ?, ?, ?, ?, ?)";
     public static final String UPDATE = "UPDATE " + TASK_TABLE_NAME
-            + " SET TASK_DEF = ?, PRIORITY = ?, DEADLINE = ?, CATEGORY = ?, SUB_TASK_IDS = ?, REPEATING = ?"
+            + " SET TASK_DEF = ?, PRIORITY = ?, DEADLINE = ?, CATEGORY = ?, SUB_TASK_IDS = ?, REPEATING = ?, COMPLETED = ?"
             + " WHERE ID = ?";
 
     public static final String REMOVE_BY_ID = "DELETE FROM " + TASK_TABLE_NAME + " WHERE ID = ?";

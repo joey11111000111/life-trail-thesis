@@ -77,11 +77,8 @@ public class JdbcTodoRepositoryTest {
         } catch (TaskNotFoundException tnfe) {
         }
 
-        // find by category/not category
+        // find by category
         entities = REPO.findByCategory("non existing category");
-        assertNotNull(entities);
-        assertEquals(0, entities.size());
-        entities = REPO.findByNotCategory("skip this if you can");
         assertNotNull(entities);
         assertEquals(0, entities.size());
 
@@ -161,18 +158,6 @@ public class JdbcTodoRepositoryTest {
                 .collect(Collectors.toSet());
 
         collectionEquals(originalEntities, REPO.findByCategory(category));
-    }
-
-    @Test
-    public void findByNotCategory() {
-        Set<TaskEntity> entities = TestDataGenerator.generateOriginalEntitySet();
-        JDBC_TEST_UTILS.populateDatabase(entities);
-
-        String catToSkip = "personal";
-        Set<TaskEntity> originalEntities = entities.stream()
-                .filter(e -> !catToSkip.equals(e.getCategory()))
-                .collect(Collectors.toSet());
-        collectionEquals(originalEntities, REPO.findByNotCategory(catToSkip));
     }
 
     @Test

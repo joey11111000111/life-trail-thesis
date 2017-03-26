@@ -22,17 +22,15 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-public class CachingTodoService implements TodoService {
-
-    private static final Logger LOG = LoggerFactory.getLogger(CachingTodoService.class);
+@Slf4j
+public class TodoServiceImpl implements TodoService {
 
     private final TodoRepository repo;
     private final DateTimeFormatter dateFormat;
 
-    public CachingTodoService() {
+    public TodoServiceImpl() {
         dateFormat = TaskEntityVoMapper.getDateFormat();
         repo = new JdbcTodoRepository(dateFormat);
     }
@@ -44,36 +42,18 @@ public class CachingTodoService implements TodoService {
     }
 
     @Override
-    public Set<String> getAllCategories() {
-        Set<String> allCategories = getFixCategories();
-        allCategories.addAll(getCustomCategories());
-        return allCategories;
-    }
-
-    @Override
-    public Set<String> getFixCategories() {
-        Set<String> fixCategories = new HashSet<>();
-        fixCategories.add("today");
-        fixCategories.add("this week");
-        fixCategories.add("uncategorized------------------------------------------------");
-        fixCategories.add("done");
-        return fixCategories;
-    }
-
-    @Override
     public Set<String> getCustomCategories() {
-        Set<String> fixCategories = getFixCategories();
         Set<String> allCategories = repo.findAllCategories();
 
-        allCategories.removeAll(fixCategories);
         return allCategories;
     }
 
     @Override
-    public List<TaskVo> getByCategory(@NonNull String category) {
+    public List<TaskVo> getActiveByCategory(String category) {
         return TaskEntityVoMapper.toVo(repo.findByCategory(category));
     }
 
+    // Methods for fixed categories ---------------------------------------
     @Override
     public List<TaskVo> getTodayTasks() {
         return TaskEntityVoMapper.toVo(repo.findTodayTasks());
@@ -92,6 +72,17 @@ public class CachingTodoService implements TodoService {
         LocalDate until = LocalDate.now().plusDays(days);
         return TaskEntityVoMapper.toVo(repo.findTasksUntil(until.format(dateFormat), dateFormat));
     }
+
+    @Override
+    public List<TaskVo> getCompletedTasks() {
+        return TaskEntityVoMapper.toVo(repo.findCompletedTasks());
+    }
+
+    @Override
+    public List<TaskVo> getUncategorizedTasks() {
+        return getActiveByCategory(null);
+    }
+    // /Methods for fixed categories --------------------------------------
 
     @Override
     public void save(@NonNull TaskVo task) throws TaskSaveFailureException {
@@ -152,7 +143,7 @@ public class CachingTodoService implements TodoService {
                     tre);
 
         } catch (TaskNotFoundException tnfe) {
-            LOG.warn("Tried to delete a task which was not present in the database!{}{}",
+            log.warn("Tried to delete a task which was not present in the database!{}{}",
                     lnSep, task.toString(), tnfe);
         }
     }
@@ -167,7 +158,7 @@ public class CachingTodoService implements TodoService {
         } catch (TaskRemovalException tre) {
             throw new TaskDeletionException("Could not remove task specified in the task collection!", tre);
         } catch (TaskNotFoundException tnfe) {
-            LOG.warn("Tried to delete a task which was not present in the database!", tnfe);
+            log.warn("Tried to delete a task which was not present in the database!", tnfe);
         }
     }
 

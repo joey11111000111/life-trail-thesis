@@ -1,26 +1,27 @@
 package debrecen.university.pti.kovtamas.display.utils.display;
 
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 
 public class DisplayVo {
 
-    private Scene displayScene;
+    private Parent rootComponent;
     private Object controller;
 
     public DisplayVo() {
     }
 
-    public DisplayVo(Scene displayScene, Object controller) {
-        this.displayScene = displayScene;
+    public DisplayVo(Parent rootComponent, Object controller) {
+        this.rootComponent = rootComponent;
         this.controller = controller;
     }
 
-    public Scene getDisplayScene() {
-        return displayScene;
+    public Parent getRootComponent() {
+        return rootComponent;
     }
 
-    public void setDisplayScene(Scene displayScene) {
-        this.displayScene = displayScene;
+    public void setRootComponent(Parent rootComponent) {
+        this.rootComponent = rootComponent;
     }
 
     public Object getController() {
@@ -29,6 +30,10 @@ public class DisplayVo {
 
     public void setController(Object controller) {
         this.controller = controller;
+    }
+
+    public Scene createScene() {
+        return new Scene(rootComponent);
     }
 
 }

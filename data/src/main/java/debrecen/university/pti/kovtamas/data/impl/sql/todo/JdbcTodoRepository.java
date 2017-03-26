@@ -16,10 +16,12 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import lombok.NonNull;
 import org.slf4j.Logger;
@@ -66,7 +68,7 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
-    public Set<TaskEntity> findByCategory(@NonNull String category) {
+    public Set<TaskEntity> findByCategory(String category) {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             PreparedStatement prStatement = conn.prepareStatement(TodoQueries.FIND_BY_CATEGORY);
             prStatement.setString(1, category);
@@ -80,18 +82,35 @@ public class JdbcTodoRepository implements TodoRepository {
     }
 
     @Override
-    public Set<TaskEntity> findByNotCategory(@NonNull String categoryToSkip) {
+    public List<TaskEntity> findActiveByCategory(String category) {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            PreparedStatement prStatement = conn.prepareStatement(TodoQueries.FIND_BY_NOT_CATEGORY);
-            prStatement.setString(1, categoryToSkip);
+            PreparedStatement prStatement = conn.prepareStatement(TodoQueries.FIND_ACTIVE_BY_CATEGORY);
+            prStatement.setString(1, category);
             ResultSet results = prStatement.executeQuery();
 
-            return jdbcUtils.extractEntities(results);
+            return new ArrayList<>(jdbcUtils.extractEntities(results));
         } catch (SQLException sqle) {
             LOG.warn("Exception while trying to read from database!", sqle);
-            return new HashSet<>();
+            return new ArrayList<>();
         }
+    }
 
+    @Override
+    public List<TaskEntity> findCompletedTasks() {
+        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
+            Statement statement = conn.createStatement();
+            ResultSet results = statement.executeQuery(TodoQueries.FIND_COMPLETED_TASKS);
+
+            List<TaskEntity> entities = new ArrayList<>();
+            while (results.next()) {
+                entities.add(jdbcUtils.convertRecordToEntity(results));
+            }
+
+            return entities;
+        } catch (SQLException sqle) {
+            LOG.warn("Exception while trying to read from database!", sqle);
+            return null;
+        }
     }
 
     @Override
@@ -254,8 +273,9 @@ public class JdbcTodoRepository implements TodoRepository {
         prStatement.setString(4, entity.getCategory());
         prStatement.setString(5, entity.getSubTaskIds());
         prStatement.setString(6, Boolean.toString(entity.isRepeating()));
+        prStatement.setString(7, Boolean.toString(entity.isCompleted()));
         if (entity.hasId()) {
-            prStatement.setInt(7, entity.getId());
+            prStatement.setInt(8, entity.getId());
         }
 
         int affectedRows = prStatement.executeUpdate();
