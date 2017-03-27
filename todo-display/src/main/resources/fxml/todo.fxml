@@ -60,7 +60,7 @@
             <String fx:value="task-border-pane" />
          </styleClass>
          <left>
-            <VBox fx:id="progressContainer" alignment="BOTTOM_CENTER" nodeOrientation="LEFT_TO_RIGHT" prefHeight="200.0" style="-fx-border-color: wheat; -fx-border-width: 0 1 0 1;" BorderPane.alignment="CENTER">
+            <VBox fx:id="progressContainer" alignment="BOTTOM_CENTER" minHeight="200.0" nodeOrientation="LEFT_TO_RIGHT" style="-fx-border-color: wheat; -fx-border-width: 0 1 0 1;" BorderPane.alignment="CENTER">
                <children>
                   <Rectangle fx:id="progressRect" arcHeight="5.0" arcWidth="5.0" fill="GOLD" height="366.0" stroke="BLACK" strokeType="INSIDE" styleClass="rect-progress-bar" width="30.0" VBox.vgrow="ALWAYS" />
                </children>
@@ -73,9 +73,9 @@
             </VBox>
          </left>
          <center>
-            <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+            <BorderPane minWidth="455.0" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                <bottom>
-                  <HBox alignment="CENTER" style="-fx-border-color: wheat; -fx-border-width: 1 0 0 0;" styleClass="motivation-text-container" BorderPane.alignment="BOTTOM_CENTER">
+                  <HBox fx:id="motivationContainer" alignment="CENTER" minWidth="200.0" style="-fx-border-color: wheat; -fx-border-width: 1 0 0 0;" styleClass="motivation-text-container" BorderPane.alignment="BOTTOM_CENTER">
                      <children>
                         <Text fx:id="motivationText" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="motivational-text" wrappingWidth="450.7294921875" HBox.hgrow="ALWAYS" />
                      </children>

@@ -4,9 +4,10 @@ import debrecen.university.pti.kovtamas.display.utils.VoidNoArgMethod;
 import debrecen.university.pti.kovtamas.display.utils.locale.Localizer;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.TaskSubController;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategorySubController;
-import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.MotivationSubController;
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.motivation.MotivationSubController;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategoryActions;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategoryPositioner;
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.ProgressBarSubController;
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.function.Consumer;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
@@ -27,6 +29,7 @@ public class TodoController {
     private TaskSubController taskSubController;
     private CategorySubController categorySubController;
     private MotivationSubController motivationSubController;
+    private ProgressBarSubController progressBarSubController;
 
     // Methods from higher layers
     private VoidNoArgMethod backToMenuMethod;
@@ -39,6 +42,9 @@ public class TodoController {
     @FXML
     @Getter
     private Rectangle progressRect;
+
+    @FXML
+    private HBox motivationContainer;
 
     @FXML
     @Getter
@@ -71,8 +77,9 @@ public class TodoController {
     private void createSubControllers() {
         List<String> customCategories = new ArrayList<>(service.getCustomCategories());
         categorySubController = new CategorySubController(categoryListView, customCategories);
-        motivationSubController = new MotivationSubController(motivationText);
+        motivationSubController = new MotivationSubController(motivationContainer, motivationText);
         taskSubController = new TaskSubController(service, taskBox);
+        progressBarSubController = new ProgressBarSubController(progressContainer, progressRect);
     }
 
     private void makeBindingsBetweenSubControllers() {
@@ -84,7 +91,6 @@ public class TodoController {
 
     @FXML
     void addNewCategory(ActionEvent event) {
-
     }
 
     @FXML
