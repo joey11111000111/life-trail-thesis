@@ -67,7 +67,6 @@ public class LogicalCategoryNames {
 
     private LogicalCategoryNames() {
         initFields();
-        setupListeningToLanguageChange();
     }
 
     public List<String> getLocalizedNames() {
@@ -90,12 +89,6 @@ public class LogicalCategoryNames {
     private void initFields() {
         localizer = Localizer.getInstance();
         localizeCategoryNames();
-    }
-
-    private void setupListeningToLanguageChange() {
-        localizer.registerLanguageChangeAction(
-                (fromLang, toLang) -> localizeCategoryNames()
-        );
     }
 
     private void localizeCategoryNames() {

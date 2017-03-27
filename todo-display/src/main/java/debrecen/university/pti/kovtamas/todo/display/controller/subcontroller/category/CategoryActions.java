@@ -1,6 +1,7 @@
 package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category;
 
 import debrecen.university.pti.kovtamas.display.utils.ValueChangeAction;
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.LogicalCategoryNames.LogicalCategories;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -10,20 +11,26 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CategoryActions {
 
-    private final Set<ValueChangeAction<String>> selectionChangeActions;
+    private final LogicalCategoryNames logicalCategoryNames;
+    // Remove existing and add new category only applies to custom categories.
+    // But both custom and logical categories are selectable,
+    // that's why selection action is the only one with CategoryVo.
+    private final Set<ValueChangeAction<CategoryVo>> selectionChangeActions;
     private final Set<Consumer<String>> newCategoryActions;
     private final Set<Consumer<String>> removeCategoryActions;
+
     private boolean isSelectionActionBlocked;
 
-    public CategoryActions() {
-        selectionChangeActions = new HashSet<>();
-        newCategoryActions = new HashSet<>();
-        removeCategoryActions = new HashSet<>();
-        isSelectionActionBlocked = false;
+    public CategoryActions(LogicalCategoryNames logicalCategoryNames) {
+        this.logicalCategoryNames = logicalCategoryNames;
+        this.selectionChangeActions = new HashSet<>();
+        this.newCategoryActions = new HashSet<>();
+        this.removeCategoryActions = new HashSet<>();
+        this.isSelectionActionBlocked = false;
     }
 
     // Register actions -----------------------------
-    public void registerSelectionChangeAction(@NonNull final ValueChangeAction<String> selectionChangeAction) {
+    public void registerSelectionChangeAction(@NonNull final ValueChangeAction<CategoryVo> selectionChangeAction) {
         selectionChangeActions.add(selectionChangeAction);
     }
 
@@ -36,10 +43,12 @@ public class CategoryActions {
     }
 
     // Invoke actions -------------------------------
-    void selectedCategoryChangedFromTo(String fromCategory, String toCategory) {
+    void selectedCategoryChangedFromTo(String fromCategoryName, String toCategoryName) {
         if (!isSelectionActionBlocked) {
-            log.info("Selected category changed from '" + fromCategory + "' to '" + toCategory + "'");
-            selectionChangeActions.forEach(action -> action.accept(fromCategory, toCategory));
+            log.info("Selected category changed from '" + fromCategoryName + "' to '" + toCategoryName + "'");
+            CategoryVo fromCategoryVo = createPossiblyNullCategoryVoFromName(fromCategoryName);
+            CategoryVo toCategoryVo = createPossiblyNullCategoryVoFromName(toCategoryName);
+            selectionChangeActions.forEach(action -> action.accept(fromCategoryVo, toCategoryVo));
         }
     }
 
@@ -60,5 +69,32 @@ public class CategoryActions {
 
     void releaseSelectionActions() {
         isSelectionActionBlocked = false;
+    }
+
+    // private helper methods -----------------------
+    private CategoryVo createPossiblyNullCategoryVoFromName(String categoryName) {
+        if (categoryName == null) {
+            return null;
+        }
+
+        return createNonNullCategoryVoFromName(categoryName);
+    }
+
+    private CategoryVo createNonNullCategoryVoFromName(String categoryName) {
+        boolean isLogicalCategory = logicalCategoryNames.isLogicalCategory(categoryName);
+        if (isLogicalCategory) {
+            return createLogicalCategoryVo(categoryName);
+        }
+
+        return createCustomCategoryVo(categoryName);
+    }
+
+    private CategoryVo createLogicalCategoryVo(String categoryName) {
+        LogicalCategories logicalCategory = logicalCategoryNames.whichLogicalCategory(categoryName);
+        return CategoryVo.logicalCategoryVo(logicalCategory);
+    }
+
+    private CategoryVo createCustomCategoryVo(String categoryName) {
+        return CategoryVo.customCategoryVo(categoryName);
     }
 }

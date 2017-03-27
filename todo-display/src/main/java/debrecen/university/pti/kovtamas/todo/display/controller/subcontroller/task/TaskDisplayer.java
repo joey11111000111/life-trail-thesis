@@ -12,12 +12,13 @@ import java.util.List;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import lombok.NonNull;
 
 public class TaskDisplayer {
 
     private final VBox taskBox;
     private final List<TaskRowController> displayedTaskControllers;
-    private List<String> customCategories;
+    private final List<String> customCategories;
 
     public TaskDisplayer(VBox taskBox, Collection<String> customCategories) {
         this.taskBox = taskBox;
@@ -35,6 +36,12 @@ public class TaskDisplayer {
         System.out.println("Task Displayer: category removed - " + removedCategory);
         customCategories.remove(removedCategory);
         updateCategoryComboBoxes();
+    }
+
+    public void displayAllTasks(@NonNull final Collection<TaskVo> allTopLevelTasks) throws DisplayLoadException {
+        for (TaskVo topLevelTask : allTopLevelTasks) {
+            displayTaskTree(topLevelTask);
+        }
     }
 
     public void displayTaskTree(TaskVo rootTask) throws DisplayLoadException {

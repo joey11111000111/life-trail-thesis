@@ -19,8 +19,7 @@ public class QuoteChanger {
     public QuoteChanger(Text motivationText, QuoteSupplier quoteSupplier) {
         this.motivationText = motivationText;
         this.quoteSupplier = quoteSupplier;
-        quoteOnScreenMillis = java.time.Duration.ofSeconds(12).toMillis();
-//        quoteOnScreenMillis = java.time.Duration.ofMinutes(1).toMillis();
+        quoteOnScreenMillis = java.time.Duration.ofMinutes(1).toMillis();
         quoteChangerThread = null;
         isQuoteChangerStopped = false;
     }
@@ -48,7 +47,7 @@ public class QuoteChanger {
             Thread.sleep(quoteOnScreenMillis);
         } catch (InterruptedException ie) {
             log.info("Quote changer thread was interrupted.", ie);
-            stopMotivationTextChanger();
+            stopMotivationTextChangerSafely();
         }
     }
 
@@ -74,7 +73,7 @@ public class QuoteChanger {
         fadeInEffect.play();
     }
 
-    public void stopMotivationTextChanger() {
+    public void stopMotivationTextChangerSafely() {
         isQuoteChangerStopped = true;
     }
 

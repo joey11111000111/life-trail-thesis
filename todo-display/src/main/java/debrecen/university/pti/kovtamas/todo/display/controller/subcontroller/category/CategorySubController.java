@@ -48,10 +48,10 @@ public class CategorySubController {
     }
 
     private void initFields(ListView<String> categoryListView) {
-        // Init order is important between categoryActions and categoryPositioner
+        // Init order is important between logicalCategoryNames, categoryActions and categoryPositioner
         this.categoryListView = categoryListView;
-        this.categoryActions = new CategoryActions();
         this.logicalCategoryNames = LogicalCategoryNames.getInstance();
+        this.categoryActions = new CategoryActions(logicalCategoryNames);
         this.categoryPositioner = buildCategoryPositioner();
     }
 

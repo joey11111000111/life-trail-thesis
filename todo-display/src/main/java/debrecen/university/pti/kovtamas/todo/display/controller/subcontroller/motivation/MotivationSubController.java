@@ -20,7 +20,7 @@ public class MotivationSubController {
     }
 
     public void stopMotivationTextChanger() {
-        quoteChanger.stopMotivationTextChanger();
+        quoteChanger.stopMotivationTextChangerSafely();
     }
 
     private void initFields(Text quoteDisplayText) {
