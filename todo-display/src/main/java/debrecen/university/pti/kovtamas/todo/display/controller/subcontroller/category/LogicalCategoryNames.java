@@ -77,6 +77,16 @@ public class LogicalCategoryNames {
         return currentCategoryNames.contains(categoryName);
     }
 
+    public boolean isOneOfThemLogicalCategory(String... categoryNames) {
+        for (String categoryName : categoryNames) {
+            if (isLogicalCategory(categoryName)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public LogicalCategories whichLogicalCategory(@NonNull final String categoryName) {
         int listIndex = currentCategoryNames.indexOf(categoryName);
         if (listIndex == -1) {

@@ -58,6 +58,7 @@ public class CategorySubController {
     private CategoryPositioner buildCategoryPositioner() {
         return CategoryPositioner.builder()
                 .categoryListView(categoryListView)
+                .logicalCategoryNames(logicalCategoryNames)
                 .blockSelectionActions(categoryActions::blockSelectionActions)
                 .releaseSelectionActions(categoryActions::releaseSelectionActions)
                 .build();

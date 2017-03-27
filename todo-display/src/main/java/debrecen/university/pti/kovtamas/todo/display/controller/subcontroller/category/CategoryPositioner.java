@@ -23,16 +23,28 @@ public class CategoryPositioner {
     }
 
     private final ListView<String> categoryListView;
+    private final LogicalCategoryNames logicalCategoryNames;
     private final VoidNoArgMethod blockSelectionActions;
     private final VoidNoArgMethod releaseSelectionActions;
 
     public void moveSelectedCategoryIfPossible(Directions direction) {
+        final int currentIndex = getSelectedCategoryIndex();
         final int newIndex = getNewIndexOfSelectedCategory(direction);
-        if (!isValidCategoryIndex(newIndex)) {
+        if (!bothCategoriesCanMove(currentIndex, newIndex)) {
             return;
         }
 
         moveSelectedCategoryToWithoutActions(newIndex);
+    }
+
+    private boolean bothCategoriesCanMove(int currentIndex, int newIndex) {
+        return isValidCategoryIndex(newIndex) && !willlogicalCategoryMove(currentIndex, newIndex);
+    }
+
+    private boolean willlogicalCategoryMove(int currentIndex, int newIndex) {
+        String categoryAtCurrentPosition = categoryListView.getItems().get(currentIndex);
+        String categoryAtNewPosition = categoryListView.getItems().get(newIndex);
+        return logicalCategoryNames.isOneOfThemLogicalCategory(categoryAtCurrentPosition, categoryAtNewPosition);
     }
 
     private void moveSelectedCategoryToWithoutActions(int toIndex) {
