@@ -63,18 +63,19 @@ public class LogicalCategoryNames {
     }
 
     private Localizer localizer;
-    private List<String> currentCategoryNames;
+    private List<String> categoryNameBuffer;
 
     private LogicalCategoryNames() {
         initFields();
+        setupListeningToLanguageChange();
     }
 
     public List<String> getLocalizedNames() {
-        return new ArrayList<>(currentCategoryNames);
+        return new ArrayList<>(categoryNameBuffer);
     }
 
     public boolean isLogicalCategory(String categoryName) {
-        return currentCategoryNames.contains(categoryName);
+        return categoryNameBuffer.contains(categoryName);
     }
 
     public boolean isOneOfThemLogicalCategory(String... categoryNames) {
@@ -88,7 +89,7 @@ public class LogicalCategoryNames {
     }
 
     public LogicalCategories whichLogicalCategory(@NonNull final String categoryName) {
-        int listIndex = currentCategoryNames.indexOf(categoryName);
+        int listIndex = categoryNameBuffer.indexOf(categoryName);
         if (listIndex == -1) {
             return null;
         }
@@ -101,8 +102,14 @@ public class LogicalCategoryNames {
         localizeCategoryNames();
     }
 
+    private void setupListeningToLanguageChange() {
+        localizer.registerLanguageChangeAction((fromLang, toLang) -> {
+            localizeCategoryNames();
+        });
+    }
+
     private void localizeCategoryNames() {
-        currentCategoryNames = getLocalizedLogicalCategoryNames();
+        categoryNameBuffer = getLocalizedLogicalCategoryNames();
     }
 
     private List<String> getLocalizedLogicalCategoryNames() {
