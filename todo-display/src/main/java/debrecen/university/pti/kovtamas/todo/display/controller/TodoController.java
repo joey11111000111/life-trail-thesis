@@ -100,7 +100,7 @@ public class TodoController {
 
     @FXML
     void editSelectedTask(ActionEvent event) {
-
+        taskSubController.toggleDisableForSelectedRow();
     }
 
     @FXML

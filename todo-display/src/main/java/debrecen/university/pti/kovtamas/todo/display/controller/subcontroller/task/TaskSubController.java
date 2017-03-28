@@ -43,6 +43,10 @@ public class TaskSubController {
         }
     }
 
+    public void toggleDisableForSelectedRow() {
+        taskDisplayer.toggleDisableForSelectedRow();
+    }
+
     private List<TaskVo> getCategoryTasks(CategoryVo categoryVo) {
         if (categoryVo.isLogical()) {
             return getLogicalCategoryTasks(categoryVo.getLogicalCategory());

@@ -17,6 +17,7 @@ import lombok.NonNull;
 public class TaskDisplayer {
 
     private final VBox taskBox;
+    private final TaskSelectionSubController taskSelection;
     private final List<TaskRowController> displayedTaskControllers;
     private final List<String> customCategories;
 
@@ -24,6 +25,7 @@ public class TaskDisplayer {
         this.taskBox = taskBox;
         this.customCategories = new ArrayList<>(customCategories);
         displayedTaskControllers = new ArrayList<>();
+        taskSelection = new TaskSelectionSubController();
     }
 
     public void newCategoryAddedAction(String newCategory) {
@@ -59,6 +61,10 @@ public class TaskDisplayer {
         taskBox.getChildren().add(errorText);
     }
 
+    public void toggleDisableForSelectedRow() {
+        taskSelection.toggleDisableForSelectedRow();
+    }
+
     private void updateCategoryComboBoxes() {
         displayedTaskControllers.forEach(controller -> {
             TaskDisplayState currentTaskState = controller.getTaskStateDetached();
@@ -85,7 +91,9 @@ public class TaskDisplayer {
     private void displayTask(TaskDisplayState taskDisplayState) throws DisplayLoadException {
         TaskRowController taskController = getNewTaskController();
         taskController.setDisplayedTaskState(taskDisplayState);
+        taskController.setDisable(true);
         displayedTaskControllers.add(taskController);
+        taskSelection.registerTaskRow(taskController);
         putControllerToScreen(taskController);
     }
 

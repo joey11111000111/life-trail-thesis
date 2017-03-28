@@ -16,6 +16,16 @@ import javafx.scene.shape.Circle;
 
 public class TaskRowController {
 
+    private static long nextId = 0;
+
+    private final long rowId;
+    private boolean isDisabled;
+
+    public TaskRowController() {
+        this.rowId = nextId++;
+        isDisabled = false;
+    }
+
     @FXML
     private HBox taskRow;
 
@@ -50,6 +60,31 @@ public class TaskRowController {
 
     public TaskDisplayState getTaskStateDetached() {
         return currentTaskState;
+    }
+
+    public void toggleDisabled() {
+        setDisable(!isDisabled);
+    }
+
+    public void setDisable(boolean isDisabled) {
+        if (this.isDisabled != isDisabled) {
+            this.isDisabled = isDisabled;
+            categoryBox.setDisable(isDisabled);
+            taskDefText.setDisable(isDisabled);
+            datePicker.setDisable(isDisabled);
+        }
+    }
+
+    public boolean isDisabled() {
+        return isDisabled;
+    }
+
+    public boolean isEditable() {
+        return !isDisabled;
+    }
+
+    public long getRowId() {
+        return rowId;
     }
 
     private void setPriorityColor(String colorStyle) {
