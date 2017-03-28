@@ -14,7 +14,8 @@ public class Localizer {
 
     public static enum SupportedLanguages {
         HUNGARIAN(new Locale("hu")),
-        ENGLISH(new Locale("en"));
+        ENGLISH(new Locale("en")),
+        SPANISH(new Locale("es"));
 
         private final Locale locale;
 

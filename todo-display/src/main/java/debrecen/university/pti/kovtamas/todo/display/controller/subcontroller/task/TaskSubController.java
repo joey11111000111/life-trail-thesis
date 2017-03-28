@@ -1,6 +1,6 @@
 package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task;
 
-import debrecen.university.pti.kovtamas.display.utils.display.DisplayLoadException;
+import debrecen.university.pti.kovtamas.display.utils.load.DisplayLoadException;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategoryVo;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.LogicalCategoryNames.LogicalCategories;
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;

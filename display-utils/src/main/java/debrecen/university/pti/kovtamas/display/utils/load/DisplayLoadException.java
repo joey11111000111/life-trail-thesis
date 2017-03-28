@@ -1,4 +1,4 @@
-package debrecen.university.pti.kovtamas.display.utils.display;
+package debrecen.university.pti.kovtamas.display.utils.load;
 
 public class DisplayLoadException extends Exception {
 

@@ -1,4 +1,4 @@
-package debrecen.university.pti.kovtamas.display.utils.display;
+package debrecen.university.pti.kovtamas.display.utils.load;
 
 import debrecen.university.pti.kovtamas.display.utils.locale.Localizer;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package debrecen.university.pti.kovtamas.display.utils.display;
+package debrecen.university.pti.kovtamas.display.utils.load;
 
 import javafx.scene.Parent;
 import javafx.scene.Scene;

@@ -1,8 +1,8 @@
 package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task;
 
-import debrecen.university.pti.kovtamas.display.utils.display.DisplayLoadException;
-import debrecen.university.pti.kovtamas.display.utils.display.DisplayLoader;
-import debrecen.university.pti.kovtamas.display.utils.display.DisplayVo;
+import debrecen.university.pti.kovtamas.display.utils.load.DisplayLoadException;
+import debrecen.university.pti.kovtamas.display.utils.load.DisplayLoader;
+import debrecen.university.pti.kovtamas.display.utils.load.DisplayVo;
 import debrecen.university.pti.kovtamas.todo.display.controller.TaskRowController;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
 import java.util.ArrayList;

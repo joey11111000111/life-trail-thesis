@@ -128,6 +128,11 @@ public class TodoController {
     }
 
     @FXML
+    void switchToSpanishLanguage(ActionEvent event) {
+        switchLanguageMethod.accept(Localizer.SupportedLanguages.SPANISH);
+    }
+
+    @FXML
     void switchToEnglishLanguage(ActionEvent event) {
         switchLanguageMethod.accept(Localizer.SupportedLanguages.ENGLISH);
     }
