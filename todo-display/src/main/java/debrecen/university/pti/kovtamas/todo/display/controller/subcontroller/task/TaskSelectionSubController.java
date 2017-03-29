@@ -1,17 +1,22 @@
 package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task;
 
 import debrecen.university.pti.kovtamas.todo.display.controller.TaskRowController;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Consumer;
 import lombok.NonNull;
 
 public class TaskSelectionSubController {
 
-    private static final String SELECTED_BACKGROUND_STYLE = "-fx-background-color: rgba(30,70,200, .5);";
-    private static final String EDITABLE_BACKGROUND_STYLE = "-fx-background-color: rgba(0,0,0, .6);";
-    private static final String REGUALR_BACKGROUND_STYLE = "-fx-background-color: rgba(30,70,200, 0);";
+    static private final String SELECTED_BACKGROUND_STYLE = "-fx-background-color: rgba(30,70,200, .5);";
+    static private final String EDITABLE_BACKGROUND_STYLE = "-fx-background-color: rgba(0,0,0, .6);";
+    static private final String REGUALR_BACKGROUND_STYLE = "-fx-background-color: rgba(30,70,200, 0);";
 
+    private final Set<Consumer<TaskRowController>> registeredRowModificationActions;
     private TaskRowController selectedRow;
 
     public TaskSelectionSubController() {
+        registeredRowModificationActions = new HashSet<>();
         selectedRow = null;
     }
 
@@ -19,6 +24,10 @@ public class TaskSelectionSubController {
         rowController.getRootViewComponent().setOnMouseClicked((event) -> {
             rowSelectionAction(rowController);
         });
+    }
+
+    public void registerRowModificationAction(Consumer<TaskRowController> action) {
+        registeredRowModificationActions.add(action);
     }
 
     public boolean hasSelectedRow() {
@@ -29,7 +38,28 @@ public class TaskSelectionSubController {
         if (hasSelectedRow()) {
             selectedRow.toggleDisabled();
             adjustBackgroundByDisableValue();
+
+            if (!isUserEditing()) {
+                selectedRowWasModifiedAction();
+            }
         }
+    }
+
+    public boolean finisedEditing() {
+        return hasSelectedRow() && !isUserEditing();
+    }
+
+    public TaskDisplayState getDisplayStateOfLastModifiedRow() {
+        if (hasSelectedRow()) {
+            return selectedRow.getTaskStateDetached();
+        } else {
+            return null;
+        }
+
+    }
+
+    private void selectedRowWasModifiedAction() {
+        registeredRowModificationActions.forEach(action -> action.accept(selectedRow));
     }
 
     private void rowSelectionAction(final TaskRowController newSelectedRow) {
@@ -55,6 +85,10 @@ public class TaskSelectionSubController {
 
     private void cleanUpSelectedRow() {
         if (hasSelectedRow()) {
+            if (isUserEditing()) {
+                selectedRowWasModifiedAction();
+            }
+
             removeAllBackgroundFrom(selectedRow);
             selectedRow.setDisable(true);
         }

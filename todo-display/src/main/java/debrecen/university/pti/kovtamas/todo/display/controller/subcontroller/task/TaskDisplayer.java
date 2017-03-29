@@ -8,7 +8,10 @@ import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -16,16 +19,51 @@ import lombok.NonNull;
 
 public class TaskDisplayer {
 
-    private final VBox taskBox;
-    private final TaskSelectionSubController taskSelection;
-    private final List<TaskRowController> displayedTaskControllers;
-    private final List<String> customCategories;
+    private VBox taskBox;
+    private List<String> customCategories;
+
+    private TaskSelectionSubController taskSelection;
+
+    private List<TaskRepresentations> displayedTasks;
+    private Set<Consumer<TaskVo>> registeredTaskChangedActions;
 
     public TaskDisplayer(VBox taskBox, Collection<String> customCategories) {
+        initFields(taskBox, customCategories);
+        setupRowModificationAction();
+    }
+
+    private void initFields(VBox taskBox, Collection<String> customCategories) {
         this.taskBox = taskBox;
         this.customCategories = new ArrayList<>(customCategories);
-        displayedTaskControllers = new ArrayList<>();
-        taskSelection = new TaskSelectionSubController();
+        this.displayedTasks = new ArrayList<>();
+        this.taskSelection = new TaskSelectionSubController();
+        this.registeredTaskChangedActions = new HashSet<>();
+    }
+
+    /// TODO
+    private void setupRowModificationAction() {
+        taskSelection.registerRowModificationAction(modifiedRowController -> {
+            // find related task representaion
+            TaskRepresentations selectedTaskRepresentation = displayedTasks.stream()
+                    .filter(taskRep -> areSameControllers(taskRep.getRowController(), modifiedRowController))
+                    .findFirst()
+                    .get();
+
+            selectedTaskRepresentation.updateVo();
+            executeTaskChangeActions(selectedTaskRepresentation.getVo());
+        });
+    }
+
+    private boolean areSameControllers(TaskRowController controller, TaskRowController otherController) {
+        return controller.getRowId() == otherController.getRowId();
+    }
+
+    private void executeTaskChangeActions(TaskVo changedVo) {
+        registeredTaskChangedActions.forEach(action -> action.accept(changedVo));
+    }
+
+    public void registerTaskChangeAction(@NonNull final Consumer<TaskVo> action) {
+        registeredTaskChangedActions.add(action);
     }
 
     public void newCategoryAddedAction(String newCategory) {
@@ -65,18 +103,23 @@ public class TaskDisplayer {
         taskSelection.toggleDisableForSelectedRow();
     }
 
-    private void updateCategoryComboBoxes() {
-        displayedTaskControllers.forEach(controller -> {
-            TaskDisplayState currentTaskState = controller.getTaskStateDetached();
-            currentTaskState.setSelectableCategories(customCategories);
-            controller.setDisplayedTaskState(currentTaskState);
-        });
+    public boolean finisedEditing() {
+        return taskSelection.finisedEditing();
     }
 
-    private void displayTaskTree(TaskVo taskData, int currentIndentWidth) throws DisplayLoadException {
-        TaskDisplayState taskDisplayState = createTaskDisplayState(taskData, currentIndentWidth);
-        displayTask(taskDisplayState);
-        displaySubTasksIfPresent(taskData, currentIndentWidth);
+    private void updateCategoryComboBoxes() {
+        displayedTasks.stream()
+                .map(TaskRepresentations::getRowController)
+                .forEach(controller -> {
+                    TaskDisplayState currentTaskState = controller.getTaskStateDetached();
+                    currentTaskState.setSelectableCategories(customCategories);
+                    controller.setDisplayedTaskState(currentTaskState);
+                });
+    }
+
+    private void displayTaskTree(TaskVo taskVo, int currentIndentWidth) throws DisplayLoadException {
+        displayTask(taskVo, currentIndentWidth);
+        displaySubTasksIfPresent(taskVo, currentIndentWidth);
     }
 
     private void displaySubTasksIfPresent(TaskVo taskData, int indentWidth) throws DisplayLoadException {
@@ -88,12 +131,17 @@ public class TaskDisplayer {
         }
     }
 
-    private void displayTask(TaskDisplayState taskDisplayState) throws DisplayLoadException {
+    private void displayTask(TaskVo taskVo, int indentWidth) throws DisplayLoadException {
+        TaskDisplayState taskDisplayState = createTaskDisplayState(taskVo, indentWidth);
         TaskRowController taskController = getNewTaskController();
+
+        taskController.setup();
         taskController.setDisplayedTaskState(taskDisplayState);
         taskController.setDisable(true);
-        displayedTaskControllers.add(taskController);
+
+        displayedTasks.add(new TaskRepresentations(taskController, taskVo));
         taskSelection.registerTaskRow(taskController);
+
         putControllerToScreen(taskController);
     }
 
@@ -105,7 +153,7 @@ public class TaskDisplayer {
         return TaskDisplayState.builder()
                 .indentWidth(indentWidth)
                 .completed(task.isCompleted())
-                .priorityColorStyle(PriorityColors.getColorStyleOfPriority(task.getPriority()))
+                .priorityColor(PriorityColors.ofPriority(task.getPriority()))
                 .selectableCategories(customCategories)
                 .selectedCategory(task.getCategory())
                 .taskDef(task.getTaskDef())

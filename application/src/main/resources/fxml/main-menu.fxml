@@ -30,8 +30,9 @@
                 <Button minWidth="250.0" mnemonicParsing="false" onAction="#switchToTodo" text="%button_todo" />
                 <HBox alignment="CENTER" prefWidth="200.0" spacing="10.0" style="-fx-border-color: ; -fx-border-width: 0 0 1 0;" VBox.vgrow="ALWAYS">
                     <children>
-                        <Button mnemonicParsing="false" onAction="#setEnLocale" text="EN" />
-                        <Button mnemonicParsing="false" onAction="#setHuLocale" text="HU" />
+                        <Button mnemonicParsing="false" onAction="#switchToSpanishLanguage" text="ES" />
+                        <Button mnemonicParsing="false" onAction="#switchToHungarianLanguage" text="HU" />
+                  <Button layoutX="105.0" layoutY="10.0" mnemonicParsing="false" onAction="#switchToEnglishLanguage" text="EN" />
                     </children>
                     <padding>
                         <Insets bottom="10.0" />

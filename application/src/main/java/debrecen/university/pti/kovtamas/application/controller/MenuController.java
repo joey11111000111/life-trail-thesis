@@ -19,12 +19,17 @@ public class MenuController {
     }
 
     @FXML
-    void setEnLocale(ActionEvent event) {
+    void switchToSpanishLanguage(ActionEvent event) {
+        switchLanguageMethod.accept(Localizer.SupportedLanguages.SPANISH);
+    }
+
+    @FXML
+    void switchToEnglishLanguage(ActionEvent event) {
         switchLanguageMethod.accept(Localizer.SupportedLanguages.ENGLISH);
     }
 
     @FXML
-    void setHuLocale(ActionEvent event) {
+    void switchToHungarianLanguage(ActionEvent event) {
         switchLanguageMethod.accept(Localizer.SupportedLanguages.HUNGARIAN);
     }
 

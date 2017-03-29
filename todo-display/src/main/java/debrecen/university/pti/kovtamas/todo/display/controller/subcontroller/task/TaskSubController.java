@@ -3,9 +3,12 @@ package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.t
 import debrecen.university.pti.kovtamas.display.utils.load.DisplayLoadException;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategoryVo;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.LogicalCategoryNames.LogicalCategories;
+import debrecen.university.pti.kovtamas.todo.service.api.TaskSaveFailureException;
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.scene.layout.VBox;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +22,22 @@ public class TaskSubController {
     public TaskSubController(@NonNull final TodoService service, @NonNull final VBox taskBox) {
         this.service = service;
         initTaskDisplayer(taskBox);
+        setupTaskChangeAction();
+    }
+
+    private void initTaskDisplayer(final VBox taskBox) {
+        taskDisplayer = new TaskDisplayer(taskBox, service.getCustomCategories());
+    }
+
+    private void setupTaskChangeAction() {
+        taskDisplayer.registerTaskChangeAction((changedTaskVo) -> {
+            try {
+                service.save(changedTaskVo);
+                log.info("Saved changes of task with id: " + changedTaskVo.getId());
+            } catch (TaskSaveFailureException tsfe) {
+                log.warn("Could not save changes of task with id: " + changedTaskVo.getId(), tsfe);
+            }
+        });
     }
 
     public void newCategoryAddedAction(String newCategory) {
@@ -45,6 +64,10 @@ public class TaskSubController {
 
     public void toggleDisableForSelectedRow() {
         taskDisplayer.toggleDisableForSelectedRow();
+    }
+
+    public boolean finisedEditing() {
+        return taskDisplayer.finisedEditing();
     }
 
     private List<TaskVo> getCategoryTasks(CategoryVo categoryVo) {
@@ -87,10 +110,6 @@ public class TaskSubController {
         String errorMessage = "Failed to load fxml resource for displaying tasks";
         log.error(errorMessage, dle);
         taskDisplayer.displayErrorMessage(errorMessage);
-    }
-
-    private void initTaskDisplayer(final VBox taskBox) {
-        taskDisplayer = new TaskDisplayer(taskBox, service.getCustomCategories());
     }
 
 }

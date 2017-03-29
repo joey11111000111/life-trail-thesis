@@ -1,6 +1,8 @@
 package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task;
 
 import debrecen.university.pti.kovtamas.todo.service.vo.Priority;
+import java.util.HashMap;
+import java.util.Map;
 
 public enum PriorityColors {
     NONE_COLOR("-fx-fill: radial-gradient(radius 180%, burlywood,"
@@ -12,31 +14,36 @@ public enum PriorityColors {
     HIGH_COLOR("-fx-fill: radial-gradient(radius 180%, burlywood,"
             + "derive(red, -30%), derive(red, 30%));");
 
-    public static String getColorStyleOfPriority(Priority priority) {
+    static private final Map<Priority, PriorityColors> priorityMapping;
+    private final String colorStyle;
+
+    static {
+        priorityMapping = new HashMap<>();
+        priorityMapping.put(Priority.NONE, NONE_COLOR);
+        priorityMapping.put(Priority.LOW, LOW_COLOR);
+        priorityMapping.put(Priority.MEDIUM, MEDIUM_COLOR);
+        priorityMapping.put(Priority.HIGH, HIGH_COLOR);
+    }
+
+    static public String getColorStyleOfPriority(Priority priority) {
         return ofPriority(priority).getColorStyle();
     }
 
-    public static PriorityColors ofPriority(Priority priority) {
-        switch (priority) {
-            case NONE:
-                return NONE_COLOR;
-            case LOW:
-                return LOW_COLOR;
-            case MEDIUM:
-                return MEDIUM_COLOR;
-            case HIGH:
-                return HIGH_COLOR;
-            default:
-                throw new UnsupportedOperationException("Priority " + priority.name()
-                        + "is not supported yet in PriorityColors!");
-
-        }
+    static public PriorityColors ofPriority(Priority priority) {
+        return priorityMapping.get(priority);
     }
-
-    private final String colorStyle;
 
     private PriorityColors(String colorStyle) {
         this.colorStyle = colorStyle;
+    }
+
+    public Priority toPriority() {
+        return priorityMapping.entrySet()
+                .stream()
+                .filter(priEntry -> priEntry.getValue() == this)
+                .findAny()
+                .get()
+                .getKey();
     }
 
     public String getColorStyle() {

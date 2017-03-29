@@ -51,8 +51,8 @@
                      </HBox.margin>
                   </Region>
                   <Button layoutX="429.0" layoutY="14.0" mnemonicParsing="false" onAction="#switchToSpanishLanguage" styleClass="image-button" text="ES" textFill="#e1dca5" />
-                  <Button mnemonicParsing="false" onAction="#switchToEnglishLanguage" styleClass="image-button" text="EN" textFill="#e1dca5" />
                   <Button mnemonicParsing="false" onAction="#switchToHungarianLanguage" styleClass="image-button" text="HU" textFill="#e1dca5" />
+                  <Button mnemonicParsing="false" onAction="#switchToEnglishLanguage" styleClass="image-button" text="EN" textFill="#e1dca5" />
                </children>
             </HBox>
          </top>

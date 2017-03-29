@@ -11,7 +11,7 @@ public class TaskDisplayState {
 
         private Integer indentWidth;
         private Boolean completed;
-        private String priorityColorStyle;
+        private PriorityColors priorityColor;
         private Collection<String> selectableCategories;
         private String selectedCategory;
         private String taskDef;
@@ -30,8 +30,8 @@ public class TaskDisplayState {
             return this;
         }
 
-        public Builder priorityColorStyle(String priorityColorStyle) {
-            this.priorityColorStyle = priorityColorStyle;
+        public Builder priorityColor(PriorityColors priorityColorStyle) {
+            this.priorityColor = priorityColorStyle;
             return this;
         }
 
@@ -56,7 +56,7 @@ public class TaskDisplayState {
         }
 
         public TaskDisplayState build() {
-            return new TaskDisplayState(indentWidth, completed, priorityColorStyle,
+            return new TaskDisplayState(indentWidth, completed, priorityColor,
                     selectableCategories, selectedCategory, taskDef, deadline);
         }
 
@@ -68,19 +68,19 @@ public class TaskDisplayState {
 
     private Integer indentWidth;
     private Boolean completed;
-    private String priorityColorStyle;
+    private PriorityColors priorityColor;
     private List<String> selectableCategories;
     private String selectedCategory;
     private String taskDef;
     private LocalDate deadline;
 
-    private TaskDisplayState(Integer indentWidth, Boolean completed, String priorityColorStyle,
+    private TaskDisplayState(Integer indentWidth, Boolean completed, PriorityColors priorityColor,
             Collection<String> selectableCategories, String selectedCategory,
             String taskDef, LocalDate deadline) {
 
         this.indentWidth = indentWidth;
         this.completed = completed;
-        this.priorityColorStyle = priorityColorStyle;
+        this.priorityColor = priorityColor;
         this.selectableCategories = new ArrayList<>(selectableCategories);
         this.selectedCategory = selectedCategory;
         this.taskDef = taskDef;
@@ -103,12 +103,12 @@ public class TaskDisplayState {
         this.completed = completed;
     }
 
-    public String getPriorityColorStyle() {
-        return priorityColorStyle;
+    public PriorityColors getPriorityColor() {
+        return priorityColor;
     }
 
-    public void setPriorityColorStyle(String priorityColorStyle) {
-        this.priorityColorStyle = priorityColorStyle;
+    public void setPriorityColor(PriorityColors priorityColor) {
+        this.priorityColor = priorityColor;
     }
 
     public List<String> getSelectableCategories() {

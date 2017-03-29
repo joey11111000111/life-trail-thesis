@@ -49,6 +49,18 @@ public class TaskRowController {
 
     private TaskDisplayState currentTaskState;
 
+    public void setup() {
+        taskDefText.textProperty().addListener((observable, oldText, newText) -> {
+            currentTaskState.setTaskDef(newText);
+        });
+        categoryBox.getSelectionModel().selectedItemProperty().addListener((observable, oldCategory, newCategory) -> {
+            currentTaskState.setSelectedCategory(newCategory);
+        });
+        datePicker.valueProperty().addListener((observable, oldDate, newDate) -> {
+            currentTaskState.setDeadline(newDate);
+        });
+    }
+
     public Parent getRootViewComponent() {
         return taskRow;
     }
@@ -72,6 +84,9 @@ public class TaskRowController {
             categoryBox.setDisable(isDisabled);
             taskDefText.setDisable(isDisabled);
             datePicker.setDisable(isDisabled);
+            // Using the checkbox is not part of editing a task.
+            // The state of an under-editing task should not be changed.
+            doneCheckBox.setDisable(!isDisabled);
         }
     }
 
@@ -120,7 +135,7 @@ public class TaskRowController {
     private void updateTaskDisplay() {
         setIndentWidth(currentTaskState.getIndentWidth());
         setCompleted(currentTaskState.isCompleted());
-        setPriorityColor(currentTaskState.getPriorityColorStyle());
+        setPriorityColor(currentTaskState.getPriorityColor().getColorStyle());
         setSelectableCategories(currentTaskState.getSelectableCategories());
         setSelectedCategory(currentTaskState.getSelectedCategory());
         setTaskDef(currentTaskState.getTaskDef());
