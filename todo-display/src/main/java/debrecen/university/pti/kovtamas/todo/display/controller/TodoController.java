@@ -125,6 +125,7 @@ public class TodoController {
 
     @FXML
     void removeSelectedTask(ActionEvent event) {
+        taskSubController.removeSelectedTask();
     }
 
     @FXML

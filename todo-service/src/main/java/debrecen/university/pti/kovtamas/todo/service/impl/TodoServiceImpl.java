@@ -171,6 +171,20 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @Override
+    public void deleteTaskFromTaskTree(@NonNull TaskVo taskToDelete, @NonNull TaskVo taskTree) throws TaskDeletionException {
+        if (taskToDelete.equals(taskTree)) {
+            delete(taskTree);
+            return;
+        }
+
+        if (taskTree.hasSubTasks()) {
+            for (TaskVo subTask : taskTree.getSubTasks()) {
+                deleteTaskFromTaskTree(taskToDelete, subTask);
+            }
+        }
+    }
+
+    @Override
     public void addSubTask(@NonNull TaskVo mainTask, @NonNull TaskVo subTask) {
         // The "category, priority, deadline, repeating" fields are inherited to the sub task from the main task
         subTask.setCategory(mainTask.getCategory());
@@ -197,7 +211,7 @@ public class TodoServiceImpl implements TodoService {
                 .taskDef("")
                 .priority(Priority.NONE)
                 .deadline(LocalDate.now())
-                .category(null)
+                .category("")
                 .repeating(false)
                 .completed(false)
                 .subTasks(null)
@@ -205,11 +219,16 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @Override
-    public TaskVo newMinimalSubTaskOf(TaskVo parent) {
+    public void addNewMinimalSubTaskTo(TaskVo parent) {
         if (parent.isCompleted()) {
             throw new IllegalArgumentException("Cannot add new sub task to a completed parent task!");
         }
 
+        TaskVo minimalSubTask = createMinimalSubTaskFor(parent);
+        addSubTaskToParent(minimalSubTask, parent);
+    }
+
+    private TaskVo createMinimalSubTaskFor(TaskVo parent) {
         TaskVo minimalVo = newMinimalTaskVo();
         minimalVo.setCategory(parent.getCategory());
         minimalVo.setDeadline(parent.getDeadline());
@@ -217,6 +236,12 @@ public class TodoServiceImpl implements TodoService {
         minimalVo.setRepeating(parent.isRepeating());
 
         return minimalVo;
+    }
+
+    private void addSubTaskToParent(TaskVo subTask, TaskVo parent) {
+        List<TaskVo> subTasks = (parent.hasSubTasks()) ? parent.getSubTasks() : new ArrayList<>();
+        subTasks.add(subTask);
+        parent.setSubTasks(subTasks);
     }
 
     private void saveTaskTree(TaskVo rootTask) throws TaskPersistenceException {

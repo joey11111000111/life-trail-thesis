@@ -35,7 +35,7 @@ public class TaskDisplayer {
     private void initFields(VBox taskBox, Collection<String> customCategories) {
         this.taskBox = taskBox;
         this.customCategories = new ArrayList<>(customCategories);
-        this.customCategories.add("");
+        this.customCategories.add("");  // Represents uncategorized
         this.displayedTasks = new ArrayList<>();
         this.taskSelection = new TaskSelectionSubController();
         this.registeredTaskChangedActions = new HashSet<>();
@@ -77,6 +77,10 @@ public class TaskDisplayer {
         updateCategoryComboBoxes();
     }
 
+    public boolean hasSelectedTask() {
+        return taskSelection.hasSelectedRow();
+    }
+
     public TaskVo getSelectedTask() {
         TaskRowController selectedRow = taskSelection.getSelectedRow();
         if (selectedRow == null) {
@@ -88,6 +92,40 @@ public class TaskDisplayer {
                 .findFirst()
                 .get()
                 .getVo();
+    }
+
+    // TODO refactor
+    public TaskVo getRootOfSelectedTaskTree() {
+        if (!hasSelectedTask()) {
+            return null;
+        }
+
+        TaskVo selectedTask = getSelectedTask();
+        for (TaskRepresentations taskRep : displayedTasks) {
+            if (doesTaskTreeContain(taskRep.getVo(), selectedTask)) {
+                return taskRep.getVo();
+            }
+        }
+
+        return null;
+    }
+
+    // TODO refactor
+    private boolean doesTaskTreeContain(TaskVo taskTree, TaskVo taskToFind) {
+        if (taskTree == taskToFind) {
+            return true;
+        }
+
+        if (taskTree.hasSubTasks()) {
+            boolean contains = false;
+            for (TaskVo subTask : taskTree.getSubTasks()) {
+                contains |= doesTaskTreeContain(subTask, taskToFind);
+            }
+
+            return contains;
+        }
+
+        return false;
     }
 
     public void displayAllTasks(@NonNull final Collection<TaskVo> allTopLevelTasks) throws DisplayLoadException {

@@ -35,9 +35,11 @@ public interface TodoService {
 
     void deleteAll(Collection<TaskVo> tasks) throws TaskDeletionException;
 
+    void deleteTaskFromTaskTree(TaskVo taskToDelete, TaskVo taskTree) throws TaskDeletionException;
+
     void addSubTask(TaskVo mainTask, TaskVo subTask);
 
     TaskVo newMinimalTaskVo();
 
-    TaskVo newMinimalSubTaskOf(TaskVo parent);
+    void addNewMinimalSubTaskTo(TaskVo parent);
 }

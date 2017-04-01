@@ -4,6 +4,7 @@ import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.ta
 import debrecen.university.pti.kovtamas.display.utils.load.DisplayLoadException;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategoryVo;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.LogicalCategoryNames.LogicalCategories;
+import debrecen.university.pti.kovtamas.todo.service.api.TaskDeletionException;
 import debrecen.university.pti.kovtamas.todo.service.api.TaskSaveFailureException;
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
@@ -12,8 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.scene.layout.VBox;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -100,27 +99,51 @@ public class TaskSubController {
     }
 
     private void addNewTopLevelTask() {
-        TaskVo newTask = service.newMinimalTaskVo();
-        // Setup new task state
-        if (selectedCategory.isLogical() && selectedCategory.getLogicalCategory() == LogicalCategories.TOMORROW) {
-            newTask.setDeadline(LocalDate.now().plusDays(1));
-        }
-        if (selectedCategory.isCustom()) {
-            newTask.setCategory(selectedCategory.getCustomCategoryName());
+        TaskVo newTask = setupNewTaskState(service.newMinimalTaskVo());
+        updateTaskAndReloadCategory(newTask);
+    }
+
+    private TaskVo setupNewTaskState(TaskVo newMinimalTask) {
+        if (selectedCategory.isLogical()) {
+            // A minimal taskVo is perfectly set up by its nature for every logical category except for the TOMORROW
+            if (selectedCategory.getLogicalCategory() == LogicalCategories.TOMORROW) {
+                newMinimalTask.setDeadline(LocalDate.now().plusDays(1));
+            }
+        } else {
+            newMinimalTask.setCategory(selectedCategory.getCustomCategoryName());
         }
 
-        try {
-            service.save(newTask);
-        } catch (TaskSaveFailureException tsfe) {
-            log.warn("Failed to save new top level minimal task!", tsfe);
-            return;
-        }
-
-        switchToCategory(selectedCategory);
+        return newMinimalTask;
     }
 
     private void addNewSubTask(TaskVo parent) {
+        service.addNewMinimalSubTaskTo(parent);
+        updateTaskAndReloadCategory(parent);
+    }
 
+    private void updateTaskAndReloadCategory(TaskVo task) {
+        try {
+            service.save(task);
+            switchToCategory(selectedCategory);
+        } catch (TaskSaveFailureException tsfe) {
+            log.warn("Failed to save new minimal sub task!", tsfe);
+        }
+    }
+
+    public void removeSelectedTask() {
+        if (!taskDisplayer.hasSelectedTask()) {
+            return;
+        }
+
+        TaskVo selectedTask = taskDisplayer.getSelectedTask();
+        TaskVo rootTask = taskDisplayer.getRootOfSelectedTaskTree();
+
+        try {
+            service.deleteTaskFromTaskTree(selectedTask, rootTask);
+            switchToCategory(selectedCategory);
+        } catch (TaskDeletionException tde) {
+            log.warn("Failed to delete selected task!", tde);
+        }
     }
 
     private List<TaskVo> getCategoryTasks(CategoryVo categoryVo) {
