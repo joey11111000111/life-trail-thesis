@@ -95,7 +95,7 @@ public class TodoController {
 
     @FXML
     void addNewTask(ActionEvent event) {
-
+        taskSubController.addNewTask();
     }
 
     @FXML

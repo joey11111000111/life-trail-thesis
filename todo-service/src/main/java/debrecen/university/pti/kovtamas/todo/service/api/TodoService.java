@@ -18,6 +18,8 @@ public interface TodoService {
 
     List<TaskVo> getTomorrowTasks();
 
+    List<TaskVo> getOneWeekTasks();
+
     List<TaskVo> getTasksOfFollowingDays(int days);
 
     List<TaskVo> getCompletedTasks();
@@ -34,4 +36,8 @@ public interface TodoService {
     void deleteAll(Collection<TaskVo> tasks) throws TaskDeletionException;
 
     void addSubTask(TaskVo mainTask, TaskVo subTask);
+
+    TaskVo newMinimalTaskVo();
+
+    TaskVo newMinimalSubTaskOf(TaskVo parent);
 }

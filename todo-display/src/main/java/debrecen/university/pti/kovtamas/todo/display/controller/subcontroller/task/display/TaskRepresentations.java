@@ -1,4 +1,4 @@
-package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task;
+package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.display;
 
 import debrecen.university.pti.kovtamas.todo.display.controller.TaskRowController;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;

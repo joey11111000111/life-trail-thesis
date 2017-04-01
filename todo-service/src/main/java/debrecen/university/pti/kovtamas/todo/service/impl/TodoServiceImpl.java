@@ -10,6 +10,7 @@ import debrecen.university.pti.kovtamas.todo.service.api.TaskDeletionException;
 import debrecen.university.pti.kovtamas.todo.service.api.TaskSaveFailureException;
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
 import debrecen.university.pti.kovtamas.todo.service.mapper.TaskEntityVoMapper;
+import debrecen.university.pti.kovtamas.todo.service.vo.Priority;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -44,6 +45,8 @@ public class TodoServiceImpl implements TodoService {
     @Override
     public Set<String> getCustomCategories() {
         Set<String> allCategories = repo.findAllCategories();
+        // Empty string means uncategorized. It will be handled in a different way.
+        allCategories.remove("");
 
         return allCategories;
     }
@@ -65,6 +68,11 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @Override
+    public List<TaskVo> getOneWeekTasks() {
+        return getTasksOfFollowingDays(7);
+    }
+
+    @Override
     public List<TaskVo> getTasksOfFollowingDays(int days) {
         if (days < 1) {
             throw new IllegalArgumentException("The given day count, as following days must be at least 1");
@@ -80,7 +88,7 @@ public class TodoServiceImpl implements TodoService {
 
     @Override
     public List<TaskVo> getUncategorizedTasks() {
-        return getActiveByCategory(null);
+        return getActiveByCategory("");
     }
     // /Methods for fixed categories --------------------------------------
 
@@ -181,6 +189,34 @@ public class TodoServiceImpl implements TodoService {
 
     public DateTimeFormatter getDateFormat() {
         return dateFormat;
+    }
+
+    @Override
+    public TaskVo newMinimalTaskVo() {
+        return TaskVo.builder()
+                .taskDef("")
+                .priority(Priority.NONE)
+                .deadline(LocalDate.now())
+                .category(null)
+                .repeating(false)
+                .completed(false)
+                .subTasks(null)
+                .build();
+    }
+
+    @Override
+    public TaskVo newMinimalSubTaskOf(TaskVo parent) {
+        if (parent.isCompleted()) {
+            throw new IllegalArgumentException("Cannot add new sub task to a completed parent task!");
+        }
+
+        TaskVo minimalVo = newMinimalTaskVo();
+        minimalVo.setCategory(parent.getCategory());
+        minimalVo.setDeadline(parent.getDeadline());
+        minimalVo.setPriority(parent.getPriority());
+        minimalVo.setRepeating(parent.isRepeating());
+
+        return minimalVo;
     }
 
     private void saveTaskTree(TaskVo rootTask) throws TaskPersistenceException {

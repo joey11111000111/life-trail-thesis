@@ -1,6 +1,6 @@
 package debrecen.university.pti.kovtamas.todo.display.controller;
 
-import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.TaskDisplayState;
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.display.TaskDisplayState;
 import java.time.LocalDate;
 import java.util.Collection;
 import javafx.collections.FXCollections;

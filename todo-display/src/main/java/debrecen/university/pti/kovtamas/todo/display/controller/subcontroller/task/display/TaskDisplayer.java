@@ -1,4 +1,4 @@
-package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task;
+package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.display;
 
 import debrecen.university.pti.kovtamas.display.utils.load.DisplayLoadException;
 import debrecen.university.pti.kovtamas.display.utils.load.DisplayLoader;
@@ -35,22 +35,21 @@ public class TaskDisplayer {
     private void initFields(VBox taskBox, Collection<String> customCategories) {
         this.taskBox = taskBox;
         this.customCategories = new ArrayList<>(customCategories);
+        this.customCategories.add("");
         this.displayedTasks = new ArrayList<>();
         this.taskSelection = new TaskSelectionSubController();
         this.registeredTaskChangedActions = new HashSet<>();
     }
 
-    /// TODO
     private void setupRowModificationAction() {
         taskSelection.registerRowModificationAction(modifiedRowController -> {
-            // find related task representaion
-            TaskRepresentations selectedTaskRepresentation = displayedTasks.stream()
+            TaskRepresentations selectedTaskRepresentations = displayedTasks.stream()
                     .filter(taskRep -> areSameControllers(taskRep.getRowController(), modifiedRowController))
                     .findFirst()
                     .get();
 
-            selectedTaskRepresentation.updateVo();
-            executeTaskChangeActions(selectedTaskRepresentation.getVo());
+            selectedTaskRepresentations.updateVo();
+            executeTaskChangeActions(selectedTaskRepresentations.getVo());
         });
     }
 
@@ -78,6 +77,19 @@ public class TaskDisplayer {
         updateCategoryComboBoxes();
     }
 
+    public TaskVo getSelectedTask() {
+        TaskRowController selectedRow = taskSelection.getSelectedRow();
+        if (selectedRow == null) {
+            return null;
+        }
+
+        return displayedTasks.stream()
+                .filter(taskRep -> areSameControllers(taskRep.getRowController(), selectedRow))
+                .findFirst()
+                .get()
+                .getVo();
+    }
+
     public void displayAllTasks(@NonNull final Collection<TaskVo> allTopLevelTasks) throws DisplayLoadException {
         for (TaskVo topLevelTask : allTopLevelTasks) {
             displayTaskTree(topLevelTask);
@@ -91,6 +103,7 @@ public class TaskDisplayer {
 
     public void clear() {
         taskBox.getChildren().clear();
+        taskSelection.clearSelection();
     }
 
     public void displayErrorMessage(String errorMessage) {
@@ -104,7 +117,7 @@ public class TaskDisplayer {
     }
 
     public boolean finisedEditing() {
-        return taskSelection.finisedEditing();
+        return taskSelection.hasFinisedEditing();
     }
 
     private void updateCategoryComboBoxes() {

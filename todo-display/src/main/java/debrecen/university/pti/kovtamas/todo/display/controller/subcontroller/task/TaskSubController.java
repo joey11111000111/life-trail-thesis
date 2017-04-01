@@ -1,12 +1,17 @@
 package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task;
 
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.display.TaskDisplayer;
 import debrecen.university.pti.kovtamas.display.utils.load.DisplayLoadException;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategoryVo;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.LogicalCategoryNames.LogicalCategories;
 import debrecen.university.pti.kovtamas.todo.service.api.TaskSaveFailureException;
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.layout.VBox;
@@ -18,15 +23,28 @@ public class TaskSubController {
 
     private final TodoService service;
     private TaskDisplayer taskDisplayer;
+    private Map<LogicalCategories, Supplier<List<TaskVo>>> logicalCategoryTaskQueries;
+    private CategoryVo selectedCategory;
 
     public TaskSubController(@NonNull final TodoService service, @NonNull final VBox taskBox) {
         this.service = service;
+        this.selectedCategory = null;
         initTaskDisplayer(taskBox);
+        initLogicalCategoryTaskQueries();
         setupTaskChangeAction();
     }
 
     private void initTaskDisplayer(final VBox taskBox) {
         taskDisplayer = new TaskDisplayer(taskBox, service.getCustomCategories());
+    }
+
+    private void initLogicalCategoryTaskQueries() {
+        logicalCategoryTaskQueries = new HashMap<>();
+        logicalCategoryTaskQueries.put(LogicalCategories.TODAY, service::getTodayTasks);
+        logicalCategoryTaskQueries.put(LogicalCategories.TOMORROW, service::getTomorrowTasks);
+        logicalCategoryTaskQueries.put(LogicalCategories.THIS_WEEK, service::getOneWeekTasks);
+        logicalCategoryTaskQueries.put(LogicalCategories.UNCATEGORIZED, service::getUncategorizedTasks);
+        logicalCategoryTaskQueries.put(LogicalCategories.COMPLETED, service::getCompletedTasks);
     }
 
     private void setupTaskChangeAction() {
@@ -49,10 +67,10 @@ public class TaskSubController {
     }
 
     public void selectedCategoryChangedAction(CategoryVo fromCategoryVo, CategoryVo toCategoryVo) {
-        switchCategory(toCategoryVo);
+        switchToCategory(toCategoryVo);
     }
 
-    public void switchCategory(@NonNull final CategoryVo categoryVo) {
+    public void switchToCategory(@NonNull final CategoryVo categoryVo) {
         taskDisplayer.clear();
         List<TaskVo> tasksOfCategory = getCategoryTasks(categoryVo);
         try {
@@ -60,14 +78,49 @@ public class TaskSubController {
         } catch (DisplayLoadException dle) {
             handleTaskRowCreationException(dle);
         }
+
+        selectedCategory = categoryVo;
     }
 
     public void toggleDisableForSelectedRow() {
         taskDisplayer.toggleDisableForSelectedRow();
     }
 
-    public boolean finisedEditing() {
-        return taskDisplayer.finisedEditing();
+    public void addNewTask() {
+        if (selectedCategory == null) {
+            return;
+        }
+
+        TaskVo parent = taskDisplayer.getSelectedTask();
+        if (parent == null) {
+            addNewTopLevelTask();
+        } else {
+            addNewSubTask(parent);
+        }
+    }
+
+    private void addNewTopLevelTask() {
+        TaskVo newTask = service.newMinimalTaskVo();
+        // Setup new task state
+        if (selectedCategory.isLogical() && selectedCategory.getLogicalCategory() == LogicalCategories.TOMORROW) {
+            newTask.setDeadline(LocalDate.now().plusDays(1));
+        }
+        if (selectedCategory.isCustom()) {
+            newTask.setCategory(selectedCategory.getCustomCategoryName());
+        }
+
+        try {
+            service.save(newTask);
+        } catch (TaskSaveFailureException tsfe) {
+            log.warn("Failed to save new top level minimal task!", tsfe);
+            return;
+        }
+
+        switchToCategory(selectedCategory);
+    }
+
+    private void addNewSubTask(TaskVo parent) {
+
     }
 
     private List<TaskVo> getCategoryTasks(CategoryVo categoryVo) {
@@ -83,27 +136,7 @@ public class TaskSubController {
     }
 
     private List<TaskVo> getLogicalCategoryTasks(LogicalCategories logicalCategory) {
-        switch (logicalCategory) {
-            case TODAY:
-                return service.getTodayTasks();
-            case TOMORROW:
-                return service.getTomorrowTasks();
-            case THIS_WEEK:
-                return service.getTasksOfFollowingDays(7);
-            case UNCATEGORIZED:
-                return service.getUncategorizedTasks();
-            case COMPLETED:
-                return service.getCompletedTasks();
-            default:
-                throwUnsupportedException(logicalCategory);
-                // Never executed, but NetBeans 8.2 doesn't realize that this is not needed
-                return null;
-        }
-    }
-
-    private void throwUnsupportedException(LogicalCategories logicalCategory) {
-        throw new UnsupportedOperationException("Logical category '"
-                + logicalCategory.name() + "' is not supported yet");
+        return logicalCategoryTaskQueries.get(logicalCategory).get();
     }
 
     private void handleTaskRowCreationException(DisplayLoadException dle) {

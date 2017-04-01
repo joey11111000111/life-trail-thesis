@@ -1,4 +1,4 @@
-package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task;
+package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.display;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

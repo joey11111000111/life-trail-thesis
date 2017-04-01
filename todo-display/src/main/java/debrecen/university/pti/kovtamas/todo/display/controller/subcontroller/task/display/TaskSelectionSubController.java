@@ -1,4 +1,4 @@
-package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task;
+package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.display;
 
 import debrecen.university.pti.kovtamas.todo.display.controller.TaskRowController;
 import java.util.HashSet;
@@ -17,6 +17,10 @@ public class TaskSelectionSubController {
 
     public TaskSelectionSubController() {
         registeredRowModificationActions = new HashSet<>();
+        selectedRow = null;
+    }
+
+    public void clearSelection() {
         selectedRow = null;
     }
 
@@ -45,7 +49,7 @@ public class TaskSelectionSubController {
         }
     }
 
-    public boolean finisedEditing() {
+    public boolean hasFinisedEditing() {
         return hasSelectedRow() && !isUserEditing();
     }
 
@@ -56,6 +60,10 @@ public class TaskSelectionSubController {
             return null;
         }
 
+    }
+
+    public TaskRowController getSelectedRow() {
+        return selectedRow;
     }
 
     private void selectedRowWasModifiedAction() {
