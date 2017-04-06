@@ -4,33 +4,8 @@ import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
-import lombok.Builder;
 
 public class ProgressBarSubController {
-
-    @Builder
-    public static class ProgressRatio {
-
-        private final Integer completedCount;
-        private final Integer activeCount;
-
-        public double getRatio() {
-            double allCount = completedCount + activeCount;
-
-            // Prevent division with 0
-            if (allCount == 0) {
-                return 0.0;
-            }
-
-            return completedCount / allCount;
-        }
-
-        @Override
-        public String toString() {
-            return "ProgressRatio:\tCompleted: " + completedCount + "\tActive: " + activeCount + "\tRatio: " + getRatio();
-        }
-
-    }
 
     private final VBox containerComponent;
     private final Rectangle indicator;
@@ -40,16 +15,14 @@ public class ProgressBarSubController {
         this.containerComponent = containerComponent;
         this.indicator = indicator;
         minHeight = 30.0;
-        indicator.setHeight(minHeight);
+//        indicator.setHeight(minHeight);
     }
 
-    public void ratioChangedAction(ProgressRatio fromRatio, ProgressRatio toRatio) {
+    public void setRatio(ProgressRatio progressRatio) {
         DoubleProperty indicatorHeightProperty = indicator.heightProperty();
         indicatorHeightProperty.unbind();
-        DoubleBinding binding = createIndicatorHeightBinding(toRatio.getRatio());
+        DoubleBinding binding = createIndicatorHeightBinding(progressRatio.getRatio());
         indicatorHeightProperty.bind(binding);
-        // fromRatio is not needed here, but this method must be compatible with the
-        // accept(T fromValue, T toValue) method of ValueChangeAction<T> interface
     }
 
     private DoubleBinding createIndicatorHeightBinding(double ratio) {

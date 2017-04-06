@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,17 +25,74 @@ public class TaskSubController {
     private TaskDisplayer taskDisplayer;
     private Map<LogicalCategories, Supplier<List<TaskVo>>> logicalCategoryTaskQueries;
     private CategoryVo selectedCategory;
+    private TodayProgressDisplayer progressDisplayer;
 
-    public TaskSubController(@NonNull final TodoService service, @NonNull final VBox taskBox) {
+    static public class Builder {
+
+        private TodoService service;
+        private VBox taskBox;
+        private VBox progressContainer;
+        private Rectangle progressIndicator;
+
+        public Builder service(TodoService service) {
+            this.service = service;
+            return this;
+        }
+
+        public Builder taskBox(VBox taskBox) {
+            this.taskBox = taskBox;
+            return this;
+        }
+
+        public Builder progressContainer(VBox progressContainer) {
+            this.progressContainer = progressContainer;
+            return this;
+        }
+
+        public Builder progressIndicator(Rectangle progressIndicator) {
+            this.progressIndicator = progressIndicator;
+            return this;
+        }
+
+        public TaskSubController build() {
+            if (hasNullField()) {
+                throw new IllegalStateException("All fields of the builder must be initialized before the build!");
+            }
+
+            return new TaskSubController(service, taskBox, progressContainer, progressIndicator);
+        }
+
+        private boolean hasNullField() {
+            return service == null || taskBox == null || progressContainer == null || progressIndicator == null;
+        }
+    }
+
+    static public Builder builder() {
+        return new Builder();
+    }
+
+    private TaskSubController(@NonNull final TodoService service, @NonNull final VBox taskBox,
+            VBox progressContainer, Rectangle progressIndicator) {
         this.service = service;
         this.selectedCategory = null;
         initTaskDisplayer(taskBox);
+        initProgressDisplayer(progressContainer, progressIndicator);
         initLogicalCategoryTaskQueries();
         setupTaskChangeAction();
     }
 
     private void initTaskDisplayer(final VBox taskBox) {
         taskDisplayer = new TaskDisplayer(taskBox, service.getCustomCategories());
+    }
+
+    private void initProgressDisplayer(VBox progressContainer, Rectangle progressIndicator) {
+        ProgressBarSubController progressBarSubController
+                = new ProgressBarSubController(progressContainer, progressIndicator);
+
+        List<TaskVo> todayTasks = service.getTodayTasks();
+        ProgressRatio initialRatio = ProgressRatio.fromTodayTasks(todayTasks);
+
+        this.progressDisplayer = new TodayProgressDisplayer(progressBarSubController, initialRatio);
     }
 
     private void initLogicalCategoryTaskQueries() {
@@ -47,12 +105,13 @@ public class TaskSubController {
     }
 
     private void setupTaskChangeAction() {
-        taskDisplayer.registerTaskChangeAction((changedTaskVo) -> {
+        taskDisplayer.registerTaskStateChangeAction((oldVo, newVo) -> {
             try {
-                service.save(changedTaskVo);
-                log.info("Saved changes of task with id: " + changedTaskVo.getId());
+                service.save(newVo);
+                log.info("Saved changes of task with id: " + newVo.getId());
+                progressDisplayer.taskChanged(oldVo, newVo);
             } catch (TaskSaveFailureException tsfe) {
-                log.warn("Could not save changes of task with id: " + changedTaskVo.getId(), tsfe);
+                log.warn("Could not save changes of task with id: " + newVo.getId(), tsfe);
             }
         });
     }
@@ -101,6 +160,7 @@ public class TaskSubController {
     private void addNewTopLevelTask() {
         TaskVo newTask = setupNewTaskState(service.newMinimalTaskVo());
         updateTaskAndReloadCategory(newTask);
+        progressDisplayer.newTaskAdded(newTask);
     }
 
     private TaskVo setupNewTaskState(TaskVo newMinimalTask) {
@@ -119,6 +179,7 @@ public class TaskSubController {
     private void addNewSubTask(TaskVo parent) {
         service.addNewMinimalSubTaskTo(parent);
         updateTaskAndReloadCategory(parent);
+        progressDisplayer.newTaskAdded(parent);
     }
 
     private void updateTaskAndReloadCategory(TaskVo task) {
@@ -144,6 +205,8 @@ public class TaskSubController {
         } catch (TaskDeletionException tde) {
             log.warn("Failed to delete selected task!", tde);
         }
+
+        progressDisplayer.taskRemoved(selectedTask);
     }
 
     private List<TaskVo> getCategoryTasks(CategoryVo categoryVo) {

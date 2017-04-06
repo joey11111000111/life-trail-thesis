@@ -3,6 +3,7 @@ package debrecen.university.pti.kovtamas.todo.display.controller;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.display.TaskDisplayState;
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.function.Consumer;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -13,17 +14,20 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.Circle;
+import lombok.NonNull;
 
 public class TaskRowController {
 
-    private static long nextId = 0;
+    static private long nextId = 0;
 
     private final long rowId;
     private boolean isDisabled;
+    private TaskDisplayState currentTaskState;
 
     public TaskRowController() {
         this.rowId = nextId++;
         isDisabled = false;
+        currentTaskState = null;
     }
 
     @FXML
@@ -47,8 +51,6 @@ public class TaskRowController {
     @FXML
     private DatePicker datePicker;
 
-    private TaskDisplayState currentTaskState;
-
     public void setup() {
         taskDefText.textProperty().addListener((observable, oldText, newText) -> {
             currentTaskState.setTaskDef(newText);
@@ -59,6 +61,17 @@ public class TaskRowController {
         datePicker.valueProperty().addListener((observable, oldDate, newDate) -> {
             currentTaskState.setDeadline(newDate);
         });
+        doneCheckBox.selectedProperty().addListener((observable, wasSelectedBefore, isSelectedNow) -> {
+            currentTaskState.setCompleted(isSelectedNow);
+        });
+    }
+
+    public void registerTaskCompletionChangeAction(@NonNull final Consumer<TaskRowController> action) {
+        doneCheckBox.selectedProperty().addListener(
+                (observable, wasSelectedBefore, isSelectedNow) -> {
+                    action.accept(this);
+                }
+        );
     }
 
     public Parent getRootViewComponent() {

@@ -78,7 +78,12 @@ public class TodoController {
         List<String> customCategories = new ArrayList<>(service.getCustomCategories());
         categorySubController = new CategorySubController(categoryListView, customCategories);
         motivationSubController = new MotivationSubController(motivationContainer, motivationText);
-        taskSubController = new TaskSubController(service, taskBox);
+        taskSubController = TaskSubController.builder()
+                .service(service)
+                .taskBox(taskBox)
+                .progressContainer(progressContainer)
+                .progressIndicator(progressRect)
+                .build();
         progressBarSubController = new ProgressBarSubController(progressContainer, progressRect);
     }
 

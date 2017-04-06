@@ -14,21 +14,26 @@ public class TaskRepresentations {
         this.vo = vo;
     }
 
-    public void updateVo() {
+    public TaskRowController getRowController() {
+        return rowController;
+    }
+
+    public TaskVo getUnupdatedDetachedVo() {
+        return TaskVo.deepCopy(vo);
+    }
+
+    public TaskVo getUpdatedVo() {
+        updateVo();
+        return vo;
+    }
+
+    private void updateVo() {
         TaskDisplayState displayState = rowController.getTaskStateDetached();
         vo.setTaskDef(displayState.getTaskDef());
         vo.setPriority(displayState.getPriorityColor().toPriority());
         vo.setDeadline(displayState.getDeadline());
         vo.setCompleted(displayState.isCompleted());
         vo.setCategory(displayState.getSelectedCategory());
-    }
-
-    public TaskRowController getRowController() {
-        return rowController;
-    }
-
-    public TaskVo getVo() {
-        return vo;
     }
 
 }

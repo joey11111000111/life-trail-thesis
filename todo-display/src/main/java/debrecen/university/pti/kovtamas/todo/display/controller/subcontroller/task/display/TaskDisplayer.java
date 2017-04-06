@@ -1,5 +1,6 @@
 package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.display;
 
+import debrecen.university.pti.kovtamas.display.utils.ValueChangeAction;
 import debrecen.university.pti.kovtamas.display.utils.load.DisplayLoadException;
 import debrecen.university.pti.kovtamas.display.utils.load.DisplayLoader;
 import debrecen.university.pti.kovtamas.display.utils.load.DisplayVo;
@@ -11,7 +12,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -25,7 +25,7 @@ public class TaskDisplayer {
     private TaskSelectionSubController taskSelection;
 
     private List<TaskRepresentations> displayedTasks;
-    private Set<Consumer<TaskVo>> registeredTaskChangedActions;
+    private Set<ValueChangeAction<TaskVo>> registeredTaskStateChangeActions;
 
     public TaskDisplayer(VBox taskBox, Collection<String> customCategories) {
         initFields(taskBox, customCategories);
@@ -38,31 +38,40 @@ public class TaskDisplayer {
         this.customCategories.add("");  // Represents uncategorized
         this.displayedTasks = new ArrayList<>();
         this.taskSelection = new TaskSelectionSubController();
-        this.registeredTaskChangedActions = new HashSet<>();
+        this.registeredTaskStateChangeActions = new HashSet<>();
     }
 
     private void setupRowModificationAction() {
         taskSelection.registerRowModificationAction(modifiedRowController -> {
-            TaskRepresentations selectedTaskRepresentations = displayedTasks.stream()
-                    .filter(taskRep -> areSameControllers(taskRep.getRowController(), modifiedRowController))
-                    .findFirst()
-                    .get();
-
-            selectedTaskRepresentations.updateVo();
-            executeTaskChangeActions(selectedTaskRepresentations.getVo());
+            prepareAndExecuteTaskChangeActions(modifiedRowController);
         });
+    }
+
+    private void prepareAndExecuteTaskChangeActions(TaskRowController modifiedRowController) {
+        System.out.println("prepare and execute method called");
+        TaskRepresentations selectedTaskRepresentations = getRepresentationsByController(modifiedRowController);
+        TaskVo selectedOldTaskVo = selectedTaskRepresentations.getUnupdatedDetachedVo();
+        TaskVo selectedNewTaskVo = selectedTaskRepresentations.getUpdatedVo();
+        executeTaskChangeActions(selectedOldTaskVo, selectedNewTaskVo);
+    }
+
+    private TaskRepresentations getRepresentationsByController(TaskRowController controller) {
+        return displayedTasks.stream()
+                .filter(taskRep -> areSameControllers(taskRep.getRowController(), controller))
+                .findFirst()
+                .get();
     }
 
     private boolean areSameControllers(TaskRowController controller, TaskRowController otherController) {
         return controller.getRowId() == otherController.getRowId();
     }
 
-    private void executeTaskChangeActions(TaskVo changedVo) {
-        registeredTaskChangedActions.forEach(action -> action.accept(changedVo));
+    private void executeTaskChangeActions(TaskVo oldVo, TaskVo newVo) {
+        registeredTaskStateChangeActions.forEach(action -> action.accept(oldVo, newVo));
     }
 
-    public void registerTaskChangeAction(@NonNull final Consumer<TaskVo> action) {
-        registeredTaskChangedActions.add(action);
+    public void registerTaskStateChangeAction(@NonNull final ValueChangeAction<TaskVo> action) {
+        registeredTaskStateChangeActions.add(action);
     }
 
     public void newCategoryAddedAction(String newCategory) {
@@ -91,7 +100,7 @@ public class TaskDisplayer {
                 .filter(taskRep -> areSameControllers(taskRep.getRowController(), selectedRow))
                 .findFirst()
                 .get()
-                .getVo();
+                .getUpdatedVo();
     }
 
     // TODO refactor
@@ -102,8 +111,8 @@ public class TaskDisplayer {
 
         TaskVo selectedTask = getSelectedTask();
         for (TaskRepresentations taskRep : displayedTasks) {
-            if (doesTaskTreeContain(taskRep.getVo(), selectedTask)) {
-                return taskRep.getVo();
+            if (doesTaskTreeContain(taskRep.getUpdatedVo(), selectedTask)) {
+                return taskRep.getUpdatedVo();
             }
         }
 
@@ -139,6 +148,39 @@ public class TaskDisplayer {
         displayTaskTree(rootTask, defaultIndentWidth);
     }
 
+    private void displayTaskTree(TaskVo taskVo, int currentIndentWidth) throws DisplayLoadException {
+        displayTask(taskVo, currentIndentWidth);
+        displaySubTasksIfPresent(taskVo, currentIndentWidth);
+    }
+
+    private void displayTask(TaskVo taskVo, int indentWidth) throws DisplayLoadException {
+        TaskDisplayState taskDisplayState = createTaskDisplayState(taskVo, indentWidth);
+        TaskRowController taskController = getNewTaskController();
+
+        taskController.setup();
+        taskController.setDisplayedTaskState(taskDisplayState);
+        taskController.setDisable(true);
+        taskController.registerTaskCompletionChangeAction(this::prepareAndExecuteTaskChangeActions);
+
+        displayedTasks.add(new TaskRepresentations(taskController, taskVo));
+        taskSelection.registerTaskRow(taskController);
+
+        putControllerToScreen(taskController);
+    }
+
+    private void displaySubTasksIfPresent(TaskVo taskData, int indentWidth) throws DisplayLoadException {
+        final int additionalIndentWidth = 30;
+        if (taskData.hasSubTasks()) {
+            for (TaskVo subTask : taskData.getSubTasks()) {
+                displayTaskTree(subTask, indentWidth + additionalIndentWidth);
+            }
+        }
+    }
+
+    private void putControllerToScreen(TaskRowController taskController) {
+        taskBox.getChildren().add(taskController.getRootViewComponent());
+    }
+
     public void clear() {
         taskBox.getChildren().clear();
         taskSelection.clearSelection();
@@ -166,38 +208,6 @@ public class TaskDisplayer {
                     currentTaskState.setSelectableCategories(customCategories);
                     controller.setDisplayedTaskState(currentTaskState);
                 });
-    }
-
-    private void displayTaskTree(TaskVo taskVo, int currentIndentWidth) throws DisplayLoadException {
-        displayTask(taskVo, currentIndentWidth);
-        displaySubTasksIfPresent(taskVo, currentIndentWidth);
-    }
-
-    private void displaySubTasksIfPresent(TaskVo taskData, int indentWidth) throws DisplayLoadException {
-        final int additionalIndentWidth = 30;
-        if (taskData.hasSubTasks()) {
-            for (TaskVo subTask : taskData.getSubTasks()) {
-                displayTaskTree(subTask, indentWidth + additionalIndentWidth);
-            }
-        }
-    }
-
-    private void displayTask(TaskVo taskVo, int indentWidth) throws DisplayLoadException {
-        TaskDisplayState taskDisplayState = createTaskDisplayState(taskVo, indentWidth);
-        TaskRowController taskController = getNewTaskController();
-
-        taskController.setup();
-        taskController.setDisplayedTaskState(taskDisplayState);
-        taskController.setDisable(true);
-
-        displayedTasks.add(new TaskRepresentations(taskController, taskVo));
-        taskSelection.registerTaskRow(taskController);
-
-        putControllerToScreen(taskController);
-    }
-
-    private void putControllerToScreen(TaskRowController taskController) {
-        taskBox.getChildren().add(taskController.getRootViewComponent());
     }
 
     private TaskDisplayState createTaskDisplayState(TaskVo task, int indentWidth) {
