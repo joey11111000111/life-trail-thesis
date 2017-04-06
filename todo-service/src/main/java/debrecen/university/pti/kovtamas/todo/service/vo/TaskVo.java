@@ -3,6 +3,7 @@ package debrecen.university.pti.kovtamas.todo.service.vo;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
@@ -33,13 +34,20 @@ public class TaskVo {
         if (parent.hasSubTasks()) {
             List<TaskVo> subTasks = parent.getSubTasks();
             for (TaskVo subTask : subTasks) {
-                if (subTask.isCompleted() == shouldBeCompleted) {
-                    numOfSubTasks++;
-                }
-                if (subTask.hasSubTasks()) {
-                    numOfSubTasks += numOfSubTasksWithCompletion(subTask, shouldBeCompleted);
-                }
+                numOfSubTasks += getSubTaskNumOfWithCompletion(subTask, shouldBeCompleted);
             }
+        }
+
+        return numOfSubTasks;
+    }
+
+    static private int getSubTaskNumOfWithCompletion(TaskVo task, boolean shouldBeCompleted) {
+        int numOfSubTasks = 0;
+        if (task.isCompleted() == shouldBeCompleted) {
+            numOfSubTasks++;
+        }
+        if (task.hasSubTasks()) {
+            numOfSubTasks += numOfSubTasksWithCompletion(task, shouldBeCompleted);
         }
 
         return numOfSubTasks;

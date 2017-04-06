@@ -103,10 +103,9 @@ public class TaskDisplayer {
                 .getUpdatedVo();
     }
 
-    // TODO refactor
     public TaskVo getRootOfSelectedTaskTree() {
         if (!hasSelectedTask()) {
-            return null;
+            throw new IllegalStateException("There isn't a selected item, cannot find root of selected task.");
         }
 
         TaskVo selectedTask = getSelectedTask();
@@ -119,7 +118,6 @@ public class TaskDisplayer {
         return null;
     }
 
-    // TODO refactor
     private boolean doesTaskTreeContain(TaskVo taskTree, TaskVo taskToFind) {
         if (taskTree == taskToFind) {
             return true;

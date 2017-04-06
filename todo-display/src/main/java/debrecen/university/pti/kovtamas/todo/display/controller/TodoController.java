@@ -7,7 +7,6 @@ import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.ca
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.motivation.MotivationSubController;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategoryActions;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategoryPositioner;
-import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.ProgressBarSubController;
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +28,6 @@ public class TodoController {
     private TaskSubController taskSubController;
     private CategorySubController categorySubController;
     private MotivationSubController motivationSubController;
-    private ProgressBarSubController progressBarSubController;
 
     // Methods from higher layers
     private VoidNoArgMethod backToMenuMethod;
@@ -84,7 +82,6 @@ public class TodoController {
                 .progressContainer(progressContainer)
                 .progressIndicator(progressRect)
                 .build();
-        progressBarSubController = new ProgressBarSubController(progressContainer, progressRect);
     }
 
     private void makeBindingsBetweenSubControllers() {

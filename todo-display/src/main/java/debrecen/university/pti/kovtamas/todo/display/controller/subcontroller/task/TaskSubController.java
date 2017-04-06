@@ -107,13 +107,17 @@ public class TaskSubController {
     private void setupTaskChangeAction() {
         taskDisplayer.registerTaskStateChangeAction((oldVo, newVo) -> {
             try {
-                service.save(newVo);
-                log.info("Saved changes of task with id: " + newVo.getId());
-                progressDisplayer.taskChanged(oldVo, newVo);
+                saveChanges(oldVo, newVo);
             } catch (TaskSaveFailureException tsfe) {
                 log.warn("Could not save changes of task with id: " + newVo.getId(), tsfe);
             }
         });
+    }
+
+    private void saveChanges(TaskVo oldVo, TaskVo newVo) throws TaskSaveFailureException {
+        service.save(newVo);
+        log.info("Saved changes of task with id: " + newVo.getId());
+        progressDisplayer.taskChanged(oldVo, newVo);
     }
 
     public void newCategoryAddedAction(String newCategory) {
