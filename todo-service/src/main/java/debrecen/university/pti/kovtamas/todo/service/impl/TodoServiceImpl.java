@@ -56,7 +56,7 @@ public class TodoServiceImpl implements TodoService {
         return TaskEntityVoMapper.toVo(repo.findByCategory(category));
     }
 
-    // Methods for fixed categories ---------------------------------------
+    // Methods for logical categories ---------------------------------------
     @Override
     public List<TaskVo> getTodayTasks() {
         return TaskEntityVoMapper.toVo(repo.findTodayTasks());
@@ -90,7 +90,7 @@ public class TodoServiceImpl implements TodoService {
     public List<TaskVo> getUncategorizedTasks() {
         return getActiveByCategory("");
     }
-    // /Methods for fixed categories --------------------------------------
+    // /Methods for logical categories --------------------------------------
 
     @Override
     public void save(@NonNull TaskVo task) throws TaskSaveFailureException {

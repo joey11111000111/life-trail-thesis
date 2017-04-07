@@ -1,34 +1,40 @@
 package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.display;
 
 import debrecen.university.pti.kovtamas.todo.display.controller.TaskRowController;
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.TaskNode;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
 import lombok.NonNull;
 
 public class TaskRepresentations {
 
     private final TaskRowController rowController;
-    private final TaskVo vo;
+    private final TaskNode taskNode;
 
-    public TaskRepresentations(@NonNull final TaskRowController rowController, @NonNull final TaskVo vo) {
+    public TaskRepresentations(@NonNull final TaskRowController rowController, @NonNull final TaskNode taskNode) {
         this.rowController = rowController;
-        this.vo = vo;
+        this.taskNode = taskNode;
     }
 
     public TaskRowController getRowController() {
         return rowController;
     }
 
+    public TaskNode getTaskNode() {
+        return taskNode;
+    }
+
     public TaskVo getUnupdatedDetachedVo() {
-        return TaskVo.deepCopy(vo);
+        return TaskVo.deepCopy(taskNode.getVo());
     }
 
     public TaskVo getUpdatedVo() {
-        updateVo();
-        return vo;
+        updateNodeVo();
+        return taskNode.getVo();
     }
 
-    private void updateVo() {
+    private void updateNodeVo() {
         TaskDisplayState displayState = rowController.getTaskStateDetached();
+        TaskVo vo = taskNode.getVo();
         vo.setTaskDef(displayState.getTaskDef());
         vo.setPriority(displayState.getPriorityColor().toPriority());
         vo.setDeadline(displayState.getDeadline());

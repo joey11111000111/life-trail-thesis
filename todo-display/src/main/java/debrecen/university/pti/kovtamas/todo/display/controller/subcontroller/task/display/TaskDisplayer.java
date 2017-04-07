@@ -5,6 +5,7 @@ import debrecen.university.pti.kovtamas.display.utils.load.DisplayLoadException;
 import debrecen.university.pti.kovtamas.display.utils.load.DisplayLoader;
 import debrecen.university.pti.kovtamas.display.utils.load.DisplayVo;
 import debrecen.university.pti.kovtamas.todo.display.controller.TaskRowController;
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.TaskNode;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -143,16 +144,16 @@ public class TaskDisplayer {
 
     public void displayTaskTree(TaskVo rootTask) throws DisplayLoadException {
         final int defaultIndentWidth = 0;
-        displayTaskTree(rootTask, defaultIndentWidth);
+        displayTaskTree(new TaskNode(TaskNode.NO_PARENT, rootTask), defaultIndentWidth);
     }
 
-    private void displayTaskTree(TaskVo taskVo, int currentIndentWidth) throws DisplayLoadException {
-        displayTask(taskVo, currentIndentWidth);
-        displaySubTasksIfPresent(taskVo, currentIndentWidth);
+    private void displayTaskTree(TaskNode taskNode, int currentIndentWidth) throws DisplayLoadException {
+        displayTask(taskNode, currentIndentWidth);
+        displaySubTasksIfPresent(taskNode, currentIndentWidth);
     }
 
-    private void displayTask(TaskVo taskVo, int indentWidth) throws DisplayLoadException {
-        TaskDisplayState taskDisplayState = createTaskDisplayState(taskVo, indentWidth);
+    private void displayTask(TaskNode taskNode, int indentWidth) throws DisplayLoadException {
+        TaskDisplayState taskDisplayState = createTaskDisplayState(taskNode.getVo(), indentWidth);
         TaskRowController taskController = getNewTaskController();
 
         taskController.setup();
@@ -160,17 +161,18 @@ public class TaskDisplayer {
         taskController.setDisable(true);
         taskController.registerTaskCompletionChangeAction(this::prepareAndExecuteTaskChangeActions);
 
-        displayedTasks.add(new TaskRepresentations(taskController, taskVo));
+        displayedTasks.add(new TaskRepresentations(taskController, taskNode));
         taskSelection.registerTaskRow(taskController);
 
         putControllerToScreen(taskController);
     }
 
-    private void displaySubTasksIfPresent(TaskVo taskData, int indentWidth) throws DisplayLoadException {
+    private void displaySubTasksIfPresent(TaskNode taskNode, int indentWidth) throws DisplayLoadException {
         final int additionalIndentWidth = 30;
-        if (taskData.hasSubTasks()) {
-            for (TaskVo subTask : taskData.getSubTasks()) {
-                displayTaskTree(subTask, indentWidth + additionalIndentWidth);
+        final TaskVo nodeVo = taskNode.getVo();
+        if (nodeVo.hasSubTasks()) {
+            for (TaskVo subTask : nodeVo.getSubTasks()) {
+                displayTaskTree(new TaskNode(taskNode, subTask), indentWidth + additionalIndentWidth);
             }
         }
     }
