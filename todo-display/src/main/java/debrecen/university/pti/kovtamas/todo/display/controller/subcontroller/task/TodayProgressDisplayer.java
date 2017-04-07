@@ -1,7 +1,9 @@
 package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task;
 
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.TaskTreeSynchronizer.ValueChangeRecord;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.Objects;
 
 public class TodayProgressDisplayer {
@@ -32,6 +34,12 @@ public class TodayProgressDisplayer {
 
             updateProgressBar();
         }
+    }
+
+    public void multipleTasksChanged(Collection<ValueChangeRecord<TaskVo>> taskChanges) {
+        taskChanges.forEach(taskChange -> taskChanged(
+                taskChange.getFromValue(), taskChange.getToValue()
+        ));
     }
 
     public void taskChanged(TaskVo oldVo, TaskVo newVo) {

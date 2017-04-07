@@ -14,6 +14,10 @@ public class TaskNode {
         this.vo = currentVo;
     }
 
+    public boolean hasParent() {
+        return parent != null;
+    }
+
     public TaskNode getParent() {
         return parent;
     }

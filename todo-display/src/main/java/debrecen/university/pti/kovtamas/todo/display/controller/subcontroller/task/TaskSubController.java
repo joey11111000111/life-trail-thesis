@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
@@ -26,6 +27,7 @@ public class TaskSubController {
     private Map<LogicalCategories, Supplier<List<TaskVo>>> logicalCategoryTaskQueries;
     private CategoryVo selectedCategory;
     private TodayProgressDisplayer progressDisplayer;
+    private TaskTreeSynchronizer taskTreeSynchronizer;
 
     static public class Builder {
 
@@ -75,6 +77,7 @@ public class TaskSubController {
             VBox progressContainer, Rectangle progressIndicator) {
         this.service = service;
         this.selectedCategory = null;
+        this.taskTreeSynchronizer = new TaskTreeSynchronizer();
         initTaskDisplayer(taskBox);
         initProgressDisplayer(progressContainer, progressIndicator);
         initLogicalCategoryTaskQueries();
@@ -105,19 +108,25 @@ public class TaskSubController {
     }
 
     private void setupTaskChangeAction() {
-        taskDisplayer.registerTaskStateChangeAction((oldVo, newVo) -> {
+        taskDisplayer.registerTaskStateChangeAction((oldNode, newNode) -> {
             try {
-                saveChanges(oldVo, newVo);
+                saveChangesAndUpdateProgressBar(oldNode, newNode);
+                switchToCategory(selectedCategory);
             } catch (TaskSaveFailureException tsfe) {
-                log.warn("Could not save changes of task with id: " + newVo.getId(), tsfe);
+                log.warn("Could not save changes of task with id: " + newNode.getVo().getId(), tsfe);
             }
         });
     }
 
-    private void saveChanges(TaskVo oldVo, TaskVo newVo) throws TaskSaveFailureException {
-        service.save(newVo);
-        log.info("Saved changes of task with id: " + newVo.getId());
-        progressDisplayer.taskChanged(oldVo, newVo);
+    private void saveChangesAndUpdateProgressBar(TaskNode oldNode, TaskNode newNode) throws TaskSaveFailureException {
+        taskTreeSynchronizer.synchronizeChanges(oldNode, newNode);
+        TaskVo rootTask = taskTreeSynchronizer.getSynchronizedRootTask();
+
+        service.save(rootTask);
+
+        log.info("Saved changes of task with id: " + newNode.getVo().getId());
+        progressDisplayer.multipleTasksChanged(taskTreeSynchronizer.getAllTaskChanges());
+//        progressDisplayer.taskChanged(oldNode.getVo(), newNode.getVo());
     }
 
     public void newCategoryAddedAction(String newCategory) {

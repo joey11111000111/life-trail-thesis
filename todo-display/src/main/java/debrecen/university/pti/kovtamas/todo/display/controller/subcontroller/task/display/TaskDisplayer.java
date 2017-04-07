@@ -26,7 +26,7 @@ public class TaskDisplayer {
     private TaskSelectionSubController taskSelection;
 
     private List<TaskRepresentations> displayedTasks;
-    private Set<ValueChangeAction<TaskVo>> registeredTaskStateChangeActions;
+    private Set<ValueChangeAction<TaskNode>> registeredTaskStateChangeActions;
 
     public TaskDisplayer(VBox taskBox, Collection<String> customCategories) {
         initFields(taskBox, customCategories);
@@ -51,8 +51,8 @@ public class TaskDisplayer {
     private void prepareAndExecuteTaskChangeActions(TaskRowController modifiedRowController) {
         System.out.println("prepare and execute method called");
         TaskRepresentations selectedTaskRepresentations = getRepresentationsByController(modifiedRowController);
-        TaskVo selectedOldTaskVo = selectedTaskRepresentations.getUnupdatedDetachedVo();
-        TaskVo selectedNewTaskVo = selectedTaskRepresentations.getUpdatedVo();
+        TaskNode selectedOldTaskVo = selectedTaskRepresentations.getUnupdatedNode();
+        TaskNode selectedNewTaskVo = selectedTaskRepresentations.getUpdatedNode();
         executeTaskChangeActions(selectedOldTaskVo, selectedNewTaskVo);
     }
 
@@ -67,11 +67,11 @@ public class TaskDisplayer {
         return controller.getRowId() == otherController.getRowId();
     }
 
-    private void executeTaskChangeActions(TaskVo oldVo, TaskVo newVo) {
+    private void executeTaskChangeActions(TaskNode oldVo, TaskNode newVo) {
         registeredTaskStateChangeActions.forEach(action -> action.accept(oldVo, newVo));
     }
 
-    public void registerTaskStateChangeAction(@NonNull final ValueChangeAction<TaskVo> action) {
+    public void registerTaskStateChangeAction(@NonNull final ValueChangeAction<TaskNode> action) {
         registeredTaskStateChangeActions.add(action);
     }
 

@@ -27,6 +27,17 @@ public class TaskRepresentations {
         return TaskVo.deepCopy(taskNode.getVo());
     }
 
+    public TaskNode getUnupdatedNode() {
+        TaskNode parentNode = taskNode.getParent();
+        TaskVo nodeVo = taskNode.getVo();
+        return new TaskNode(parentNode, TaskVo.deepCopy(nodeVo));
+    }
+
+    public TaskNode getUpdatedNode() {
+        updateNodeVo();
+        return taskNode;
+    }
+
     public TaskVo getUpdatedVo() {
         updateNodeVo();
         return taskNode.getVo();

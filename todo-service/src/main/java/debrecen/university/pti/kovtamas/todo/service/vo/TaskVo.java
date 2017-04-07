@@ -3,7 +3,6 @@ package debrecen.university.pti.kovtamas.todo.service.vo;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
