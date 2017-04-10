@@ -11,22 +11,26 @@ import static org.junit.Assert.fail;
 @Slf4j
 public final class JdbcTestUtils {
 
+    static public enum TestType {
+        UNIT, INTEGRATION
+    }
+
     private JdbcTestUtils() {
     }
 
-    static public void switchToTestTables() {
+    static public void switchToTestTables(TestType testType) {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            renameProductionAndCreateTestTables(conn);
+            renameProductionAndCreateTestTables(conn, testType);
         } catch (SQLException sqle) {
             log.error("Could not switch to test tables!", sqle);
             fail();
         }
     }
 
-    static private void renameProductionAndCreateTestTables(Connection conn) throws SQLException {
+    static private void renameProductionAndCreateTestTables(Connection conn, TestType testType) throws SQLException {
         Statement statement = conn.createStatement();
         String[] renameStatements = getAllRenameToBackupStatementsOrdered();
-        String[] createStatements = getAllCreateStatementsOrdered();
+        String[] createStatements = getAllCreateStatementsOrdered(testType);
 
         final int tableCount = 3;
         for (int i = 0; i < tableCount; i++) {
@@ -37,18 +41,28 @@ public final class JdbcTestUtils {
 
     static private String[] getAllRenameToBackupStatementsOrdered() {
         return new String[]{
-            JdbcTestQueries.RENAME_TO_BACKUP_CATEGORY_TABLE,
-            JdbcTestQueries.RENAME_TO_BACKUP_TASK_TABLE,
-            JdbcTestQueries.RENAME_TO_BACKUP_RELATIONS_TABLE
+            JdbcTestStatements.RENAME_TO_BACKUP_CATEGORY_TABLE,
+            JdbcTestStatements.RENAME_TO_BACKUP_TASK_TABLE,
+            JdbcTestStatements.RENAME_TO_BACKUP_RELATIONS_TABLE
         };
     }
 
-    static private String[] getAllCreateStatementsOrdered() {
-        return new String[]{
-            JdbcTestQueries.CREATE_TEST_TABLE_CATEGORY,
-            JdbcTestQueries.CREATE_TEST_TABLE_TASK,
-            JdbcTestQueries.CREATE_TEST_TABLE_RELATIONS
-        };
+    static private String[] getAllCreateStatementsOrdered(TestType testType) {
+        if (testType == TestType.INTEGRATION) {
+            return new String[]{
+                JdbcTestStatements.CREATE_TEST_TABLE_CATEGORY,
+                JdbcTestStatements.CREATE_INTEGRATION_TEST_TABLE_TASK,
+                JdbcTestStatements.CREATE_INTEGRATION_TEST_TABLE_RELATIONS
+            };
+
+        } else {
+            return new String[]{
+                JdbcTestStatements.CREATE_TEST_TABLE_CATEGORY,
+                JdbcTestStatements.CREATE_UNIT_TEST_TABLE_TASK,
+                JdbcTestStatements.CREATE_UNIT_TEST_TABLE_RELATIONS
+            };
+
+        }
     }
 
     static public void switchToProductionTables() {
@@ -74,17 +88,17 @@ public final class JdbcTestUtils {
 
     static private String[] getAllRenameToOriginalStatementsOrdered() {
         return new String[]{
-            JdbcTestQueries.RENAME_TO_ORIGINAL_RELATIONS_TABLE,
-            JdbcTestQueries.RENAME_TO_ORIGINAL_TASK_TABLE,
-            JdbcTestQueries.RENAME_TO_ORIGINAL_CATEGORY_TABLE
+            JdbcTestStatements.RENAME_TO_ORIGINAL_RELATIONS_TABLE,
+            JdbcTestStatements.RENAME_TO_ORIGINAL_TASK_TABLE,
+            JdbcTestStatements.RENAME_TO_ORIGINAL_CATEGORY_TABLE
         };
     }
 
     static private String[] getAllDropTableStatementsOrdered() {
         return new String[]{
-            JdbcTestQueries.DROP_TABLE_RELATIONS,
-            JdbcTestQueries.DROP_TABLE_TASK,
-            JdbcTestQueries.DROP_TABLE_CATEGORY
+            JdbcTestStatements.DROP_TABLE_RELATIONS,
+            JdbcTestStatements.DROP_TABLE_TASK,
+            JdbcTestStatements.DROP_TABLE_CATEGORY
         };
     }
 

@@ -22,11 +22,6 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
     @Override
-    public List<RefactoredTaskEntity> findAll() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public RefactoredTaskEntity findById(int id) throws TaskNotFoundException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
@@ -42,7 +37,7 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
     @Override
-    public List<RefactoredTaskEntity> findActiveByCategory(String category) {
+    public List<RefactoredTaskEntity> findActiveByCategoryId(int categoryId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -52,7 +47,7 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
     @Override
-    public List<RefactoredTaskEntity> findTasksBetween(LocalDate since, LocalDate until) {
+    public List<RefactoredTaskEntity> findActiveTasksBetween(LocalDate since, LocalDate until) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -62,12 +57,12 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
     @Override
-    public void save(RefactoredTaskEntity entity) throws TaskPersistenceException {
+    public RefactoredTaskEntity saveOrUpdate(RefactoredTaskEntity entity) throws TaskPersistenceException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void saveAll(Collection<RefactoredTaskEntity> entities) throws TaskPersistenceException {
+    public List<RefactoredTaskEntity> saveOrUpdateAll(Collection<RefactoredTaskEntity> entities) throws TaskPersistenceException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

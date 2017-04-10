@@ -7,17 +7,20 @@ public class CategoryEntity implements Serializable {
 
     private Integer id;
     private String name;
+    private int displayIndex;
 
     public CategoryEntity() {
     }
 
-    public CategoryEntity(String name) {
+    public CategoryEntity(String name, int displayIndex) {
         this.name = name;
+        this.displayIndex = displayIndex;
     }
 
-    public CategoryEntity(Integer id, String name) {
+    public CategoryEntity(Integer id, String name, int display_index) {
         this.id = id;
         this.name = name;
+        this.displayIndex = display_index;
     }
 
     public boolean hasId() {
@@ -38,6 +41,18 @@ public class CategoryEntity implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getDisplayIndex() {
+        return displayIndex;
+    }
+
+    public void setDisplayIndex(int displayIndex) {
+        if (displayIndex < 0) {
+            throw new IllegalArgumentException("Display index must not be negative");
+        }
+
+        this.displayIndex = displayIndex;
     }
 
     @Override
@@ -71,7 +86,7 @@ public class CategoryEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "CategoryEntity{" + "id=" + id + ", name=" + name + '}';
+        return "CategoryEntity{" + "id=" + id + ", name=" + name + ", displayIndex=" + displayIndex + '}';
     }
 
 }

@@ -8,19 +8,17 @@ import java.util.List;
 
 public interface TaskRepositoryQueries {
 
-    List<RefactoredTaskEntity> findAll();
-
     RefactoredTaskEntity findById(int id) throws TaskNotFoundException;
 
     List<RefactoredTaskEntity> findByIds(Collection<Integer> ids);
 
     List<RefactoredTaskEntity> findTodayAndUnfinishedPastTasks();
 
-    List<RefactoredTaskEntity> findActiveByCategory(String category);
+    List<RefactoredTaskEntity> findActiveByCategoryId(int categoryId);
 
     List<RefactoredTaskEntity> findCompletedTasks();
 
-    List<RefactoredTaskEntity> findTasksBetween(LocalDate since, LocalDate until);
+    List<RefactoredTaskEntity> findActiveTasksBetween(LocalDate since, LocalDate until);
 
     int getRowCount();
 

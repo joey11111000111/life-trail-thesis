@@ -1,6 +1,6 @@
 package debrecen.university.pti.kovtamas.data.test.refactored.util;
 
-public class JdbcTestQueries {
+public class JdbcTestStatements {
 
     // Table names
     static public final String ORIGINAL_CATEGORY_TABLE_NAME = "LIFE_TRAIL.CATEGORY";
@@ -15,10 +15,11 @@ public class JdbcTestQueries {
     static public final String CREATE_TEST_TABLE_CATEGORY = "CREATE TABLE LIFE_TRAIL.CATEGORY (\n"
             + "	ID SERIAL PRIMARY KEY,\n"
             + "	NAME VARCHAR(100) NOT NULL,\n"
+            + "	DISPLAY_INDEX INT NOT NULL,\n"
             + "	UNIQUE (NAME)\n"
             + ");";
 
-    static public final String CREATE_TEST_TABLE_TASK = "CREATE TABLE LIFE_TRAIL.TASK (\n"
+    static public final String CREATE_INTEGRATION_TEST_TABLE_TASK = "CREATE TABLE LIFE_TRAIL.TASK (\n"
             + "	ID SERIAL PRIMARY KEY,\n"
             + "	CATEGORY_ID BIGINT UNSIGNED DEFAULT NULL,\n"
             + "	TASK_DEF TEXT NOT NULL,\n"
@@ -28,12 +29,28 @@ public class JdbcTestQueries {
             + "	FOREIGN KEY (CATEGORY_ID) REFERENCES LIFE_TRAIL.CATEGORY (ID)\n"
             + ");";
 
-    static public final String CREATE_TEST_TABLE_RELATIONS = "CREATE TABLE LIFE_TRAIL.TASK_RELATIONS (\n"
+    static public final String CREATE_INTEGRATION_TEST_TABLE_RELATIONS = "CREATE TABLE LIFE_TRAIL.TASK_RELATIONS (\n"
             + "	ID SERIAL PRIMARY KEY,\n"
             + "	PARENT_ID BIGINT UNSIGNED NOT NULL,\n"
             + "	CHILD_ID BIGINT UNSIGNED NOT NULL,\n"
             + "	FOREIGN KEY (PARENT_ID) REFERENCES LIFE_TRAIL.TASK (ID),\n"
             + "	FOREIGN KEY (CHILD_ID) REFERENCES LIFE_TRAIL.TASK (ID),\n"
+            + "	UNIQUE (CHILD_ID)\n"
+            + ");";
+
+    static public final String CREATE_UNIT_TEST_TABLE_TASK = "CREATE TABLE LIFE_TRAIL.TASK (\n"
+            + "	ID SERIAL PRIMARY KEY,\n"
+            + "	CATEGORY_ID BIGINT UNSIGNED DEFAULT NULL,\n"
+            + "	TASK_DEF TEXT NOT NULL,\n"
+            + "	PRIORITY INTEGER NOT NULL,\n"
+            + "	DEADLINE DATE DEFAULT NULL,\n"
+            + "	COMPLETED VARCHAR(5) DEFAULT \"FALSE\"\n"
+            + ");";
+
+    static public final String CREATE_UNIT_TEST_TABLE_RELATIONS = "CREATE TABLE LIFE_TRAIL.TASK_RELATIONS (\n"
+            + "	ID SERIAL PRIMARY KEY,\n"
+            + "	PARENT_ID BIGINT UNSIGNED NOT NULL,\n"
+            + "	CHILD_ID BIGINT UNSIGNED NOT NULL,\n"
             + "	UNIQUE (CHILD_ID)\n"
             + ");";
 

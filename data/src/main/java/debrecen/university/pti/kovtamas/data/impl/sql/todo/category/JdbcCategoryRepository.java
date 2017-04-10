@@ -42,24 +42,25 @@ public class JdbcCategoryRepository implements CategoryRepository {
 
     private List<CategoryEntity> findAll(Connection conn) throws SQLException {
         Statement statement = conn.createStatement();
-        ResultSet results = statement.executeQuery(CategoryQueries.FIND_ALL);
+        ResultSet results = statement.executeQuery(CategoryStatements.FIND_ALL_ORDERED);
         return extractResults(results);
     }
 
     private List<CategoryEntity> extractResults(ResultSet results) throws SQLException {
         List<CategoryEntity> extractedEntities = new ArrayList<>();
         while (results.next()) {
-            CategoryEntity entity = extractResult(results);
+            CategoryEntity entity = extractResultRow(results);
             extractedEntities.add(entity);
         }
 
         return extractedEntities;
     }
 
-    private CategoryEntity extractResult(ResultSet result) throws SQLException {
-        Integer id = result.getInt("ID");
-        String name = result.getString("NAME");
-        return new CategoryEntity(id, name);
+    private CategoryEntity extractResultRow(ResultSet resultRow) throws SQLException {
+        Integer id = resultRow.getInt("ID");
+        String name = resultRow.getString("NAME");
+        int displayIndex = resultRow.getInt("DISPLAY_INDEX");
+        return new CategoryEntity(id, name, displayIndex);
     }
 
     @Override
@@ -77,12 +78,12 @@ public class JdbcCategoryRepository implements CategoryRepository {
     }
 
     private Optional<CategoryEntity> findById(Connection conn, int id) throws SQLException {
-        PreparedStatement statement = conn.prepareStatement(CategoryQueries.FIND_BY_ID);
+        PreparedStatement statement = conn.prepareStatement(CategoryStatements.FIND_BY_ID);
         statement.setInt(1, id);
 
         ResultSet result = statement.executeQuery();
         if (result.next()) {
-            CategoryEntity loadedEntity = extractResult(result);
+            CategoryEntity loadedEntity = extractResultRow(result);
             return Optional.of(loadedEntity);
         }
         return Optional.empty();
@@ -103,12 +104,12 @@ public class JdbcCategoryRepository implements CategoryRepository {
     }
 
     private Optional<Integer> idOf(Connection conn, String categoryName) throws SQLException {
-        PreparedStatement statement = conn.prepareStatement(CategoryQueries.FIND_BY_NAME);
+        PreparedStatement statement = conn.prepareStatement(CategoryStatements.FIND_BY_NAME);
         statement.setString(1, categoryName);
         ResultSet result = statement.executeQuery();
 
         if (result.next()) {
-            CategoryEntity entity = extractResult(result);
+            CategoryEntity entity = extractResultRow(result);
             return Optional.of(entity.getId());
         }
         return Optional.empty();
@@ -120,20 +121,21 @@ public class JdbcCategoryRepository implements CategoryRepository {
             if (entity.hasId()) {
                 return update(conn, entity);
             } else {
-                return save(conn, entity.getName());
+                return save(conn, entity);
             }
         } catch (SQLException sqle) {
             throw new CategorySaveFailureException("Failed to persist new category: " + entity.getName(), sqle);
         }
     }
 
-    private CategoryEntity save(Connection conn, String newCategoryName) throws SQLException {
-        PreparedStatement statement = conn.prepareStatement(CategoryQueries.INSERT, Statement.RETURN_GENERATED_KEYS);
-        statement.setString(1, newCategoryName);
+    private CategoryEntity save(Connection conn, CategoryEntity newCategory) throws SQLException {
+        PreparedStatement statement = conn.prepareStatement(CategoryStatements.INSERT, Statement.RETURN_GENERATED_KEYS);
+        statement.setString(1, newCategory.getName());
+        statement.setInt(2, newCategory.getDisplayIndex());
         statement.execute();
 
         Integer generatedId = extractGeneratedKey(statement);
-        return new CategoryEntity(generatedId, newCategoryName);
+        return new CategoryEntity(generatedId, newCategory.getName(), newCategory.getDisplayIndex());
     }
 
     private Integer extractGeneratedKey(PreparedStatement statement) throws SQLException {
@@ -146,18 +148,20 @@ public class JdbcCategoryRepository implements CategoryRepository {
     }
 
     private CategoryEntity update(Connection conn, CategoryEntity entity) throws SQLException {
-        PreparedStatement statement = conn.prepareStatement(CategoryQueries.UPDATE);
-        statement.setString(1, entity.getName());
-        statement.setInt(2, entity.getId());
+        PreparedStatement statement = conn.prepareStatement(CategoryStatements.UPDATE);
+        int index = 1;
+        statement.setString(index++, entity.getName());
+        statement.setInt(index++, entity.getDisplayIndex());
+        statement.setInt(index++, entity.getId());
         statement.execute();
 
-        return new CategoryEntity(entity.getId(), entity.getName());
+        return new CategoryEntity(entity.getId(), entity.getName(), entity.getDisplayIndex());
     }
 
     @Override
     public void remove(@NonNull final Integer id) {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            PreparedStatement statement = conn.prepareStatement(CategoryQueries.REMOVE_BY_ID);
+            PreparedStatement statement = conn.prepareStatement(CategoryStatements.REMOVE_BY_ID);
             statement.setInt(1, id);
             statement.executeUpdate();
         } catch (SQLException sqle) {
@@ -168,7 +172,7 @@ public class JdbcCategoryRepository implements CategoryRepository {
     @Override
     public void remove(@NonNull final String categoryName) {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            PreparedStatement statement = conn.prepareStatement(CategoryQueries.REMOVE_BY_NAME);
+            PreparedStatement statement = conn.prepareStatement(CategoryStatements.REMOVE_BY_NAME);
             statement.setString(1, categoryName);
             statement.executeUpdate();
         } catch (SQLException sqle) {
@@ -180,7 +184,7 @@ public class JdbcCategoryRepository implements CategoryRepository {
     public void clearTable() {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             Statement clearStatement = conn.createStatement();
-            clearStatement.executeUpdate(CategoryQueries.CLEAR_TABLE);
+            clearStatement.executeUpdate(CategoryStatements.CLEAR_TABLE);
         } catch (SQLException sqle) {
             log.error("Failed to clear category table!", sqle);
         }

@@ -5,12 +5,13 @@ import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundEx
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
 import java.util.Collection;
+import java.util.List;
 
 public interface TaskRepositoryUpdates {
 
-    void save(RefactoredTaskEntity entity) throws TaskPersistenceException;
+    RefactoredTaskEntity saveOrUpdate(RefactoredTaskEntity entity) throws TaskPersistenceException;
 
-    void saveAll(Collection<RefactoredTaskEntity> entities) throws TaskPersistenceException;
+    List<RefactoredTaskEntity> saveOrUpdateAll(Collection<RefactoredTaskEntity> entities) throws TaskPersistenceException;
 
     void remove(int id) throws TaskNotFoundException, TaskRemovalException;
 

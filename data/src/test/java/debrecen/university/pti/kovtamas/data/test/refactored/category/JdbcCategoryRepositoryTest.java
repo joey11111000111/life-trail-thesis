@@ -25,7 +25,7 @@ public class JdbcCategoryRepositoryTest {
 
     @BeforeClass
     static public void switchToTestTables() {
-        JdbcTestUtils.switchToTestTables();
+        JdbcTestUtils.switchToTestTables(JdbcTestUtils.TestType.UNIT);
     }
 
     @AfterClass
@@ -48,6 +48,24 @@ public class JdbcCategoryRepositoryTest {
         List<CategoryEntity> actual = categoryRepo.findAll();
 
         assertEquals(expected.size(), actual.size());
+    }
+
+    @Test
+    public void findAllShouldReturnEntitiesInAscDisplayOrder() throws CategorySaveFailureException {
+        final int testEntityCount = 5;
+        List<CategoryEntity> wrongOrderedEntities
+                = CategoryTestDataGenerator.generateUnsavedEntitiesInDescDisplayOrder(testEntityCount);
+        List<CategoryEntity> expectedOrderedEntities
+                = CategoryTestDataGenerator.generateUnsavedEntitiesInAscDisplayOrder(testEntityCount);
+
+        saveAllInOrder(wrongOrderedEntities);
+        List<CategoryEntity> actualOrderedEntities = categoryRepo.findAll();
+
+        for (int i = 0; i < testEntityCount; i++) {
+            int expectedDisplayIndex = expectedOrderedEntities.get(i).getDisplayIndex();
+            int actualDisplayIndex = actualOrderedEntities.get(i).getDisplayIndex();
+            assertEquals(expectedDisplayIndex, actualDisplayIndex);
+        }
     }
 
     @Test(expected = CategorySaveFailureException.class)
@@ -83,22 +101,6 @@ public class JdbcCategoryRepositoryTest {
         assertFalse(modifiedName.equals(savedCategoryName));
     }
 
-    @Test
-    public void findAllShouldReturnEveryCategoryInSaveOrder() throws CategorySaveFailureException {
-        final int expectedSize = 3;
-        List<CategoryEntity> expected = CategoryTestDataGenerator.generateUnsavedEntities(expectedSize);
-        saveAllInOrder(expected);
-
-        List<CategoryEntity> actual = categoryRepo.findAll();
-        assertEquals(expectedSize, actual.size());
-
-        for (int i = 0; i < expectedSize; i++) {
-            final String expectedName = expected.get(i).getName();
-            final String actualName = actual.get(i).getName();
-            assertEquals(expectedName, actualName);
-        }
-    }
-
     private List<CategoryEntity> saveAllInOrder(List<CategoryEntity> unsavedEntities) throws CategorySaveFailureException {
         List<CategoryEntity> savedEntities = new ArrayList<>(unsavedEntities.size());
         for (CategoryEntity entity : unsavedEntities) {
@@ -117,7 +119,7 @@ public class JdbcCategoryRepositoryTest {
     @Test
     public void findByIdTest() throws CategorySaveFailureException, CategoryNotFoundException {
         final int testEntityCount = 3;
-        List<CategoryEntity> unsavedEntities = CategoryTestDataGenerator.generateUnsavedEntities(testEntityCount);
+        List<CategoryEntity> unsavedEntities = CategoryTestDataGenerator.generateUnsavedEntitiesInAscDisplayOrder(testEntityCount);
         List<CategoryEntity> savedEntities = saveAllInOrder(unsavedEntities);
 
         for (CategoryEntity savedEntity : savedEntities) {
@@ -134,7 +136,7 @@ public class JdbcCategoryRepositoryTest {
     @Test
     public void idOfTest() throws CategorySaveFailureException, CategoryNotFoundException {
         final int testEntityCount = 3;
-        List<CategoryEntity> unsavedEntities = CategoryTestDataGenerator.generateUnsavedEntities(testEntityCount);
+        List<CategoryEntity> unsavedEntities = CategoryTestDataGenerator.generateUnsavedEntitiesInAscDisplayOrder(testEntityCount);
         List<CategoryEntity> savedEntities = saveAllInOrder(unsavedEntities);
 
         for (CategoryEntity entity : savedEntities) {
@@ -164,7 +166,7 @@ public class JdbcCategoryRepositoryTest {
 
     private void removeWithGivenMethodTest(Consumer<CategoryEntity> removeMethod) throws CategorySaveFailureException {
         final int testEntityCount = 3;
-        List<CategoryEntity> unsavedEntities = CategoryTestDataGenerator.generateUnsavedEntities(testEntityCount);
+        List<CategoryEntity> unsavedEntities = CategoryTestDataGenerator.generateUnsavedEntitiesInAscDisplayOrder(testEntityCount);
         List<CategoryEntity> savedEntities = saveAllInOrder(unsavedEntities);
 
         while (!savedEntities.isEmpty()) {
