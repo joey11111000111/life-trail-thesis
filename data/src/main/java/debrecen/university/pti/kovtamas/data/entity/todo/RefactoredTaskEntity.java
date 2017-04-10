@@ -1,12 +1,15 @@
 package debrecen.university.pti.kovtamas.data.entity.todo;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
-public class RefactoredTaskEntity {
+public class RefactoredTaskEntity implements Serializable {
+
+    static private final long serialVersionUID = 200L;
 
     private Integer id = null;
     private Integer categoryId = null;

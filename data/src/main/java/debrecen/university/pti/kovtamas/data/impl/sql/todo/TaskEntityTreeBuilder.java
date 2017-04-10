@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package debrecen.university.pti.kovtamas.data.impl.sql.todo.relations;
+package debrecen.university.pti.kovtamas.data.impl.sql.todo;
 
 /**
  *
  * @author joey
  */
-public class JdbcTaskRelationRepository {
+public class TaskEntityTreeBuilder {
 
 }

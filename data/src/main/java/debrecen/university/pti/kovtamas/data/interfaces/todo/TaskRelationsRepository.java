@@ -1,17 +1,22 @@
 package debrecen.university.pti.kovtamas.data.interfaces.todo;
 
-import debrecen.university.pti.kovtamas.data.entity.todo.RefactoredTaskEntity;
+import debrecen.university.pti.kovtamas.data.entity.todo.TaskRelationEntity;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRelationPersistenceException;
 import java.util.List;
 
 public interface TaskRelationsRepository {
 
-    List<RefactoredTaskEntity> findAllChildrenOf(RefactoredTaskEntity parentEntity);
+    List<TaskRelationEntity> findAll();
 
-    void addNewRelation(int parentId, int childId);
+    List<TaskRelationEntity> findAllWhereParentOrChildId(int id);
 
-    void deleteRelation(int relationId);
+    TaskRelationEntity save(TaskRelationEntity newRelation) throws TaskRelationPersistenceException;
 
-    void deleteAllWhereParentOrChildIdIs(int id);
+    List<TaskRelationEntity> saveAll(List<TaskRelationEntity> newRelations) throws TaskRelationPersistenceException;
+
+    void removeRelation(int relationId);
+
+    void removeAllWhereParentOrChildIdIs(int id);
 
     void clearTable();
 

@@ -5,6 +5,8 @@ import java.util.Objects;
 
 public class CategoryEntity implements Serializable {
 
+    static private final long serialVersionUID = 1L;
+
     private Integer id;
     private String name;
     private int displayIndex;
