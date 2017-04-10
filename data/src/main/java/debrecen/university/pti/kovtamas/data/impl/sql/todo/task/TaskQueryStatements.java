@@ -7,6 +7,7 @@ public final class TaskQueryStatements {
 
     static private final String TABLE_NAME = "LIFE_TRAIL.TASK";
 
+    static public final String FIND_ALL = "SELECT * FROM " + TABLE_NAME;
     static public final String FIND_BY_ID = "SELECT * FROM " + TABLE_NAME + " WHERE ID = ?";
     static public final String FIND_TODAY_AND_ACTIVE_PAST = "SELECT * FROM " + TABLE_NAME
             + " WHERE DEADLINE = ? OR (DEADLINE < ? AND COMPLETED = \"FALSE\")";

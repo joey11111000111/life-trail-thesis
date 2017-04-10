@@ -8,6 +8,8 @@ import java.util.List;
 
 public interface TaskRepositoryQueries {
 
+    List<RefactoredTaskEntity> findAll();
+
     RefactoredTaskEntity findById(int id) throws TaskNotFoundException;
 
     List<RefactoredTaskEntity> findByIds(Collection<Integer> ids);

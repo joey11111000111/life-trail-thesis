@@ -32,6 +32,18 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
     }
 
     @Override
+    public List<RefactoredTaskEntity> findAll() {
+        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
+            Statement statement = conn.createStatement();
+            ResultSet results = statement.executeQuery(TaskQueryStatements.FIND_ALL);
+            return extractAllResults(results);
+        } catch (SQLException sqle) {
+            log.warn("Exception while trying to find all tasks", sqle);
+            return Collections.EMPTY_LIST;
+        }
+    }
+
+    @Override
     public RefactoredTaskEntity findById(int id) throws TaskNotFoundException {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             return findById(conn, id);

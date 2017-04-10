@@ -81,4 +81,33 @@ public final class TaskTestDataGenerator {
         return generatedEntities;
     }
 
+    static public List<RefactoredTaskEntity> generateEntities(int numOfEntities) {
+        final Integer categoryId = 1;
+        List<RefactoredTaskEntity> generatedEntities = new ArrayList<>();
+
+        for (int i = 0; i < numOfEntities; i++) {
+            generatedEntities.add(
+                    RefactoredTaskEntity.builder()
+                            .categoryId((i % 2 == 0) ? categoryId : null)
+                            .deadline(LocalDate.now().plusDays(i))
+                            .priority(i % 4)
+                            .taskDef("Generated task " + i)
+                            .completed(i % 3 == 0)
+                            .build()
+            );
+        }
+
+        return generatedEntities;
+    }
+
+    static public RefactoredTaskEntity generateOneEntity() {
+        return RefactoredTaskEntity.builder()
+                .categoryId(1)
+                .deadline(LocalDate.now())
+                .priority(2)
+                .taskDef("Single generated task")
+                .completed(false)
+                .build();
+    }
+
 }

@@ -22,6 +22,11 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
     @Override
+    public List<RefactoredTaskEntity> findAll() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
     public RefactoredTaskEntity findById(int id) throws TaskNotFoundException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }

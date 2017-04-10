@@ -13,4 +13,6 @@ public final class TaskUpdateStatements {
     static public final String UPDATE = "UPDATE " + TABLE_NAME
             + " SET CATEGORY_ID = ?, TASK_DEF = ?, PRIORITY = ?, DEADLINE = ?, COMPLETED = ?"
             + " WHERE ID = ?";
+    static public final String CLEAR = "DELETE FROM " + TABLE_NAME;
+    static public final String REMOVE_BY_ID = "DELETE FROM " + TABLE_NAME + " WHERE ID = ?";
 }

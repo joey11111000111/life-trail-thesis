@@ -57,6 +57,12 @@ public class JdbcTaskRepositoryQueriesTest {
         repoQueries = JdbcTaskRepositoryQueries.getInstance();
     }
 
+    @Test
+    public void findAllTest() {
+        List<RefactoredTaskEntity> allLoadedEntities = repoQueries.findAll();
+        listEqualsOrdered(allSavedEntities, allLoadedEntities);
+    }
+
     @Test(expected = TaskNotFoundException.class)
     public void findByIdShouldThrowExceptionWhenIdIsNotPresent() throws TaskNotFoundException {
         int notExistingId = getHighestExistingTaskId() + 1;

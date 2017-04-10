@@ -2,7 +2,6 @@ package debrecen.university.pti.kovtamas.data.impl.sql.todo.task;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.RefactoredTaskEntity;
 import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DataSourceManager;
-import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TaskRepositoryUpdates;
@@ -17,7 +16,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
 
     static private final JdbcTaskRepositoryUpdates INSTANCE;
@@ -115,18 +116,43 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
     }
 
     @Override
-    public void remove(final int id) throws TaskNotFoundException, TaskRemovalException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void remove(final int id) throws TaskRemovalException {
+        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
+            removeUsingGivenConnection(conn, id);
+        } catch (SQLException sqle) {
+            throw new TaskRemovalException("Failed to establish database connection", sqle);
+        }
     }
 
     @Override
-    public void removeAll(@NonNull final Collection<Integer> ids) throws TaskNotFoundException, TaskRemovalException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void removeAll(@NonNull final Collection<Integer> ids) throws TaskRemovalException {
+        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
+            for (Integer id : ids) {
+                removeUsingGivenConnection(conn, id);
+            }
+        } catch (SQLException sqle) {
+            throw new TaskRemovalException("Failed to establish database connection", sqle);
+        }
+    }
+
+    private void removeUsingGivenConnection(Connection conn, int removeId) throws TaskRemovalException {
+        try {
+            PreparedStatement statement = conn.prepareStatement(TaskUpdateStatements.REMOVE_BY_ID);
+            statement.setInt(1, removeId);
+            statement.executeUpdate();
+        } catch (SQLException sqle) {
+            throw new TaskRemovalException("Exception while trying to remove task with id: " + removeId, sqle);
+        }
     }
 
     @Override
     public void clearTable() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(TaskUpdateStatements.CLEAR);
+        } catch (SQLException sqle) {
+            log.warn("Exception while trying to clear task table", sqle);
+        }
     }
 
 }
