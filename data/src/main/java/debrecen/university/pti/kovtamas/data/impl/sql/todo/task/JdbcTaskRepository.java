@@ -5,6 +5,8 @@ import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundEx
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TaskRepository;
+import debrecen.university.pti.kovtamas.data.interfaces.todo.TaskRepositoryQueries;
+import debrecen.university.pti.kovtamas.data.interfaces.todo.TaskRepositoryUpdates;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
@@ -12,6 +14,9 @@ import java.util.List;
 public class JdbcTaskRepository implements TaskRepository {
 
     static private final JdbcTaskRepository INSTANCE;
+
+    private final TaskRepositoryQueries taskQueries;
+    private final TaskRepositoryUpdates taskUpdates;
 
     static {
         INSTANCE = new JdbcTaskRepository();
@@ -21,69 +26,74 @@ public class JdbcTaskRepository implements TaskRepository {
         return INSTANCE;
     }
 
+    public JdbcTaskRepository() {
+        taskQueries = JdbcTaskRepositoryQueries.getInstance();
+        taskUpdates = JdbcTaskRepositoryUpdates.getInstance();
+    }
+
     @Override
     public List<RefactoredTaskEntity> findAll() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return taskQueries.findAll();
     }
 
     @Override
     public RefactoredTaskEntity findById(int id) throws TaskNotFoundException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return taskQueries.findById(id);
     }
 
     @Override
     public List<RefactoredTaskEntity> findByIds(Collection<Integer> ids) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return taskQueries.findByIds(ids);
     }
 
     @Override
     public List<RefactoredTaskEntity> findTodayAndUnfinishedPastTasks() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return taskQueries.findTodayAndUnfinishedPastTasks();
     }
 
     @Override
     public List<RefactoredTaskEntity> findActiveByCategoryId(int categoryId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return taskQueries.findActiveByCategoryId(categoryId);
     }
 
     @Override
     public List<RefactoredTaskEntity> findCompletedTasks() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return taskQueries.findCompletedTasks();
     }
 
     @Override
     public List<RefactoredTaskEntity> findActiveTasksBetween(LocalDate since, LocalDate until) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return taskQueries.findActiveTasksBetween(since, until);
     }
 
     @Override
     public int getRowCount() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return taskQueries.getRowCount();
     }
 
     @Override
     public RefactoredTaskEntity saveOrUpdate(RefactoredTaskEntity entity) throws TaskPersistenceException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return taskUpdates.saveOrUpdate(entity);
     }
 
     @Override
     public List<RefactoredTaskEntity> saveOrUpdateAll(Collection<RefactoredTaskEntity> entities) throws TaskPersistenceException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return taskUpdates.saveOrUpdateAll(entities);
     }
 
     @Override
-    public void remove(int id) throws TaskNotFoundException, TaskRemovalException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void remove(int id) throws TaskRemovalException {
+        taskUpdates.remove(id);
     }
 
     @Override
-    public void removeAll(Collection<Integer> ids) throws TaskNotFoundException, TaskRemovalException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void removeAll(Collection<Integer> ids) throws TaskRemovalException {
+        taskUpdates.removeAll(ids);
     }
 
     @Override
     public void clearTable() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        taskUpdates.clearTable();
     }
 
 }
