@@ -1,4 +1,4 @@
-package debrecen.university.pti.kovtamas.data.test.refactored.category;
+package debrecen.university.pti.kovtamas.data.test.category;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.CategoryEntity;
 import java.util.ArrayList;

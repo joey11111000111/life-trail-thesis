@@ -1,6 +1,6 @@
 package debrecen.university.pti.kovtamas.data.impl.sql.todo.task;
 
-import debrecen.university.pti.kovtamas.data.entity.todo.RefactoredTaskEntity;
+import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DataSourceManager;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TaskRepositoryQueries;
@@ -32,7 +32,7 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
     }
 
     @Override
-    public List<RefactoredTaskEntity> findAll() {
+    public List<TaskEntity> findAll() {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             Statement statement = conn.createStatement();
             ResultSet results = statement.executeQuery(TaskQueryStatements.FIND_ALL);
@@ -44,7 +44,7 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
     }
 
     @Override
-    public RefactoredTaskEntity findById(int id) throws TaskNotFoundException {
+    public TaskEntity findById(int id) throws TaskNotFoundException {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             return findById(conn, id);
         } catch (SQLException sqle) {
@@ -52,7 +52,7 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
         }
     }
 
-    private RefactoredTaskEntity findById(Connection conn, int id) throws SQLException, TaskNotFoundException {
+    private TaskEntity findById(Connection conn, int id) throws SQLException, TaskNotFoundException {
         PreparedStatement statement = conn.prepareStatement(TaskQueryStatements.FIND_BY_ID);
         statement.setInt(1, id);
 
@@ -65,7 +65,7 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
     }
 
     @Override
-    public List<RefactoredTaskEntity> findByIds(@NonNull final Collection<Integer> ids) {
+    public List<TaskEntity> findByIds(@NonNull final Collection<Integer> ids) {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             return findAllExistingTasksByIds(conn, ids);
         } catch (SQLException exception) {
@@ -74,11 +74,11 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
         }
     }
 
-    private List<RefactoredTaskEntity> findAllExistingTasksByIds(Connection conn, Collection<Integer> ids) throws SQLException {
-        List<RefactoredTaskEntity> loadedEntities = new ArrayList<>(ids.size());
+    private List<TaskEntity> findAllExistingTasksByIds(Connection conn, Collection<Integer> ids) throws SQLException {
+        List<TaskEntity> loadedEntities = new ArrayList<>(ids.size());
         for (Integer id : ids) {
             try {
-                RefactoredTaskEntity entity = findById(conn, id);
+                TaskEntity entity = findById(conn, id);
                 loadedEntities.add(entity);
             } catch (TaskNotFoundException tnfe) {
                 log.warn(tnfe.getMessage());
@@ -89,7 +89,7 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
     }
 
     @Override
-    public List<RefactoredTaskEntity> findTodayAndUnfinishedPastTasks() {
+    public List<TaskEntity> findTodayAndUnfinishedPastTasks() {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             return findTodayAndUnfinishedPastTasks(conn);
         } catch (SQLException sqle) {
@@ -98,7 +98,7 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
         }
     }
 
-    private List<RefactoredTaskEntity> findTodayAndUnfinishedPastTasks(Connection conn) throws SQLException {
+    private List<TaskEntity> findTodayAndUnfinishedPastTasks(Connection conn) throws SQLException {
         PreparedStatement statement = conn.prepareStatement(TaskQueryStatements.FIND_TODAY_AND_ACTIVE_PAST);
         Date today = Date.valueOf(LocalDate.now());
         statement.setDate(1, today);
@@ -109,7 +109,7 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
     }
 
     @Override
-    public List<RefactoredTaskEntity> findActiveByCategoryId(int categoryId) {
+    public List<TaskEntity> findActiveByCategoryId(int categoryId) {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             return findActiveByCategoryId(conn, categoryId);
         } catch (SQLException sqle) {
@@ -118,7 +118,7 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
         }
     }
 
-    private List<RefactoredTaskEntity> findActiveByCategoryId(Connection conn, int categoryId) throws SQLException {
+    private List<TaskEntity> findActiveByCategoryId(Connection conn, int categoryId) throws SQLException {
         PreparedStatement statement = conn.prepareStatement(TaskQueryStatements.FIND_ACTIVE_BY_CATEGORY);
         statement.setInt(1, categoryId);
 
@@ -127,7 +127,7 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
     }
 
     @Override
-    public List<RefactoredTaskEntity> findCompletedTasks() {
+    public List<TaskEntity> findCompletedTasks() {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             Statement statement = conn.createStatement();
             ResultSet results = statement.executeQuery(TaskQueryStatements.FIND_COMPLETED);
@@ -139,7 +139,7 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
     }
 
     @Override
-    public List<RefactoredTaskEntity> findActiveTasksBetween(LocalDate since, LocalDate until) {
+    public List<TaskEntity> findActiveTasksBetween(LocalDate since, LocalDate until) {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             PreparedStatement statement = conn.prepareStatement(TaskQueryStatements.FIND_ACTIVE_BETWEEN);
             statement.setDate(1, Date.valueOf(since));
@@ -168,21 +168,21 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
         }
     }
 
-    private List<RefactoredTaskEntity> extractAllResults(ResultSet results) throws SQLException {
-        List<RefactoredTaskEntity> allLoadedEntities = new ArrayList<>();
+    private List<TaskEntity> extractAllResults(ResultSet results) throws SQLException {
+        List<TaskEntity> allLoadedEntities = new ArrayList<>();
         while (results.next()) {
-            RefactoredTaskEntity entity = extractResult(results);
+            TaskEntity entity = extractResult(results);
             allLoadedEntities.add(entity);
         }
 
         return allLoadedEntities;
     }
 
-    private RefactoredTaskEntity extractResult(ResultSet resultRow) throws SQLException {
+    private TaskEntity extractResult(ResultSet resultRow) throws SQLException {
         boolean isCategoryIdNull = resultRow.getObject("CATEGORY_ID") == null;
         Integer categoryId = isCategoryIdNull ? null : resultRow.getInt("CATEGORY_ID");
 
-        return RefactoredTaskEntity.builder()
+        return TaskEntity.builder()
                 .id(resultRow.getInt("ID"))
                 .categoryId(categoryId)
                 .taskDef(resultRow.getString("TASK_DEF"))

@@ -1,26 +1,28 @@
-package debrecen.university.pti.kovtamas.data.test.refactored.relations;
+package debrecen.university.pti.kovtamas.data.test.relations;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskRelationEntity;
 import debrecen.university.pti.kovtamas.data.impl.sql.todo.relations.JdbcTaskRelationsRepository;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRelationPersistenceException;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TaskRelationsRepository;
-import debrecen.university.pti.kovtamas.data.test.refactored.util.JdbcTestUtils;
+import debrecen.university.pti.kovtamas.data.test.util.JdbcTestUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class TaskRelationTest {
+@Ignore
+public class JdbcTaskRelationsTest {
 
     private final TaskRelationsRepository relationsRepo;
 
-    public TaskRelationTest() {
+    public JdbcTaskRelationsTest() {
         relationsRepo = JdbcTaskRelationsRepository.getInstance();
     }
 

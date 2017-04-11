@@ -1,6 +1,6 @@
 package debrecen.university.pti.kovtamas.data.impl.sql.todo.task;
 
-import debrecen.university.pti.kovtamas.data.entity.todo.RefactoredTaskEntity;
+import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DataSourceManager;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
@@ -32,7 +32,7 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
     }
 
     @Override
-    public RefactoredTaskEntity saveOrUpdate(@NonNull final RefactoredTaskEntity entity) throws TaskPersistenceException {
+    public TaskEntity saveOrUpdate(@NonNull final TaskEntity entity) throws TaskPersistenceException {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             return saveOrUpdate(conn, entity);
         } catch (SQLException sqle) {
@@ -40,7 +40,7 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
         }
     }
 
-    private RefactoredTaskEntity saveOrUpdate(Connection conn, RefactoredTaskEntity entity) throws SQLException {
+    private TaskEntity saveOrUpdate(Connection conn, TaskEntity entity) throws SQLException {
         if (entity.hasId()) {
             return update(conn, entity);
         } else {
@@ -48,16 +48,16 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
         }
     }
 
-    private RefactoredTaskEntity update(Connection conn, RefactoredTaskEntity entity) throws SQLException {
+    private TaskEntity update(Connection conn, TaskEntity entity) throws SQLException {
         PreparedStatement statement = conn.prepareStatement(TaskUpdateStatements.UPDATE);
         setColumnVariablesFrom(statement, entity);
         statement.setInt(6, entity.getId());
         statement.executeUpdate();
 
-        return RefactoredTaskEntity.copy(entity);
+        return TaskEntity.copy(entity);
     }
 
-    private void setColumnVariablesFrom(PreparedStatement statement, RefactoredTaskEntity entity) throws SQLException {
+    private void setColumnVariablesFrom(PreparedStatement statement, TaskEntity entity) throws SQLException {
         int index = 1;
         if (entity.hasCategoryId()) {
             statement.setInt(index++, entity.getCategoryId());
@@ -72,7 +72,7 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
         statement.setString(index++, completed);
     }
 
-    private RefactoredTaskEntity save(Connection conn, RefactoredTaskEntity entity) throws SQLException {
+    private TaskEntity save(Connection conn, TaskEntity entity) throws SQLException {
         PreparedStatement statement = conn.prepareStatement(TaskUpdateStatements.INSERT, Statement.RETURN_GENERATED_KEYS);
         setColumnVariablesFrom(statement, entity);
         statement.executeUpdate();
@@ -80,9 +80,9 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
         return getSavedEntity(statement, entity);
     }
 
-    private RefactoredTaskEntity getSavedEntity(PreparedStatement statement, RefactoredTaskEntity entity) throws SQLException {
+    private TaskEntity getSavedEntity(PreparedStatement statement, TaskEntity entity) throws SQLException {
         Integer generatedId = extractGeneratedKey(statement);
-        RefactoredTaskEntity savedEntity = RefactoredTaskEntity.copy(entity);
+        TaskEntity savedEntity = TaskEntity.copy(entity);
         savedEntity.setId(generatedId);
         return savedEntity;
     }
@@ -97,7 +97,7 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
     }
 
     @Override
-    public List<RefactoredTaskEntity> saveOrUpdateAll(@NonNull final Collection<RefactoredTaskEntity> entities) throws TaskPersistenceException {
+    public List<TaskEntity> saveOrUpdateAll(@NonNull final Collection<TaskEntity> entities) throws TaskPersistenceException {
         try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
             return saveOrUpdateAll(conn, entities);
         } catch (SQLException sqle) {
@@ -105,10 +105,10 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
         }
     }
 
-    private List<RefactoredTaskEntity> saveOrUpdateAll(Connection conn, Collection<RefactoredTaskEntity> entities) throws SQLException {
-        List<RefactoredTaskEntity> savedEntities = new ArrayList<>(entities.size());
-        for (RefactoredTaskEntity entity : entities) {
-            RefactoredTaskEntity savedEntity = saveOrUpdate(conn, entity);
+    private List<TaskEntity> saveOrUpdateAll(Connection conn, Collection<TaskEntity> entities) throws SQLException {
+        List<TaskEntity> savedEntities = new ArrayList<>(entities.size());
+        for (TaskEntity entity : entities) {
+            TaskEntity savedEntity = saveOrUpdate(conn, entity);
             savedEntities.add(savedEntity);
         }
 

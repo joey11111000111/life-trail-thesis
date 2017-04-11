@@ -1,6 +1,6 @@
 package debrecen.university.pti.kovtamas.data.impl.sql.todo.task;
 
-import debrecen.university.pti.kovtamas.data.entity.todo.RefactoredTaskEntity;
+import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
@@ -32,37 +32,37 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
     @Override
-    public List<RefactoredTaskEntity> findAll() {
+    public List<TaskEntity> findAll() {
         return taskQueries.findAll();
     }
 
     @Override
-    public RefactoredTaskEntity findById(int id) throws TaskNotFoundException {
+    public TaskEntity findById(int id) throws TaskNotFoundException {
         return taskQueries.findById(id);
     }
 
     @Override
-    public List<RefactoredTaskEntity> findByIds(Collection<Integer> ids) {
+    public List<TaskEntity> findByIds(Collection<Integer> ids) {
         return taskQueries.findByIds(ids);
     }
 
     @Override
-    public List<RefactoredTaskEntity> findTodayAndUnfinishedPastTasks() {
+    public List<TaskEntity> findTodayAndUnfinishedPastTasks() {
         return taskQueries.findTodayAndUnfinishedPastTasks();
     }
 
     @Override
-    public List<RefactoredTaskEntity> findActiveByCategoryId(int categoryId) {
+    public List<TaskEntity> findActiveByCategoryId(int categoryId) {
         return taskQueries.findActiveByCategoryId(categoryId);
     }
 
     @Override
-    public List<RefactoredTaskEntity> findCompletedTasks() {
+    public List<TaskEntity> findCompletedTasks() {
         return taskQueries.findCompletedTasks();
     }
 
     @Override
-    public List<RefactoredTaskEntity> findActiveTasksBetween(LocalDate since, LocalDate until) {
+    public List<TaskEntity> findActiveTasksBetween(LocalDate since, LocalDate until) {
         return taskQueries.findActiveTasksBetween(since, until);
     }
 
@@ -72,12 +72,12 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
     @Override
-    public RefactoredTaskEntity saveOrUpdate(RefactoredTaskEntity entity) throws TaskPersistenceException {
+    public TaskEntity saveOrUpdate(TaskEntity entity) throws TaskPersistenceException {
         return taskUpdates.saveOrUpdate(entity);
     }
 
     @Override
-    public List<RefactoredTaskEntity> saveOrUpdateAll(Collection<RefactoredTaskEntity> entities) throws TaskPersistenceException {
+    public List<TaskEntity> saveOrUpdateAll(Collection<TaskEntity> entities) throws TaskPersistenceException {
         return taskUpdates.saveOrUpdateAll(entities);
     }
 

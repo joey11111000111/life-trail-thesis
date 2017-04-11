@@ -1,6 +1,6 @@
-package debrecen.university.pti.kovtamas.data.test.refactored.task;
+package debrecen.university.pti.kovtamas.data.test.task;
 
-import debrecen.university.pti.kovtamas.data.entity.todo.RefactoredTaskEntity;
+import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,12 +10,11 @@ public final class TaskTestDataGenerator {
     private TaskTestDataGenerator() {
     }
 
-    static public List<RefactoredTaskEntity> generateEntitiesForQueryTests() {
+    static public List<TaskEntity> generateEntitiesForQueryTests() {
         final Integer categoryId = 1;
-        List<RefactoredTaskEntity> generatedEntities = new ArrayList<>();
+        List<TaskEntity> generatedEntities = new ArrayList<>();
 
-        generatedEntities.add(
-                RefactoredTaskEntity.builder()
+        generatedEntities.add(TaskEntity.builder()
                         .categoryId(null)
                         .deadline(LocalDate.now())
                         .priority(1)
@@ -23,8 +22,7 @@ public final class TaskTestDataGenerator {
                         .completed(false)
                         .build()
         );
-        generatedEntities.add(
-                RefactoredTaskEntity.builder()
+        generatedEntities.add(TaskEntity.builder()
                         .categoryId(categoryId)
                         .deadline(LocalDate.now().plusDays(1))
                         .priority(2)
@@ -32,8 +30,7 @@ public final class TaskTestDataGenerator {
                         .completed(false)
                         .build()
         );
-        generatedEntities.add(
-                RefactoredTaskEntity.builder()
+        generatedEntities.add(TaskEntity.builder()
                         .categoryId(null)
                         .deadline(LocalDate.now().plusDays(3))
                         .priority(3)
@@ -41,8 +38,7 @@ public final class TaskTestDataGenerator {
                         .completed(false)
                         .build()
         );
-        generatedEntities.add(
-                RefactoredTaskEntity.builder()
+        generatedEntities.add(TaskEntity.builder()
                         .categoryId(null)
                         .deadline(LocalDate.now().plusDays(16))
                         .priority(0)
@@ -50,8 +46,7 @@ public final class TaskTestDataGenerator {
                         .completed(false)
                         .build()
         );
-        generatedEntities.add(
-                RefactoredTaskEntity.builder()
+        generatedEntities.add(TaskEntity.builder()
                         .categoryId(categoryId)
                         .deadline(LocalDate.now())
                         .priority(1)
@@ -59,8 +54,7 @@ public final class TaskTestDataGenerator {
                         .completed(true)
                         .build()
         );
-        generatedEntities.add(
-                RefactoredTaskEntity.builder()
+        generatedEntities.add(TaskEntity.builder()
                         .categoryId(categoryId)
                         .deadline(LocalDate.now().minusDays(2))
                         .priority(1)
@@ -68,8 +62,7 @@ public final class TaskTestDataGenerator {
                         .completed(false)
                         .build()
         );
-        generatedEntities.add(
-                RefactoredTaskEntity.builder()
+        generatedEntities.add(TaskEntity.builder()
                         .categoryId(categoryId)
                         .deadline(LocalDate.now().minusDays(1))
                         .priority(1)
@@ -81,13 +74,12 @@ public final class TaskTestDataGenerator {
         return generatedEntities;
     }
 
-    static public List<RefactoredTaskEntity> generateEntities(int numOfEntities) {
+    static public List<TaskEntity> generateEntities(int numOfEntities) {
         final Integer categoryId = 1;
-        List<RefactoredTaskEntity> generatedEntities = new ArrayList<>();
+        List<TaskEntity> generatedEntities = new ArrayList<>();
 
         for (int i = 0; i < numOfEntities; i++) {
-            generatedEntities.add(
-                    RefactoredTaskEntity.builder()
+            generatedEntities.add(TaskEntity.builder()
                             .categoryId((i % 2 == 0) ? categoryId : null)
                             .deadline(LocalDate.now().plusDays(i))
                             .priority(i % 4)
@@ -100,8 +92,8 @@ public final class TaskTestDataGenerator {
         return generatedEntities;
     }
 
-    static public RefactoredTaskEntity generateOneEntity() {
-        return RefactoredTaskEntity.builder()
+    static public TaskEntity generateOneEntity() {
+        return TaskEntity.builder()
                 .categoryId(1)
                 .deadline(LocalDate.now())
                 .priority(2)

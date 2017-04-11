@@ -1,4 +1,4 @@
-package debrecen.university.pti.kovtamas.data.test.refactored.relations;
+package debrecen.university.pti.kovtamas.data.test.relations;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskRelationEntity;
 import java.util.ArrayList;

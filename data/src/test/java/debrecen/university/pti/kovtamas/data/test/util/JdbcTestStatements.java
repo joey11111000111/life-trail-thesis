@@ -1,4 +1,4 @@
-package debrecen.university.pti.kovtamas.data.test.refactored.util;
+package debrecen.university.pti.kovtamas.data.test.util;
 
 public class JdbcTestStatements {
 

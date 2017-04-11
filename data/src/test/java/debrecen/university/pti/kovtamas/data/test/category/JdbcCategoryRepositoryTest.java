@@ -1,7 +1,7 @@
-package debrecen.university.pti.kovtamas.data.test.refactored.category;
+package debrecen.university.pti.kovtamas.data.test.category;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.CategoryEntity;
-import debrecen.university.pti.kovtamas.data.test.refactored.util.JdbcTestUtils;
+import debrecen.university.pti.kovtamas.data.test.util.JdbcTestUtils;
 import debrecen.university.pti.kovtamas.data.impl.sql.todo.category.JdbcCategoryRepository;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.CategoryNotFoundException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.CategorySaveFailureException;
@@ -15,10 +15,12 @@ import java.util.function.Consumer;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+@Ignore
 public class JdbcCategoryRepositoryTest {
 
     private final CategoryRepository categoryRepo;
