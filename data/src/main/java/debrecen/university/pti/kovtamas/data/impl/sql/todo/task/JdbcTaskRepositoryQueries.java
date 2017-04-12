@@ -1,10 +1,9 @@
 package debrecen.university.pti.kovtamas.data.impl.sql.todo.task;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
-import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DataSourceManager;
+import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DatabaseConnector;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TaskRepositoryQueries;
-import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,6 +22,8 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
 
     static private final JdbcTaskRepositoryQueries INSTANCE;
 
+    private final DatabaseConnector connector;
+
     static {
         INSTANCE = new JdbcTaskRepositoryQueries();
     }
@@ -31,32 +32,40 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
         return INSTANCE;
     }
 
+    public JdbcTaskRepositoryQueries() {
+        connector = DatabaseConnector.getInstance();
+    }
+
     @Override
     public List<TaskEntity> findAll() {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            Statement statement = conn.createStatement();
-            ResultSet results = statement.executeQuery(TaskQueryStatements.FIND_ALL);
+        try {
+            Statement statement = connector.createStatement();
+            ResultSet results = connector.executeQuery(statement, TaskQueryStatements.FIND_ALL);
             return extractAllResults(results);
         } catch (SQLException sqle) {
             log.warn("Exception while trying to find all tasks", sqle);
             return Collections.EMPTY_LIST;
+        } finally {
+            connector.finishedOperations();
         }
     }
 
     @Override
     public TaskEntity findById(int id) throws TaskNotFoundException {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            return findById(conn, id);
+        try {
+            return findByIdIfPresent(id);
         } catch (SQLException sqle) {
             throw new TaskNotFoundException("Exception while trying to find task with id: " + id, sqle);
+        } finally {
+            connector.finishedOperations();
         }
     }
 
-    private TaskEntity findById(Connection conn, int id) throws SQLException, TaskNotFoundException {
-        PreparedStatement statement = conn.prepareStatement(TaskQueryStatements.FIND_BY_ID);
+    private TaskEntity findByIdIfPresent(int id) throws SQLException, TaskNotFoundException {
+        PreparedStatement statement = connector.prepareStatement(TaskQueryStatements.FIND_BY_ID);
         statement.setInt(1, id);
 
-        ResultSet results = statement.executeQuery();
+        ResultSet results = connector.executeQuery(statement);
         if (results.next()) {
             return extractResult(results);
         }
@@ -66,19 +75,21 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
 
     @Override
     public List<TaskEntity> findByIds(@NonNull final Collection<Integer> ids) {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            return findAllExistingTasksByIds(conn, ids);
+        try {
+            return findAllExistingTasksByIds(ids);
         } catch (SQLException exception) {
             log.warn("Exception while trying to find tasks by ids", exception);
             return Collections.EMPTY_LIST;
+        } finally {
+            connector.finishedOperations();
         }
     }
 
-    private List<TaskEntity> findAllExistingTasksByIds(Connection conn, Collection<Integer> ids) throws SQLException {
+    private List<TaskEntity> findAllExistingTasksByIds(Collection<Integer> ids) throws SQLException {
         List<TaskEntity> loadedEntities = new ArrayList<>(ids.size());
         for (Integer id : ids) {
             try {
-                TaskEntity entity = findById(conn, id);
+                TaskEntity entity = findByIdIfPresent(id);
                 loadedEntities.add(entity);
             } catch (TaskNotFoundException tnfe) {
                 log.warn(tnfe.getMessage());
@@ -90,74 +101,74 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
 
     @Override
     public List<TaskEntity> findTodayAndUnfinishedPastTasks() {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            return findTodayAndUnfinishedPastTasks(conn);
+        try {
+            PreparedStatement statement = connector.prepareStatement(TaskQueryStatements.FIND_TODAY_AND_ACTIVE_PAST);
+            Date today = Date.valueOf(LocalDate.now());
+            statement.setDate(1, today);
+            statement.setDate(2, today);
+
+            ResultSet results = connector.executeQuery(statement);
+            return extractAllResults(results);
         } catch (SQLException sqle) {
             log.warn("Exception while trying to find tasks for today", sqle);
             return Collections.EMPTY_LIST;
+        } finally {
+            connector.finishedOperations();
         }
-    }
-
-    private List<TaskEntity> findTodayAndUnfinishedPastTasks(Connection conn) throws SQLException {
-        PreparedStatement statement = conn.prepareStatement(TaskQueryStatements.FIND_TODAY_AND_ACTIVE_PAST);
-        Date today = Date.valueOf(LocalDate.now());
-        statement.setDate(1, today);
-        statement.setDate(2, today);
-
-        ResultSet results = statement.executeQuery();
-        return extractAllResults(results);
     }
 
     @Override
     public List<TaskEntity> findActiveByCategoryId(int categoryId) {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            return findActiveByCategoryId(conn, categoryId);
+        try {
+            PreparedStatement statement = connector.prepareStatement(TaskQueryStatements.FIND_ACTIVE_BY_CATEGORY);
+            statement.setInt(1, categoryId);
+
+            ResultSet results = connector.executeQuery(statement);
+            return extractAllResults(results);
         } catch (SQLException sqle) {
             log.warn("Exception while trying to find active tasks by category", sqle);
             return Collections.EMPTY_LIST;
+        } finally {
+            connector.finishedOperations();
         }
-    }
-
-    private List<TaskEntity> findActiveByCategoryId(Connection conn, int categoryId) throws SQLException {
-        PreparedStatement statement = conn.prepareStatement(TaskQueryStatements.FIND_ACTIVE_BY_CATEGORY);
-        statement.setInt(1, categoryId);
-
-        ResultSet results = statement.executeQuery();
-        return extractAllResults(results);
     }
 
     @Override
     public List<TaskEntity> findCompletedTasks() {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            Statement statement = conn.createStatement();
-            ResultSet results = statement.executeQuery(TaskQueryStatements.FIND_COMPLETED);
+        try {
+            Statement statement = connector.createStatement();
+            ResultSet results = connector.executeQuery(statement, TaskQueryStatements.FIND_COMPLETED);
             return extractAllResults(results);
         } catch (SQLException sqle) {
             log.warn("Exception while trying to find completed tasks", sqle);
             return Collections.EMPTY_LIST;
+        } finally {
+            connector.finishedOperations();
         }
     }
 
     @Override
     public List<TaskEntity> findActiveTasksBetween(LocalDate since, LocalDate until) {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            PreparedStatement statement = conn.prepareStatement(TaskQueryStatements.FIND_ACTIVE_BETWEEN);
+        try {
+            PreparedStatement statement = connector.prepareStatement(TaskQueryStatements.FIND_ACTIVE_BETWEEN);
             statement.setDate(1, Date.valueOf(since));
             statement.setDate(2, Date.valueOf(until));
 
-            ResultSet results = statement.executeQuery();
+            ResultSet results = connector.executeQuery(statement);
             return extractAllResults(results);
         } catch (SQLException sqle) {
             log.warn("Exception while trying to find active tasks between given times", sqle);
             return Collections.EMPTY_LIST;
+        } finally {
+            connector.finishedOperations();
         }
     }
 
     @Override
     public int getRowCount() {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            Statement statement = conn.createStatement();
-            ResultSet result = statement.executeQuery(TaskQueryStatements.ROW_COUNT);
+        try {
+            Statement statement = connector.createStatement();
+            ResultSet result = connector.executeQuery(statement, TaskQueryStatements.ROW_COUNT);
             if (result.next()) {
                 return result.getInt(1);
             }
@@ -165,6 +176,8 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
             throw new RuntimeException("Failed to get row count of task table");
         } catch (SQLException sqle) {
             throw new RuntimeException("Excpetion while trying to get row count of task table", sqle);
+        } finally {
+            connector.finishedOperations();
         }
     }
 

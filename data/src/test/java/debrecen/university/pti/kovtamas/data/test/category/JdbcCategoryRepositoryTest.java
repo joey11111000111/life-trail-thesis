@@ -20,7 +20,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-@Ignore
+//@Ignore
 public class JdbcCategoryRepositoryTest {
 
     private final CategoryRepository categoryRepo;

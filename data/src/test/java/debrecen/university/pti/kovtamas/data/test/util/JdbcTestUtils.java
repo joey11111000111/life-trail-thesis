@@ -1,7 +1,6 @@
 package debrecen.university.pti.kovtamas.data.test.util;
 
-import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DataSourceManager;
-import java.sql.Connection;
+import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DatabaseConnector;
 import java.sql.SQLException;
 import java.sql.Statement;
 import lombok.extern.slf4j.Slf4j;
@@ -11,24 +10,30 @@ import static org.junit.Assert.fail;
 @Slf4j
 public final class JdbcTestUtils {
 
+    static private final DatabaseConnector CONNECTOR;
+
     static public enum TestType {
         UNIT, INTEGRATION
+    }
+
+    static {
+        CONNECTOR = DatabaseConnector.getInstance();
     }
 
     private JdbcTestUtils() {
     }
 
     static public void switchToTestTables(TestType testType) {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            renameProductionAndCreateTestTables(conn, testType);
+        try {
+            renameProductionAndCreateTestTables(testType);
         } catch (SQLException sqle) {
             log.error("Could not switch to test tables!", sqle);
             fail();
         }
     }
 
-    static private void renameProductionAndCreateTestTables(Connection conn, TestType testType) throws SQLException {
-        Statement statement = conn.createStatement();
+    static private void renameProductionAndCreateTestTables(TestType testType) throws SQLException {
+        Statement statement = CONNECTOR.createStatement();
         String[] renameStatements = getAllRenameToBackupStatementsOrdered();
         String[] createStatements = getAllCreateStatementsOrdered(testType);
 
@@ -66,16 +71,16 @@ public final class JdbcTestUtils {
     }
 
     static public void switchToProductionTables() {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            dropTestAndRenameProductionTables(conn);
+        try {
+            dropTestAndRenameProductionTables();
         } catch (SQLException sqle) {
             log.error("Could not switch to production tables!", sqle);
             fail();
         }
     }
 
-    static private void dropTestAndRenameProductionTables(Connection conn) throws SQLException {
-        Statement statement = conn.createStatement();
+    static private void dropTestAndRenameProductionTables() throws SQLException {
+        Statement statement = CONNECTOR.createStatement();
         String[] dropStatements = getAllDropTableStatementsOrdered();
         String[] renameStatements = getAllRenameToOriginalStatementsOrdered();
 

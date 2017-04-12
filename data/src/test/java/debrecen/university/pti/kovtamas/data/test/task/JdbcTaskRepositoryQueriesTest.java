@@ -25,7 +25,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-@Ignore
+//@Ignore
 @Slf4j
 public class JdbcTaskRepositoryQueriesTest {
 

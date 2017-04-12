@@ -1,7 +1,7 @@
 package debrecen.university.pti.kovtamas.data.impl.sql.todo.task;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
-import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DataSourceManager;
+import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DatabaseConnector;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TaskRepositoryUpdates;
@@ -23,6 +23,8 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
 
     static private final JdbcTaskRepositoryUpdates INSTANCE;
 
+    private final DatabaseConnector connector;
+
     static {
         INSTANCE = new JdbcTaskRepositoryUpdates();
     }
@@ -31,25 +33,31 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
         return INSTANCE;
     }
 
+    public JdbcTaskRepositoryUpdates() {
+        connector = DatabaseConnector.getInstance();
+    }
+
     @Override
     public TaskEntity saveOrUpdate(@NonNull final TaskEntity entity) throws TaskPersistenceException {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            return saveOrUpdate(conn, entity);
+        try {
+            return saveOrUpdateBasedOnId(entity);
         } catch (SQLException sqle) {
             throw new TaskPersistenceException("Exception while trying to save or update task entity", sqle);
+        } finally {
+            connector.finishedOperations();
         }
     }
 
-    private TaskEntity saveOrUpdate(Connection conn, TaskEntity entity) throws SQLException {
+    private TaskEntity saveOrUpdateBasedOnId(TaskEntity entity) throws SQLException {
         if (entity.hasId()) {
-            return update(conn, entity);
+            return update(entity);
         } else {
-            return save(conn, entity);
+            return save(entity);
         }
     }
 
-    private TaskEntity update(Connection conn, TaskEntity entity) throws SQLException {
-        PreparedStatement statement = conn.prepareStatement(TaskUpdateStatements.UPDATE);
+    private TaskEntity update(TaskEntity entity) throws SQLException {
+        PreparedStatement statement = connector.prepareStatement(TaskUpdateStatements.UPDATE);
         setColumnVariablesFrom(statement, entity);
         statement.setInt(6, entity.getId());
         statement.executeUpdate();
@@ -72,8 +80,8 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
         statement.setString(index++, completed);
     }
 
-    private TaskEntity save(Connection conn, TaskEntity entity) throws SQLException {
-        PreparedStatement statement = conn.prepareStatement(TaskUpdateStatements.INSERT, Statement.RETURN_GENERATED_KEYS);
+    private TaskEntity save(TaskEntity entity) throws SQLException {
+        PreparedStatement statement = connector.prepareStatement(TaskUpdateStatements.INSERT, DatabaseConnector.RETURN_GENERATED_KEYS);
         setColumnVariablesFrom(statement, entity);
         statement.executeUpdate();
 
@@ -88,7 +96,7 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
     }
 
     private Integer extractGeneratedKey(PreparedStatement statement) throws SQLException {
-        ResultSet result = statement.getGeneratedKeys();
+        ResultSet result = connector.getGeneratedKeys(statement);
         if (result.next()) {
             return result.getInt(1);
         }
@@ -98,17 +106,19 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
 
     @Override
     public List<TaskEntity> saveOrUpdateAll(@NonNull final Collection<TaskEntity> entities) throws TaskPersistenceException {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            return saveOrUpdateAll(conn, entities);
+        try {
+            return saveOrUpdateAllBasedOnId(entities);
         } catch (SQLException sqle) {
             throw new TaskPersistenceException("Exception while trying to save or update all entities", sqle);
+        } finally {
+            connector.finishedOperations();
         }
     }
 
-    private List<TaskEntity> saveOrUpdateAll(Connection conn, Collection<TaskEntity> entities) throws SQLException {
+    private List<TaskEntity> saveOrUpdateAllBasedOnId(Collection<TaskEntity> entities) throws SQLException {
         List<TaskEntity> savedEntities = new ArrayList<>(entities.size());
         for (TaskEntity entity : entities) {
-            TaskEntity savedEntity = saveOrUpdate(conn, entity);
+            TaskEntity savedEntity = saveOrUpdateBasedOnId(entity);
             savedEntities.add(savedEntity);
         }
 
@@ -117,41 +127,33 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
 
     @Override
     public void remove(final int id) throws TaskRemovalException {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            removeUsingGivenConnection(conn, id);
+        try {
+            PreparedStatement statement = connector.prepareStatement(TaskUpdateStatements.REMOVE_BY_ID);
+            statement.setInt(1, id);
+            statement.executeUpdate();
         } catch (SQLException sqle) {
-            throw new TaskRemovalException("Failed to establish database connection", sqle);
+            throw new TaskRemovalException("Exception while trying to remove task with id: " + id, sqle);
+        } finally {
+            connector.finishedOperations();
         }
     }
 
     @Override
     public void removeAll(@NonNull final Collection<Integer> ids) throws TaskRemovalException {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            for (Integer id : ids) {
-                removeUsingGivenConnection(conn, id);
-            }
-        } catch (SQLException sqle) {
-            throw new TaskRemovalException("Failed to establish database connection", sqle);
-        }
-    }
-
-    private void removeUsingGivenConnection(Connection conn, int removeId) throws TaskRemovalException {
-        try {
-            PreparedStatement statement = conn.prepareStatement(TaskUpdateStatements.REMOVE_BY_ID);
-            statement.setInt(1, removeId);
-            statement.executeUpdate();
-        } catch (SQLException sqle) {
-            throw new TaskRemovalException("Exception while trying to remove task with id: " + removeId, sqle);
+        for (Integer id : ids) {
+            remove(id);
         }
     }
 
     @Override
     public void clearTable() {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            Statement statement = conn.createStatement();
+        try {
+            Statement statement = connector.createStatement();
             statement.executeUpdate(TaskUpdateStatements.CLEAR);
         } catch (SQLException sqle) {
             log.warn("Exception while trying to clear task table", sqle);
+        } finally {
+            connector.finishedOperations();
         }
     }
 

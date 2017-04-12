@@ -1,10 +1,9 @@
 package debrecen.university.pti.kovtamas.data.impl.sql.todo.relations;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskRelationEntity;
-import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DataSourceManager;
+import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DatabaseConnector;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRelationPersistenceException;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TaskRelationsRepository;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,6 +18,8 @@ public class JdbcTaskRelationsRepository implements TaskRelationsRepository {
 
     static private final JdbcTaskRelationsRepository INSTANCE;
 
+    private final DatabaseConnector connector;
+
     static {
         INSTANCE = new JdbcTaskRelationsRepository();
     }
@@ -27,15 +28,21 @@ public class JdbcTaskRelationsRepository implements TaskRelationsRepository {
         return INSTANCE;
     }
 
+    public JdbcTaskRelationsRepository() {
+        connector = DatabaseConnector.getInstance();
+    }
+
     @Override
     public List<TaskRelationEntity> findAll() {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            Statement statement = conn.createStatement();
-            ResultSet results = statement.executeQuery(TaskRelationStatements.FIND_ALL);
+        try {
+            Statement statement = connector.createStatement();
+            ResultSet results = connector.executeQuery(statement, TaskRelationStatements.FIND_ALL);
             return extractAllResults(results);
         } catch (SQLException sqle) {
             log.warn("Exception while trying to find all task relations", sqle);
             return Collections.EMPTY_LIST;
+        } finally {
+            connector.finishedOperations();
         }
     }
 
@@ -59,32 +66,36 @@ public class JdbcTaskRelationsRepository implements TaskRelationsRepository {
 
     @Override
     public List<TaskRelationEntity> findAllWhereParentOrChildId(int id) {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            PreparedStatement statement = conn.prepareStatement(TaskRelationStatements.FIND_WHERE_PARENT_OR_CHILD);
+        try {
+            PreparedStatement statement = connector.prepareStatement(TaskRelationStatements.FIND_WHERE_PARENT_OR_CHILD);
             statement.setInt(1, id);
             statement.setInt(2, id);
-            ResultSet results = statement.executeQuery();
+            ResultSet results = connector.executeQuery(statement);
             return extractAllResults(results);
         } catch (SQLException sqle) {
             log.warn("Exception while trying to find rows where parent or child id: " + id, sqle);
             return Collections.EMPTY_LIST;
+        } finally {
+            connector.finishedOperations();
         }
     }
 
     @Override
     public TaskRelationEntity save(TaskRelationEntity newRelation) throws TaskRelationPersistenceException {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            return saveNewRelation(conn, newRelation);
+        try {
+            return saveNewRelation(newRelation);
         } catch (SQLException sqle) {
             throw new TaskRelationPersistenceException("Exception while trying to save new task relation", sqle);
+        } finally {
+            connector.finishedOperations();
         }
     }
 
-    private TaskRelationEntity saveNewRelation(Connection conn, TaskRelationEntity newRelation)
+    private TaskRelationEntity saveNewRelation(TaskRelationEntity newRelation)
             throws SQLException, TaskRelationPersistenceException {
-        abortIfEntityWouldMakeCircularDependency(conn, newRelation);
+        abortIfEntityWouldMakeCircularDependency(newRelation);
 
-        PreparedStatement statement = conn.prepareStatement(TaskRelationStatements.INSERT, Statement.RETURN_GENERATED_KEYS);
+        PreparedStatement statement = connector.prepareStatement(TaskRelationStatements.INSERT, DatabaseConnector.RETURN_GENERATED_KEYS);
         configureAndExecuteSaveStatement(statement, newRelation);
 
         Integer generatedId = extractGeneratedKey(statement);
@@ -95,12 +106,12 @@ public class JdbcTaskRelationsRepository implements TaskRelationsRepository {
                 .build();
     }
 
-    private void abortIfEntityWouldMakeCircularDependency(Connection conn, TaskRelationEntity entity)
+    private void abortIfEntityWouldMakeCircularDependency(TaskRelationEntity entity)
             throws SQLException, TaskRelationPersistenceException {
-        PreparedStatement statement = conn.prepareStatement(TaskRelationStatements.FIND_BY_PARENT_AND_CHILD);
+        PreparedStatement statement = connector.prepareStatement(TaskRelationStatements.FIND_BY_PARENT_AND_CHILD);
         statement.setInt(1, entity.getChildId());
         statement.setInt(2, entity.getParentId());
-        ResultSet results = statement.executeQuery();
+        ResultSet results = connector.executeQuery(statement);
         if (results.next()) {
             throw new TaskRelationPersistenceException("Saving the following entity would result in "
                     + "circular task dependency: " + entity);
@@ -124,10 +135,10 @@ public class JdbcTaskRelationsRepository implements TaskRelationsRepository {
 
     @Override
     public List<TaskRelationEntity> saveAll(List<TaskRelationEntity> newRelations) throws TaskRelationPersistenceException {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
+        try {
             List<TaskRelationEntity> savedEntities = new ArrayList<>(newRelations.size());
             for (TaskRelationEntity entity : newRelations) {
-                TaskRelationEntity savedEntity = saveNewRelation(conn, entity);
+                TaskRelationEntity savedEntity = saveNewRelation(entity);
                 savedEntities.add(savedEntity);
             }
 
@@ -135,39 +146,47 @@ public class JdbcTaskRelationsRepository implements TaskRelationsRepository {
         } catch (SQLException sqle) {
             log.warn("Exception while trying to save all entities", sqle);
             return Collections.EMPTY_LIST;
+        } finally {
+            connector.finishedOperations();
         }
     }
 
     @Override
     public void removeRelation(int relationId) {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            PreparedStatement statement = conn.prepareStatement(TaskRelationStatements.REMOVE_BY_ID);
+        try {
+            PreparedStatement statement = connector.prepareStatement(TaskRelationStatements.REMOVE_BY_ID);
             statement.setInt(1, relationId);
             statement.executeUpdate();
         } catch (SQLException sqle) {
             log.warn("Exception while trying to delete task relation with id: " + relationId, sqle);
+        } finally {
+            connector.finishedOperations();
         }
     }
 
     @Override
     public void removeAllWhereParentOrChildIdIs(int id) {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            PreparedStatement statement = conn.prepareStatement(TaskRelationStatements.REMOVE_WHERE_PARENT_OR_CHILD);
+        try {
+            PreparedStatement statement = connector.prepareStatement(TaskRelationStatements.REMOVE_WHERE_PARENT_OR_CHILD);
             statement.setInt(1, id);
             statement.setInt(2, id);
             statement.executeUpdate();
         } catch (SQLException sqle) {
             log.warn("Exception while trying to delete rows with parent or child id: " + id, sqle);
+        } finally {
+            connector.finishedOperations();
         }
     }
 
     @Override
     public void clearTable() {
-        try (Connection conn = DataSourceManager.getDataSource().getConnection()) {
-            Statement statement = conn.createStatement();
+        try {
+            Statement statement = connector.createStatement();
             statement.executeUpdate(TaskRelationStatements.CLEAR);
         } catch (SQLException sqle) {
             log.warn("Failed to clear task relations table", sqle);
+        } finally {
+            connector.finishedOperations();
         }
     }
 
