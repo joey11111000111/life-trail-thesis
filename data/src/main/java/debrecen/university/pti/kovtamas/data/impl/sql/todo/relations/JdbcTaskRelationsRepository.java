@@ -28,7 +28,7 @@ public class JdbcTaskRelationsRepository implements TaskRelationsRepository {
         return INSTANCE;
     }
 
-    public JdbcTaskRelationsRepository() {
+    private JdbcTaskRelationsRepository() {
         connector = DatabaseConnector.getInstance();
     }
 

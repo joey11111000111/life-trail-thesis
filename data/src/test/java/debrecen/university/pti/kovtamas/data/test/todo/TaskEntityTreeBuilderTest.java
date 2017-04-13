@@ -55,7 +55,6 @@ public class TaskEntityTreeBuilderTest {
             List<TreeNode<TaskEntity>> actualChildren = actualTree.getChildren();
             treeListEqualsOredered(expectedChildren, actualChildren);
         }
-
     }
 
     @Test

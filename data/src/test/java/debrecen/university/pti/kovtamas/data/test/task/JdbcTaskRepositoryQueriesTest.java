@@ -20,12 +20,10 @@ import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-//@Ignore
 @Slf4j
 public class JdbcTaskRepositoryQueriesTest {
 
@@ -137,6 +135,16 @@ public class JdbcTaskRepositoryQueriesTest {
         final int categoryId = expected.get(0).getCategoryId();
         List<TaskEntity> actual = repoQueries.findActiveByCategoryId(categoryId);
 
+        listEqualsOrdered(expected, actual);
+    }
+
+    @Test
+    public void findUncategorizedActiveTasksTest() {
+        List<TaskEntity> expected = allSavedEntities.stream()
+                .filter(entity -> entity.getCategoryId() == null && !entity.isCompleted())
+                .collect(Collectors.toList());
+
+        List<TaskEntity> actual = repoQueries.findUncategorizedTasks();
         listEqualsOrdered(expected, actual);
     }
 

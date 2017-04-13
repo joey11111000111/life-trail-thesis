@@ -5,7 +5,6 @@ import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DatabaseConnect
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TaskRepositoryUpdates;
-import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -33,7 +32,7 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
         return INSTANCE;
     }
 
-    public JdbcTaskRepositoryUpdates() {
+    private JdbcTaskRepositoryUpdates() {
         connector = DatabaseConnector.getInstance();
     }
 

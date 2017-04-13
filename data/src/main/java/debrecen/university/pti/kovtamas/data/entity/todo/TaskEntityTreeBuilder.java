@@ -4,12 +4,13 @@ import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.MissingTaskExc
 import debrecen.university.pti.kovtamas.general.util.SimpleTreeNode;
 import debrecen.university.pti.kovtamas.general.util.TreeNode;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
 
-public class TaskEntityTreeBuilder {
+public final class TaskEntityTreeBuilder {
 
     @EqualsAndHashCode
     static public class TaskRelations {
@@ -17,9 +18,9 @@ public class TaskEntityTreeBuilder {
         private final List<TaskEntity> tasks;
         private final List<TaskRelationEntity> relations;
 
-        public TaskRelations(List<TaskEntity> tasks, List<TaskRelationEntity> relations) {
-            this.tasks = tasks;
-            this.relations = relations;
+        public TaskRelations(Collection<TaskEntity> tasks, Collection<TaskRelationEntity> relations) {
+            this.tasks = new ArrayList<>(tasks);
+            this.relations = new ArrayList<>(relations);
         }
 
         public List<TaskEntity> getTasks() {
@@ -133,6 +134,9 @@ public class TaskEntityTreeBuilder {
         }
 
         return new TaskRelations(tasks, relations);
+    }
+
+    private TaskEntityTreeBuilder() {
     }
 
 }

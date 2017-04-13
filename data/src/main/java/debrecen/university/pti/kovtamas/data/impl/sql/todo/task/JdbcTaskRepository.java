@@ -1,103 +1,165 @@
 package debrecen.university.pti.kovtamas.data.impl.sql.todo.task;
-//
 
-public class JdbcTaskRepository {
+import debrecen.university.pti.kovtamas.data.entity.todo.CategoryEntity;
+import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
+import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntityTreeBuilder;
+import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntityTreeBuilder.TaskRelations;
+import debrecen.university.pti.kovtamas.data.entity.todo.TaskRelationEntity;
+import debrecen.university.pti.kovtamas.data.impl.sql.todo.relations.JdbcTaskRelationsRepository;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRelationPersistenceException;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
+import debrecen.university.pti.kovtamas.data.interfaces.todo.TaskRepository;
+import debrecen.university.pti.kovtamas.general.util.SimpleTreeNode;
+import debrecen.university.pti.kovtamas.general.util.TreeNode;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+public class JdbcTaskRepository implements TaskRepository {
+
+    static private final JdbcTaskRepository INSTANCE;
+
+    private final JdbcTaskRepositoryQueries taskQueries;
+    private final JdbcTaskRepositoryUpdates taskUpdates;
+    private final JdbcTaskRelationsRepository relationsRepo;
+
+    static {
+        INSTANCE = new JdbcTaskRepository();
+    }
+
+    static public JdbcTaskRepository getInstance() {
+        return INSTANCE;
+    }
+
+    private JdbcTaskRepository() {
+        taskQueries = JdbcTaskRepositoryQueries.getInstance();
+        taskUpdates = JdbcTaskRepositoryUpdates.getInstance();
+        relationsRepo = JdbcTaskRelationsRepository.getInstance();
+    }
+
+    @Override
+    public List<TreeNode<TaskEntity>> findTodayAndUnfinishedPastTasks() {
+        List<TaskEntity> activeByCategoryTasks = taskQueries.findTodayAndUnfinishedPastTasks();
+        return buildResultTreesFromEntities(activeByCategoryTasks);
+    }
+
+    @Override
+    public List<TreeNode<TaskEntity>> findActiveByCategory(CategoryEntity category) {
+        List<TaskEntity> activeByCategoryTasks = taskQueries.findActiveByCategoryId(category.getId());
+        return buildResultTreesFromEntities(activeByCategoryTasks);
+    }
+
+    @Override
+    public List<TreeNode<TaskEntity>> findUncategorized() {
+        List<TaskEntity> uncategorizedTasks = taskQueries.findUncategorizedTasks();
+        return buildResultTreesFromEntities(uncategorizedTasks);
+    }
+
+    @Override
+    public List<TreeNode<TaskEntity>> findCompleted() {
+        List<TaskEntity> completedTasks = taskQueries.findCompletedTasks();
+        return buildResultTreesFromEntities(completedTasks);
+    }
+
+    private List<TreeNode<TaskEntity>> buildResultTreesFromEntities(List<TaskEntity> entities) {
+        List<TaskRelationEntity> relations = findRelationsForTasks(entities);
+        TaskRelations taskRelations = new TaskRelations(entities, relations);
+        return TaskEntityTreeBuilder.buildTaskTrees(taskRelations);
+    }
+
+    private List<TaskRelationEntity> findRelationsForTasks(Collection<TaskEntity> tasks) {
+        List<Integer> allTaskIds = tasks.stream()
+                .map(TaskEntity::getId)
+                .collect(Collectors.toList());
+
+        Set<TaskRelationEntity> allRelations = new HashSet<>();
+        allTaskIds.forEach(currentTaskId -> {
+            List<TaskRelationEntity> currentTaskRelations = relationsRepo.findAllWhereParentOrChildId(currentTaskId);
+            allRelations.addAll(currentTaskRelations);
+        });
+
+        return new ArrayList<>(allRelations);
+    }
+
+    @Override
+    public List<TreeNode<TaskEntity>> findActiveTasksBetween(LocalDate since, LocalDate until) {
+        List<TaskEntity> tasks = taskQueries.findActiveTasksBetween(since, until);
+        return buildResultTreesFromEntities(tasks);
+    }
+
+    @Override
+    public TreeNode<TaskEntity> saveOrUpdate(TreeNode<TaskEntity> taskTree)
+            throws TaskPersistenceException {
+        TreeNode<TaskEntity> savedTree = saveOrUpdateTaskTree(taskTree);
+
+        TaskRelations treeRelations = TaskEntityTreeBuilder.collapseTaskTrees(Arrays.asList(savedTree));
+        List<TaskRelationEntity> relations = treeRelations.getRelations();
+        try {
+            relationsRepo.saveAll(relations);
+        } catch (TaskRelationPersistenceException trpe) {
+            // Ignore because in case of updateting a task tree, already
+            // existing relations will be sent to the save method too,
+            // which causes this exception. Not saving them again is the normal behavour.
+        }
+
+        return savedTree;
+    }
+
+    private TreeNode<TaskEntity> saveOrUpdateTaskTree(TreeNode<TaskEntity> tree) throws TaskPersistenceException {
+        TaskEntity currentRootElement = taskUpdates.saveOrUpdate(tree.getElement());
+        TreeNode<TaskEntity> currentRootNode = new SimpleTreeNode<>(currentRootElement);
+
+        if (tree.hasChildren()) {
+            for (TreeNode<TaskEntity> childNode : tree.getChildren()) {
+                TreeNode<TaskEntity> savedOrUpdatedChildNode = saveOrUpdateTaskTree(childNode);
+                savedOrUpdatedChildNode.setParent(currentRootNode);
+                currentRootNode.addChild(savedOrUpdatedChildNode);
+            }
+        }
+
+        return currentRootNode;
+    }
+
+    @Override
+    public List<TreeNode<TaskEntity>> saveOrUpdateAll(List<TreeNode<TaskEntity>> taskTrees) throws TaskPersistenceException {
+        List<TreeNode<TaskEntity>> savedTrees = new ArrayList<>(taskTrees.size());
+        for (TreeNode<TaskEntity> currentTree : taskTrees) {
+            TreeNode<TaskEntity> savedCurrentTree = saveOrUpdateTaskTree(currentTree);
+            savedTrees.add(savedCurrentTree);
+        }
+
+        return savedTrees;
+    }
+
+    @Override
+    public void remove(TreeNode<TaskEntity> taskTree) throws TaskRemovalException {
+        TaskRelations treeRelations = TaskEntityTreeBuilder.collapseTaskTrees(Arrays.asList(taskTree));
+        List<TaskEntity> tasks = treeRelations.getTasks();
+        List<Integer> taskIds = tasks.stream()
+                .map(TaskEntity::getId)
+                .collect(Collectors.toList());
+
+        taskIds.forEach(id -> relationsRepo.removeAllWhereParentOrChildIdIs(id));
+        taskUpdates.removeAll(taskIds);
+    }
+
+    @Override
+    public void removeAll(List<TreeNode<TaskEntity>> taskTrees) throws TaskRemovalException {
+        for (TreeNode<TaskEntity> currentTree : taskTrees) {
+            remove(currentTree);
+        }
+    }
+
+    @Override
+    public void clear() {
+        taskUpdates.clearTable();
+        relationsRepo.clearTable();
+    }
 
 }
-//import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
-//import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
-//import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
-//import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
-//import debrecen.university.pti.kovtamas.data.interfaces.todo.TaskRepository;
-//import debrecen.university.pti.kovtamas.data.interfaces.todo.TaskRepositoryQueries;
-//import debrecen.university.pti.kovtamas.data.interfaces.todo.TaskRepositoryUpdates;
-//import java.time.LocalDate;
-//import java.util.Collection;
-//import java.util.List;
-//
-//public class JdbcTaskRepository implements TaskRepository {
-//
-//    static private final JdbcTaskRepository INSTANCE;
-//
-//    private final TaskRepositoryQueries taskQueries;
-//    private final TaskRepositoryUpdates taskUpdates;
-//
-//    static {
-//        INSTANCE = new JdbcTaskRepository();
-//    }
-//
-//    static public JdbcTaskRepository getInstance() {
-//        return INSTANCE;
-//    }
-//
-//    public JdbcTaskRepository() {
-//        taskQueries = JdbcTaskRepositoryQueries.getInstance();
-//        taskUpdates = JdbcTaskRepositoryUpdates.getInstance();
-//    }
-//
-//    @Override
-//    public List<TaskEntity> findAll() {
-//        return taskQueries.findAll();
-//    }
-//
-//    @Override
-//    public TaskEntity findById(int id) throws TaskNotFoundException {
-//        return taskQueries.findById(id);
-//    }
-//
-//    @Override
-//    public List<TaskEntity> findByIds(Collection<Integer> ids) {
-//        return taskQueries.findByIds(ids);
-//    }
-//
-//    @Override
-//    public List<TaskEntity> findTodayAndUnfinishedPastTasks() {
-//        return taskQueries.findTodayAndUnfinishedPastTasks();
-//    }
-//
-//    @Override
-//    public List<TaskEntity> findActiveByCategoryId(int categoryId) {
-//        return taskQueries.findActiveByCategoryId(categoryId);
-//    }
-//
-//    @Override
-//    public List<TaskEntity> findCompletedTasks() {
-//        return taskQueries.findCompletedTasks();
-//    }
-//
-//    @Override
-//    public List<TaskEntity> findActiveTasksBetween(LocalDate since, LocalDate until) {
-//        return taskQueries.findActiveTasksBetween(since, until);
-//    }
-//
-//    @Override
-//    public int getRowCount() {
-//        return taskQueries.getRowCount();
-//    }
-//
-//    @Override
-//    public TaskEntity saveOrUpdate(TaskEntity entity) throws TaskPersistenceException {
-//        return taskUpdates.saveOrUpdate(entity);
-//    }
-//
-//    @Override
-//    public List<TaskEntity> saveOrUpdateAll(Collection<TaskEntity> entities) throws TaskPersistenceException {
-//        return taskUpdates.saveOrUpdateAll(entities);
-//    }
-//
-//    @Override
-//    public void remove(int id) throws TaskRemovalException {
-//        taskUpdates.remove(id);
-//    }
-//
-//    @Override
-//    public void removeAll(Collection<Integer> ids) throws TaskRemovalException {
-//        taskUpdates.removeAll(ids);
-//    }
-//
-//    @Override
-//    public void clearTable() {
-//        taskUpdates.clearTable();
-//    }
-//
-//}

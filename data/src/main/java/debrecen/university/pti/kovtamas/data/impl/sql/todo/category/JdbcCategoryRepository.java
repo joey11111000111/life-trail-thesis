@@ -31,7 +31,7 @@ public class JdbcCategoryRepository implements CategoryRepository {
         return INSTANCE;
     }
 
-    public JdbcCategoryRepository() {
+    private JdbcCategoryRepository() {
         connector = DatabaseConnector.getInstance();
     }
 

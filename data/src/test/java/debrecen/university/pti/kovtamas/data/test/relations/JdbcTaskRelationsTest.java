@@ -11,13 +11,11 @@ import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-//@Ignore
 public class JdbcTaskRelationsTest {
 
     private final TaskRelationsRepository relationsRepo;

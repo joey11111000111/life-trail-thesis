@@ -2,9 +2,11 @@ package debrecen.university.pti.kovtamas.data.entity.todo;
 
 import java.io.Serializable;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 
 @Builder
+@AllArgsConstructor
 public class TaskRelationEntity implements Serializable {
 
     static private final long serialVersionUID = 5000L;
@@ -12,6 +14,11 @@ public class TaskRelationEntity implements Serializable {
     private Integer id = null;
     private int parentId;
     private int childId;
+
+    public TaskRelationEntity(int parentId, int childId) {
+        this.parentId = parentId;
+        this.childId = childId;
+    }
 
     public boolean hasId() {
         return id != null;

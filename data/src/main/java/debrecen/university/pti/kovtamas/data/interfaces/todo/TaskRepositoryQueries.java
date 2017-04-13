@@ -18,6 +18,8 @@ public interface TaskRepositoryQueries {
 
     List<TaskEntity> findActiveByCategoryId(int categoryId);
 
+    List<TaskEntity> findUncategorizedTasks();
+
     List<TaskEntity> findCompletedTasks();
 
     List<TaskEntity> findActiveTasksBetween(LocalDate since, LocalDate until);

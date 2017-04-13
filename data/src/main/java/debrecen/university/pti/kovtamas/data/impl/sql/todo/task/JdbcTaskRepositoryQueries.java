@@ -32,7 +32,7 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
         return INSTANCE;
     }
 
-    public JdbcTaskRepositoryQueries() {
+    private JdbcTaskRepositoryQueries() {
         connector = DatabaseConnector.getInstance();
     }
 
@@ -127,6 +127,20 @@ public class JdbcTaskRepositoryQueries implements TaskRepositoryQueries {
             return extractAllResults(results);
         } catch (SQLException sqle) {
             log.warn("Exception while trying to find active tasks by category", sqle);
+            return Collections.EMPTY_LIST;
+        } finally {
+            connector.finishedOperations();
+        }
+    }
+
+    @Override
+    public List<TaskEntity> findUncategorizedTasks() {
+        try {
+            Statement statement = connector.createStatement();
+            ResultSet results = connector.executeQuery(statement, TaskQueryStatements.FIND_ACTIVE_UNCATEGORIZED);
+            return extractAllResults(results);
+        } catch (SQLException sqle) {
+            log.warn("Exception while trying to find uncategorized tasks", sqle);
             return Collections.EMPTY_LIST;
         } finally {
             connector.finishedOperations();
