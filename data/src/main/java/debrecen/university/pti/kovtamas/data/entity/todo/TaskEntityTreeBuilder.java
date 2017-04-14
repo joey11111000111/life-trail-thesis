@@ -51,10 +51,8 @@ public final class TaskEntityTreeBuilder {
     }
 
     static public List<TreeNode<TaskEntity>> buildTaskTrees(TaskRelations taskRelations) {
-        System.out.println("---- buildTaskTrees called ----");
         List<TaskEntity> tasks = taskRelations.getTasks();
         List<TreeNode<TaskEntity>> nodes = createIndependentNodesInOrderFrom(tasks);
-        System.out.println("---- nodes created ----");
         List<TaskRelationEntity> relations = taskRelations.getRelations();
 
         // Apply relations to nodes
@@ -86,8 +84,6 @@ public final class TaskEntityTreeBuilder {
             child.setParent(parent);
             parent.addChild(child);
         }
-
-        System.out.println("---- after the for ----");
 
         List<TreeNode<TaskEntity>> taskTrees = nodes.stream()
                 .filter(node -> !node.hasParent())

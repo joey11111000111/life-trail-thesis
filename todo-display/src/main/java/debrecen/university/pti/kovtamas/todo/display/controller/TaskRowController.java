@@ -1,13 +1,18 @@
 package debrecen.university.pti.kovtamas.todo.display.controller;
 
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.display.PriorityColors;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.display.TaskDisplayState;
 import debrecen.university.pti.kovtamas.todo.service.vo.CategoryVo;
+import debrecen.university.pti.kovtamas.todo.service.vo.Priority;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
+import javafx.event.Event;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.CheckBox;
@@ -26,6 +31,7 @@ public class TaskRowController {
     private final long rowId;
     private boolean isDisabled;
     private TaskDisplayState currentTaskState;
+    private EventHandler<Event> priorityCircleClickHandler;
     private List<CategoryVo> selectableCategories;
 
     public TaskRowController() {
@@ -69,6 +75,24 @@ public class TaskRowController {
         doneCheckBox.selectedProperty().addListener((observable, wasSelectedBefore, isSelectedNow) -> {
             currentTaskState.setCompleted(isSelectedNow);
         });
+
+        setupPriorityCircleClickHandler();
+    }
+
+    private void setupPriorityCircleClickHandler() {
+        priorityCircleClickHandler = (event) -> {
+            Priority[] allPriorities = Priority.values();
+            int allPriorityCount = allPriorities.length;
+
+            int currentPriority = currentTaskState.getPriorityColor().toPriority().intValue();
+            currentPriority++;
+            currentPriority = currentPriority % allPriorityCount;
+            Priority newPriority = allPriorities[currentPriority];
+            PriorityColors newColor = PriorityColors.ofPriority(newPriority);
+
+            setPriorityColor(newColor.getColorStyle());
+            currentTaskState.setPriorityColor(newColor);
+        };
     }
 
     private CategoryVo getVoByName(String categoryName) {
@@ -112,6 +136,15 @@ public class TaskRowController {
             // Using the checkbox is not part of editing a task.
             // The state of an under-editing task should not be changed.
             doneCheckBox.setDisable(!isDisabled);
+            applyDisableStateToPriorityHandler();
+        }
+    }
+
+    private void applyDisableStateToPriorityHandler() {
+        if (isDisabled) {
+            priorityIndicator.removeEventHandler(EventType.ROOT, priorityCircleClickHandler);
+        } else {
+            priorityIndicator.setOnMouseClicked(priorityCircleClickHandler);
         }
     }
 

@@ -7,6 +7,7 @@ import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntityTreeBuilder.T
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskRelationEntity;
 import debrecen.university.pti.kovtamas.data.impl.sql.todo.relations.JdbcTaskRelationsRepository;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.RowModificationException;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskNotFoundException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRelationPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
@@ -21,7 +22,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class JdbcTaskRepository implements TaskRepository {
 
     static private final JdbcTaskRepository INSTANCE;
@@ -58,9 +61,7 @@ public class JdbcTaskRepository implements TaskRepository {
 
     @Override
     public List<TreeNode<TaskEntity>> findUncategorized() {
-        System.out.println("--- findUncategorized ---");
         List<TaskEntity> uncategorizedTasks = taskQueries.findUncategorizedTasks();
-        System.out.println("--- uncategorized tasks found ---");
         return buildResultTreesFromEntities(uncategorizedTasks);
     }
 
@@ -71,10 +72,11 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
     private List<TreeNode<TaskEntity>> buildResultTreesFromEntities(List<TaskEntity> entities) {
+        List<TaskEntity> completedSubTasks = findCompletedSubtasksIfPresent(entities);
+        entities.addAll(completedSubTasks);
+
         List<TaskRelationEntity> relations = findRelationsForTasks(entities);
-        System.out.println("--- relations found ---");
         TaskRelations taskRelations = new TaskRelations(entities, relations);
-        System.out.println("--- TaskRelations object built ---");
         return TaskEntityTreeBuilder.buildTaskTrees(taskRelations);
     }
 
@@ -96,6 +98,37 @@ public class JdbcTaskRepository implements TaskRepository {
     public List<TreeNode<TaskEntity>> findActiveTasksBetween(LocalDate since, LocalDate until) {
         List<TaskEntity> tasks = taskQueries.findActiveTasksBetween(since, until);
         return buildResultTreesFromEntities(tasks);
+    }
+
+    private List<TaskEntity> findCompletedSubtasksIfPresent(List<TaskEntity> tasks) {
+        List<TaskRelationEntity> relations = findRelationsForTasks(tasks);
+        List<TaskEntity> completedSubTasks = new ArrayList<>();
+        for (TaskRelationEntity relation : relations) {
+            int childId = relation.getChildId();
+            boolean isTaskMissing = !containsTaskWithId(tasks, childId);
+            if (isTaskMissing) {
+                try {
+                    TaskEntity missingTask = taskQueries.findById(childId);
+                    completedSubTasks.add(missingTask);
+                } catch (TaskNotFoundException tnfe) {
+                    log.warn("Failed to load missing task with id: " + childId, tnfe);
+                }
+            }
+        }
+
+        if (!completedSubTasks.isEmpty()) {
+            List<TaskEntity> otherMissingTasks = findCompletedSubtasksIfPresent(completedSubTasks);
+            completedSubTasks.addAll(otherMissingTasks);
+        }
+
+        return completedSubTasks;
+    }
+
+    private boolean containsTaskWithId(List<TaskEntity> tasks, int id) {
+        return tasks.stream()
+                .filter(task -> task.getId() == id)
+                .findAny()
+                .isPresent();
     }
 
     @Override
