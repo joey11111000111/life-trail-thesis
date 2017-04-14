@@ -1,6 +1,7 @@
 package debrecen.university.pti.kovtamas.data.interfaces.todo;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.RowModificationException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
 import java.util.Collection;
@@ -15,6 +16,8 @@ public interface TaskRepositoryUpdates {
     void remove(int id) throws TaskRemovalException;
 
     void removeAll(Collection<Integer> ids) throws TaskRemovalException;
+
+    void setCategoryIdToNullWhere(int categoryId) throws RowModificationException;
 
     void clearTable();
 

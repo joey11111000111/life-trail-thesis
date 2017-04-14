@@ -6,6 +6,7 @@ import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntityTreeBuilder;
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntityTreeBuilder.TaskRelations;
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskRelationEntity;
 import debrecen.university.pti.kovtamas.data.impl.sql.todo.relations.JdbcTaskRelationsRepository;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.RowModificationException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRelationPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
@@ -57,7 +58,9 @@ public class JdbcTaskRepository implements TaskRepository {
 
     @Override
     public List<TreeNode<TaskEntity>> findUncategorized() {
+        System.out.println("--- findUncategorized ---");
         List<TaskEntity> uncategorizedTasks = taskQueries.findUncategorizedTasks();
+        System.out.println("--- uncategorized tasks found ---");
         return buildResultTreesFromEntities(uncategorizedTasks);
     }
 
@@ -69,7 +72,9 @@ public class JdbcTaskRepository implements TaskRepository {
 
     private List<TreeNode<TaskEntity>> buildResultTreesFromEntities(List<TaskEntity> entities) {
         List<TaskRelationEntity> relations = findRelationsForTasks(entities);
+        System.out.println("--- relations found ---");
         TaskRelations taskRelations = new TaskRelations(entities, relations);
+        System.out.println("--- TaskRelations object built ---");
         return TaskEntityTreeBuilder.buildTaskTrees(taskRelations);
     }
 
@@ -100,12 +105,14 @@ public class JdbcTaskRepository implements TaskRepository {
 
         TaskRelations treeRelations = TaskEntityTreeBuilder.collapseTaskTrees(Arrays.asList(savedTree));
         List<TaskRelationEntity> relations = treeRelations.getRelations();
-        try {
-            relationsRepo.saveAll(relations);
-        } catch (TaskRelationPersistenceException trpe) {
-            // Ignore because in case of updateting a task tree, already
-            // existing relations will be sent to the save method too,
-            // which causes this exception. Not saving them again is the normal behavour.
+        for (TaskRelationEntity relation : relations) {
+            try {
+                relationsRepo.save(relation);
+            } catch (TaskRelationPersistenceException trpe) {
+                // Ignore because in case of updateting a task tree, already
+                // existing relations will be sent to the save method too,
+                // which causes this exception. Not saving them again is the normal behavour.
+            }
         }
 
         return savedTree;
@@ -154,6 +161,11 @@ public class JdbcTaskRepository implements TaskRepository {
         for (TreeNode<TaskEntity> currentTree : taskTrees) {
             remove(currentTree);
         }
+    }
+
+    @Override
+    public void setCategoryIdToNullWhere(int categoryId) throws RowModificationException {
+        taskUpdates.setCategoryIdToNullWhere(categoryId);
     }
 
     @Override

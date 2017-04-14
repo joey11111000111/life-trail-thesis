@@ -1,8 +1,8 @@
 package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.display;
 
+import debrecen.university.pti.kovtamas.todo.service.vo.CategoryVo;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class TaskDisplayState {
@@ -12,8 +12,8 @@ public class TaskDisplayState {
         private Integer indentWidth;
         private Boolean completed;
         private PriorityColors priorityColor;
-        private Collection<String> selectableCategories;
-        private String selectedCategory;
+        private List<CategoryVo> selectableCategories;
+        private CategoryVo selectedCategory;
         private String taskDef;
         private LocalDate deadline;
 
@@ -35,12 +35,12 @@ public class TaskDisplayState {
             return this;
         }
 
-        public Builder selectableCategories(Collection<String> selectableCategories) {
+        public Builder selectableCategories(List<CategoryVo> selectableCategories) {
             this.selectableCategories = selectableCategories;
             return this;
         }
 
-        public Builder selectedCategory(String selectedCategory) {
+        public Builder selectedCategory(CategoryVo selectedCategory) {
             this.selectedCategory = selectedCategory;
             return this;
         }
@@ -69,13 +69,13 @@ public class TaskDisplayState {
     private Integer indentWidth;
     private Boolean completed;
     private PriorityColors priorityColor;
-    private List<String> selectableCategories;
-    private String selectedCategory;
+    private List<CategoryVo> selectableCategories;
+    private CategoryVo selectedCategory;
     private String taskDef;
     private LocalDate deadline;
 
     private TaskDisplayState(Integer indentWidth, Boolean completed, PriorityColors priorityColor,
-            Collection<String> selectableCategories, String selectedCategory,
+            List<CategoryVo> selectableCategories, CategoryVo selectedCategory,
             String taskDef, LocalDate deadline) {
 
         this.indentWidth = indentWidth;
@@ -111,19 +111,19 @@ public class TaskDisplayState {
         this.priorityColor = priorityColor;
     }
 
-    public List<String> getSelectableCategories() {
+    public List<CategoryVo> getSelectableCategories() {
         return selectableCategories;
     }
 
-    public void setSelectableCategories(List<String> selectableCategories) {
+    public void setSelectableCategories(List<CategoryVo> selectableCategories) {
         this.selectableCategories = selectableCategories;
     }
 
-    public String getSelectedCategory() {
+    public CategoryVo getSelectedCategory() {
         return selectedCategory;
     }
 
-    public void setSelectedCategory(String selectedCategory) {
+    public void setSelectedCategory(CategoryVo selectedCategory) {
         this.selectedCategory = selectedCategory;
     }
 

@@ -1,9 +1,12 @@
 package debrecen.university.pti.kovtamas.todo.display.controller;
 
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.display.TaskDisplayState;
+import debrecen.university.pti.kovtamas.todo.service.vo.CategoryVo;
 import java.time.LocalDate;
-import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -23,6 +26,7 @@ public class TaskRowController {
     private final long rowId;
     private boolean isDisabled;
     private TaskDisplayState currentTaskState;
+    private List<CategoryVo> selectableCategories;
 
     public TaskRowController() {
         this.rowId = nextId++;
@@ -56,7 +60,8 @@ public class TaskRowController {
             currentTaskState.setTaskDef(newText);
         });
         categoryBox.getSelectionModel().selectedItemProperty().addListener((observable, oldCategory, newCategory) -> {
-            currentTaskState.setSelectedCategory(newCategory);
+            CategoryVo newCategoryVo = getVoByName(newCategory);
+            currentTaskState.setSelectedCategory(newCategoryVo);
         });
         datePicker.valueProperty().addListener((observable, oldDate, newDate) -> {
             currentTaskState.setDeadline(newDate);
@@ -64,6 +69,13 @@ public class TaskRowController {
         doneCheckBox.selectedProperty().addListener((observable, wasSelectedBefore, isSelectedNow) -> {
             currentTaskState.setCompleted(isSelectedNow);
         });
+    }
+
+    private CategoryVo getVoByName(String categoryName) {
+        return selectableCategories.stream()
+                .filter(cusCat -> Objects.equals(cusCat.getName(), categoryName))
+                .findAny()
+                .get();
     }
 
     public void registerTaskCompletionChangeAction(@NonNull final Consumer<TaskRowController> action) {
@@ -119,12 +131,21 @@ public class TaskRowController {
         priorityIndicator.setStyle(colorStyle);
     }
 
-    private void setSelectableCategories(Collection<String> selectableCategories) {
-        categoryBox.setItems(FXCollections.observableArrayList(selectableCategories));
+    private void setSelectableCategories(List<CategoryVo> selectableCategories) {
+        this.selectableCategories = selectableCategories;
+        List<String> selectableCategoryNames = selectableCategories.stream()
+                .map(CategoryVo::getName)
+                .collect(Collectors.toList());
+
+        categoryBox.setItems(FXCollections.observableArrayList(selectableCategoryNames));
     }
 
-    private void setSelectedCategory(String selectedCategory) {
-        categoryBox.getSelectionModel().select(selectedCategory);
+    private void setSelectedCategory(CategoryVo selectedCategory) {
+        if (selectedCategory != null) {
+            categoryBox.getSelectionModel().select(selectedCategory.getName());
+        } else {
+            categoryBox.getSelectionModel().select("");
+        }
     }
 
     private void setDeadline(LocalDate deadline) {

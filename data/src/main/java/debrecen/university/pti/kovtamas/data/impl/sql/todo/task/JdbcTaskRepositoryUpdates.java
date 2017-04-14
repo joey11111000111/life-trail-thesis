@@ -2,6 +2,7 @@ package debrecen.university.pti.kovtamas.data.impl.sql.todo.task;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
 import debrecen.university.pti.kovtamas.data.impl.sql.datasource.DatabaseConnector;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.RowModificationException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
 import debrecen.university.pti.kovtamas.data.interfaces.todo.TaskRepositoryUpdates;
@@ -141,6 +142,18 @@ public class JdbcTaskRepositoryUpdates implements TaskRepositoryUpdates {
     public void removeAll(@NonNull final Collection<Integer> ids) throws TaskRemovalException {
         for (Integer id : ids) {
             remove(id);
+        }
+    }
+
+    @Override
+    public void setCategoryIdToNullWhere(int categoryId) throws RowModificationException {
+        try {
+            PreparedStatement statement = connector.prepareStatement(TaskUpdateStatements.SET_NULL_CATEGORY_WHERE);
+            statement.setInt(1, categoryId);
+            statement.executeUpdate();
+        } catch (SQLException sqle) {
+            throw new RowModificationException("Failed to set categoryId to null where categoryId = "
+                    + categoryId, sqle);
         }
     }
 

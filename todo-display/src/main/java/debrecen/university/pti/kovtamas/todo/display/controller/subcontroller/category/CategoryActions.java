@@ -2,7 +2,10 @@ package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.c
 
 import debrecen.university.pti.kovtamas.display.utils.ValueChangeAction;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.LogicalCategoryNames.LogicalCategories;
+import debrecen.university.pti.kovtamas.todo.service.vo.CategoryVo;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import lombok.NonNull;
@@ -12,17 +15,19 @@ import lombok.extern.slf4j.Slf4j;
 public class CategoryActions {
 
     private final LogicalCategoryNames logicalCategoryNames;
+    private final List<CategoryVo> customCategories;
     // Remove existing and add new category only applies to custom categories.
     // But both custom and logical categories are selectable,
     // that's why selection action is the only one with CategoryVo.
-    private final Set<ValueChangeAction<CategoryVo>> selectionChangeActions;
-    private final Set<Consumer<String>> newCategoryActions;
-    private final Set<Consumer<String>> removeCategoryActions;
+    private final Set<ValueChangeAction<DisplayCategoryVo>> selectionChangeActions;
+    private final Set<Consumer<CategoryVo>> newCategoryActions;
+    private final Set<Consumer<CategoryVo>> removeCategoryActions;
 
     private boolean isSelectionActionBlocked;
 
-    public CategoryActions(LogicalCategoryNames logicalCategoryNames) {
+    public CategoryActions(LogicalCategoryNames logicalCategoryNames, List<CategoryVo> customCategories) {
         this.logicalCategoryNames = logicalCategoryNames;
+        this.customCategories = customCategories;
         this.selectionChangeActions = new HashSet<>();
         this.newCategoryActions = new HashSet<>();
         this.removeCategoryActions = new HashSet<>();
@@ -30,15 +35,15 @@ public class CategoryActions {
     }
 
     // Register actions -----------------------------
-    public void registerSelectionChangeAction(@NonNull final ValueChangeAction<CategoryVo> selectionChangeAction) {
+    public void registerSelectionChangeAction(@NonNull final ValueChangeAction<DisplayCategoryVo> selectionChangeAction) {
         selectionChangeActions.add(selectionChangeAction);
     }
 
-    public void registerNewCategoryAction(@NonNull final Consumer<String> newCategoryAction) {
+    public void registerNewCategoryAction(@NonNull final Consumer<CategoryVo> newCategoryAction) {
         newCategoryActions.add(newCategoryAction);
     }
 
-    public void registerRemoveCategoryAction(@NonNull final Consumer<String> removeAction) {
+    public void registerRemoveCategoryAction(@NonNull final Consumer<CategoryVo> removeAction) {
         removeCategoryActions.add(removeAction);
     }
 
@@ -46,18 +51,18 @@ public class CategoryActions {
     void selectedCategoryChangedFromTo(String fromCategoryName, String toCategoryName) {
         if (!isSelectionActionBlocked) {
             log.info("Selected category changed from '" + fromCategoryName + "' to '" + toCategoryName + "'");
-            CategoryVo fromCategoryVo = createPossiblyNullCategoryVoFromName(fromCategoryName);
-            CategoryVo toCategoryVo = createPossiblyNullCategoryVoFromName(toCategoryName);
+            DisplayCategoryVo fromCategoryVo = createPossiblyNullCategoryVoFromName(fromCategoryName);
+            DisplayCategoryVo toCategoryVo = createPossiblyNullCategoryVoFromName(toCategoryName);
             selectionChangeActions.forEach(action -> action.accept(fromCategoryVo, toCategoryVo));
         }
     }
 
-    void newCategoryAdded(String newCategory) {
+    void newCategoryAdded(CategoryVo newCategory) {
         log.info("New category added: " + newCategory);
         newCategoryActions.forEach(action -> action.accept(newCategory));
     }
 
-    void categoryRemoved(String removedCategory) {
+    void categoryRemoved(CategoryVo removedCategory) {
         log.info("Category removed: " + removedCategory);
         removeCategoryActions.forEach(action -> action.accept(removedCategory));
     }
@@ -72,15 +77,15 @@ public class CategoryActions {
     }
 
     // private helper methods -----------------------
-    private CategoryVo createPossiblyNullCategoryVoFromName(String categoryName) {
+    private DisplayCategoryVo createPossiblyNullCategoryVoFromName(String categoryName) {
         if (categoryName == null) {
             return null;
         }
 
-        return createNonNullCategoryVoFromName(categoryName);
+        return createDisplayCategoryVoFromName(categoryName);
     }
 
-    private CategoryVo createNonNullCategoryVoFromName(String categoryName) {
+    private DisplayCategoryVo createDisplayCategoryVoFromName(String categoryName) {
         boolean isLogicalCategory = logicalCategoryNames.isLogicalCategory(categoryName);
         if (isLogicalCategory) {
             return createLogicalCategoryVo(categoryName);
@@ -89,12 +94,17 @@ public class CategoryActions {
         return createCustomCategoryVo(categoryName);
     }
 
-    private CategoryVo createLogicalCategoryVo(String categoryName) {
+    private DisplayCategoryVo createLogicalCategoryVo(String categoryName) {
         LogicalCategories logicalCategory = logicalCategoryNames.whichLogicalCategory(categoryName);
-        return CategoryVo.logicalCategoryVo(logicalCategory);
+        return DisplayCategoryVo.logicalCategoryVo(logicalCategory);
     }
 
-    private CategoryVo createCustomCategoryVo(String categoryName) {
-        return CategoryVo.customCategoryVo(categoryName);
+    private DisplayCategoryVo createCustomCategoryVo(String categoryName) {
+        CategoryVo customCategoryVo = customCategories.stream()
+                .filter(cusCat -> Objects.equals(cusCat.getName(), categoryName))
+                .findAny()
+                .get();
+
+        return DisplayCategoryVo.customCategoryVo(customCategoryVo);
     }
 }

@@ -1,43 +1,47 @@
 package debrecen.university.pti.kovtamas.todo.service.api;
 
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.CategorySaveFailureException;
+import debrecen.university.pti.kovtamas.todo.service.vo.CategoryVo;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public interface TodoService {
 
-    List<TaskVo> getAll();
+    // Category and logical category related methods
+    List<CategoryVo> getAllCategoriesInDisplayOrder();
 
-    Set<String> getCustomCategories();
+    List<TaskVo> getActiveByCategory(CategoryVo category);
 
-    List<TaskVo> getActiveByCategory(String category);
-
-    // Methods for fixed categories ---------------------------------------
     List<TaskVo> getTodayTasks();
 
     List<TaskVo> getTomorrowTasks();
 
     List<TaskVo> getOneWeekTasks();
 
-    List<TaskVo> getTasksOfFollowingDays(int days);
-
     List<TaskVo> getCompletedTasks();
 
     List<TaskVo> getUncategorizedTasks();
-    // /Methods for fixed categories --------------------------------------
 
-    void save(TaskVo task) throws TaskSaveFailureException;
+    List<TaskVo> getTasksOfFollowingDays(LocalDate since, LocalDate until);
 
-    void saveAll(Collection<TaskVo> tasks) throws TaskSaveFailureException;
+    CategoryVo saveOrUpdateCategory(CategoryVo categoryVo) throws CategorySaveFailureException;
 
-    void delete(TaskVo task) throws TaskDeletionException;
+    void deleteCategory(CategoryVo category);
+    // /Category and logical category related methods
 
-    void deleteAll(Collection<TaskVo> tasks) throws TaskDeletionException;
+    TaskVo saveTask(TaskVo task) throws TaskSaveFailureException;
+
+    List<TaskVo> saveAllTasks(Collection<TaskVo> tasks) throws TaskSaveFailureException;
+
+    void deleteTask(TaskVo task) throws TaskDeletionException;
+
+    void deleteAllTasks(Collection<TaskVo> tasks) throws TaskDeletionException;
 
     void deleteTaskFromTaskTree(TaskVo taskToDelete, TaskVo taskTree) throws TaskDeletionException;
 
-    void addSubTask(TaskVo mainTask, TaskVo subTask);
+    void addSubTaskToMainTask(TaskVo subTask, TaskVo mainTask);
 
     TaskVo newMinimalTaskVo();
 

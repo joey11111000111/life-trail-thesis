@@ -8,7 +8,7 @@ import java.util.Objects;
 public class TaskTreeSynchronizer {
 
     private final List<ValueChangeRecord<TaskVo>> allTaskChanges;
-    private TaskVo rootTask;
+    private TaskNode rootTaskNode;
 
     static public class ValueChangeRecord<T> {
 
@@ -32,7 +32,7 @@ public class TaskTreeSynchronizer {
 
     public TaskTreeSynchronizer() {
         allTaskChanges = new ArrayList<>();
-        rootTask = null;
+        rootTaskNode = null;
     }
 
     public List<ValueChangeRecord<TaskVo>> getAllTaskChanges() {
@@ -40,48 +40,38 @@ public class TaskTreeSynchronizer {
     }
 
     public TaskVo getSynchronizedRootTask() {
-        if (rootTask == null) {
+        if (rootTaskNode == null) {
             throw new IllegalStateException("No synchronization has happened, cannot return synchronized root task!");
         }
 
-        return rootTask;
+        return rootTaskNode.getVo();
     }
 
-    private void findAndSaveRootTask(TaskNode taskNode) {
+    private void findAndSaveRootNode(TaskNode taskNode) {
         TaskNode rootNode = taskNode;
         while (rootNode.hasParent()) {
             rootNode = rootNode.getParent();
         }
 
-        rootTask = rootNode.getVo();
+        rootTaskNode = rootNode;
     }
 
     public void synchronizeChanges(TaskNode oldNode, TaskNode newNode) {
         clear();
         saveTaskChange(oldNode.getVo(), newNode.getVo());   // Other parts of the code only save recursive changes
-        findAndSaveRootTask(newNode);
+        findAndSaveRootNode(newNode);
         applyInheritedValueChanges(oldNode, newNode);
         applyCompletionChanges(oldNode, newNode);
     }
 
     private void clear() {
         allTaskChanges.clear();
-        rootTask = null;
+        rootTaskNode = null;
     }
 
     private void applyInheritedValueChanges(TaskNode oldNode, TaskNode newNode) {
         if (areThereInheritedValueChanges(oldNode, newNode)) {
-            applyInheritedValueChangesUpwards(newNode);
-            applyInheritedValueChangesDownwards(newNode.getVo());
-        }
-    }
-
-    private void applyInheritedValueChangesUpwards(TaskNode newNode) {
-        TaskVo newVo = newNode.getVo();
-        TaskNode currentNode = newNode;
-        while (currentNode.hasParent()) {
-            currentNode = currentNode.getParent();
-            applyInheritedValueChangesFromTo(newVo, currentNode.getVo());
+            applyInheritedValueChangesDownwards(newNode.getVo(), rootTaskNode.getVo());
         }
     }
 
@@ -94,11 +84,15 @@ public class TaskTreeSynchronizer {
         saveTaskChange(target, source);
     }
 
-    private void applyInheritedValueChangesDownwards(TaskVo newVo) {
-        if (newVo.hasSubTasks()) {
-            newVo.getSubTasks().forEach(subTask -> {
-                applyInheritedValueChangesFromTo(newVo, subTask);
-                applyInheritedValueChangesDownwards(subTask);
+    private void applyInheritedValueChangesDownwards(TaskVo template, TaskVo rootVo) {
+        if (template != rootVo) {
+            applyInheritedValueChangesFromTo(template, rootVo);
+        }
+
+        if (rootVo.hasSubTasks()) {
+            rootVo.getSubTasks().forEach(subTask -> {
+                applyInheritedValueChangesFromTo(template, subTask);
+                applyInheritedValueChangesDownwards(template, subTask);
             });
         }
     }

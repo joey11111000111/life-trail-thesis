@@ -8,8 +8,6 @@ import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.mo
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategoryActions;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategoryPositioner;
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -73,8 +71,7 @@ public class TodoController {
     }
 
     private void createSubControllers() {
-        List<String> customCategories = new ArrayList<>(service.getCustomCategories());
-        categorySubController = new CategorySubController(categoryListView, customCategories);
+        categorySubController = new CategorySubController(categoryListView, service);
         motivationSubController = new MotivationSubController(motivationContainer, motivationText);
         taskSubController = TaskSubController.builder()
                 .service(service)

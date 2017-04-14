@@ -15,7 +15,7 @@ public class TaskVo {
     private String taskDef;
     private Priority priority;
     private LocalDate deadline;
-    private String category;
+    private CategoryVo category;
     private List<TaskVo> subTasks;
     private boolean repeating;
     private boolean completed;

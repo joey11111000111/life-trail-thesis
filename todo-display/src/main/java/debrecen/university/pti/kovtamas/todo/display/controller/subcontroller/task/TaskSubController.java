@@ -2,17 +2,17 @@ package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.t
 
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.display.TaskDisplayer;
 import debrecen.university.pti.kovtamas.display.utils.load.DisplayLoadException;
-import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.CategoryVo;
+import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.DisplayCategoryVo;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.LogicalCategoryNames.LogicalCategories;
 import debrecen.university.pti.kovtamas.todo.service.api.TaskDeletionException;
 import debrecen.university.pti.kovtamas.todo.service.api.TaskSaveFailureException;
 import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
+import debrecen.university.pti.kovtamas.todo.service.vo.CategoryVo;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Supplier;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
@@ -25,7 +25,7 @@ public class TaskSubController {
     private final TodoService service;
     private TaskDisplayer taskDisplayer;
     private Map<LogicalCategories, Supplier<List<TaskVo>>> logicalCategoryTaskQueries;
-    private CategoryVo selectedCategory;
+    private DisplayCategoryVo selectedCategory;
     private TodayProgressDisplayer progressDisplayer;
     private TaskTreeSynchronizer taskTreeSynchronizer;
 
@@ -85,7 +85,7 @@ public class TaskSubController {
     }
 
     private void initTaskDisplayer(final VBox taskBox) {
-        taskDisplayer = new TaskDisplayer(taskBox, service.getCustomCategories());
+        taskDisplayer = new TaskDisplayer(taskBox, service.getAllCategoriesInDisplayOrder());
     }
 
     private void initProgressDisplayer(VBox progressContainer, Rectangle progressIndicator) {
@@ -122,26 +122,25 @@ public class TaskSubController {
         taskTreeSynchronizer.synchronizeChanges(oldNode, newNode);
         TaskVo rootTask = taskTreeSynchronizer.getSynchronizedRootTask();
 
-        service.save(rootTask);
+        service.saveTask(rootTask);
 
         log.info("Saved changes of task with id: " + newNode.getVo().getId());
         progressDisplayer.multipleTasksChanged(taskTreeSynchronizer.getAllTaskChanges());
-//        progressDisplayer.taskChanged(oldNode.getVo(), newNode.getVo());
     }
 
-    public void newCategoryAddedAction(String newCategory) {
+    public void newCategoryAddedAction(CategoryVo newCategory) {
         taskDisplayer.newCategoryAddedAction(newCategory);
     }
 
-    public void categoryRemovedAction(String removedCategory) {
+    public void categoryRemovedAction(CategoryVo removedCategory) {
         taskDisplayer.categoryRemovedAction(removedCategory);
     }
 
-    public void selectedCategoryChangedAction(CategoryVo fromCategoryVo, CategoryVo toCategoryVo) {
+    public void selectedCategoryChangedAction(DisplayCategoryVo fromCategoryVo, DisplayCategoryVo toCategoryVo) {
         switchToCategory(toCategoryVo);
     }
 
-    public void switchToCategory(@NonNull final CategoryVo categoryVo) {
+    public void switchToCategory(@NonNull final DisplayCategoryVo categoryVo) {
         taskDisplayer.clear();
         List<TaskVo> tasksOfCategory = getCategoryTasks(categoryVo);
         try {
@@ -183,7 +182,7 @@ public class TaskSubController {
                 newMinimalTask.setDeadline(LocalDate.now().plusDays(1));
             }
         } else {
-            newMinimalTask.setCategory(selectedCategory.getCustomCategoryName());
+            newMinimalTask.setCategory(selectedCategory.getCustomCategory());
         }
 
         return newMinimalTask;
@@ -197,7 +196,7 @@ public class TaskSubController {
 
     private void updateTaskAndReloadCategory(TaskVo task) {
         try {
-            service.save(task);
+            service.saveTask(task);
             switchToCategory(selectedCategory);
         } catch (TaskSaveFailureException tsfe) {
             log.warn("Failed to save new minimal sub task!", tsfe);
@@ -210,10 +209,8 @@ public class TaskSubController {
         }
 
         TaskVo selectedTask = taskDisplayer.getSelectedTask();
-        TaskVo rootTask = taskDisplayer.getRootOfSelectedTaskTree();
-
         try {
-            service.deleteTaskFromTaskTree(selectedTask, rootTask);
+            service.deleteTask(selectedTask);
             switchToCategory(selectedCategory);
         } catch (TaskDeletionException tde) {
             log.warn("Failed to delete selected task!", tde);
@@ -222,15 +219,15 @@ public class TaskSubController {
         progressDisplayer.taskRemoved(selectedTask);
     }
 
-    private List<TaskVo> getCategoryTasks(CategoryVo categoryVo) {
+    private List<TaskVo> getCategoryTasks(DisplayCategoryVo categoryVo) {
         if (categoryVo.isLogical()) {
             return getLogicalCategoryTasks(categoryVo.getLogicalCategory());
         }
 
-        return getCustomCategoryTasks(categoryVo.getCustomCategoryName());
+        return getCustomCategoryTasks(categoryVo.getCustomCategory());
     }
 
-    private List<TaskVo> getCustomCategoryTasks(String categoryName) {
+    private List<TaskVo> getCustomCategoryTasks(CategoryVo categoryName) {
         return service.getActiveByCategory(categoryName);
     }
 

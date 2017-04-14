@@ -4,6 +4,7 @@ import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.MissingTaskExc
 import debrecen.university.pti.kovtamas.general.util.SimpleTreeNode;
 import debrecen.university.pti.kovtamas.general.util.TreeNode;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -50,8 +51,10 @@ public final class TaskEntityTreeBuilder {
     }
 
     static public List<TreeNode<TaskEntity>> buildTaskTrees(TaskRelations taskRelations) {
+        System.out.println("---- buildTaskTrees called ----");
         List<TaskEntity> tasks = taskRelations.getTasks();
         List<TreeNode<TaskEntity>> nodes = createIndependentNodesInOrderFrom(tasks);
+        System.out.println("---- nodes created ----");
         List<TaskRelationEntity> relations = taskRelations.getRelations();
 
         // Apply relations to nodes
@@ -84,6 +87,8 @@ public final class TaskEntityTreeBuilder {
             parent.addChild(child);
         }
 
+        System.out.println("---- after the for ----");
+
         List<TreeNode<TaskEntity>> taskTrees = nodes.stream()
                 .filter(node -> !node.hasParent())
                 .collect(Collectors.toList());
@@ -95,6 +100,10 @@ public final class TaskEntityTreeBuilder {
         return entities.stream()
                 .map(SimpleTreeNode<TaskEntity>::new)
                 .collect(Collectors.toList());
+    }
+
+    static public TaskRelations collapseTaskTrees(TreeNode<TaskEntity> taskTree) {
+        return collapseTaskTrees(Arrays.asList(taskTree));
     }
 
     static public TaskRelations collapseTaskTrees(List<TreeNode<TaskEntity>> taskTrees) {

@@ -2,6 +2,7 @@ package debrecen.university.pti.kovtamas.data.interfaces.todo;
 
 import debrecen.university.pti.kovtamas.data.entity.todo.CategoryEntity;
 import debrecen.university.pti.kovtamas.data.entity.todo.TaskEntity;
+import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.RowModificationException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRelationPersistenceException;
 import debrecen.university.pti.kovtamas.data.impl.todo.exceptions.TaskRemovalException;
@@ -23,13 +24,15 @@ public interface TaskRepository {
     List<TreeNode<TaskEntity>> findActiveTasksBetween(LocalDate since, LocalDate until);
 
     // Updates
-    TreeNode<TaskEntity> saveOrUpdate(TreeNode<TaskEntity> taskTree) throws TaskPersistenceException, TaskRelationPersistenceException;
+    TreeNode<TaskEntity> saveOrUpdate(TreeNode<TaskEntity> taskTree) throws TaskPersistenceException;
 
     List<TreeNode<TaskEntity>> saveOrUpdateAll(List<TreeNode<TaskEntity>> taskTrees) throws TaskPersistenceException, TaskRelationPersistenceException;
 
     void remove(TreeNode<TaskEntity> taskTree) throws TaskRemovalException;
 
     void removeAll(List<TreeNode<TaskEntity>> taskTrees) throws TaskRemovalException;
+
+    void setCategoryIdToNullWhere(int categoryId) throws RowModificationException;
 
     void clear();
 

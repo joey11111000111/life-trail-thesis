@@ -1,34 +1,35 @@
 package debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category;
 
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.category.LogicalCategoryNames.LogicalCategories;
+import debrecen.university.pti.kovtamas.todo.service.vo.CategoryVo;
 import lombok.NonNull;
 
-public class CategoryVo {
+public class DisplayCategoryVo {
 
-    public static CategoryVo customCategoryVo(@NonNull final String categoryName) {
-        return new CategoryVo(categoryName, null);
+    public static DisplayCategoryVo customCategoryVo(@NonNull final CategoryVo categoryName) {
+        return new DisplayCategoryVo(categoryName, null);
     }
 
-    public static CategoryVo logicalCategoryVo(@NonNull final LogicalCategories logicalCategory) {
-        return new CategoryVo(null, logicalCategory);
+    public static DisplayCategoryVo logicalCategoryVo(@NonNull final LogicalCategories logicalCategory) {
+        return new DisplayCategoryVo(null, logicalCategory);
     }
 
     // A category is either custom or logical, never both.
     // So one of the fields is always null
-    private final String customCategoryName;
+    private final CategoryVo customCategory;
     private final LogicalCategories logicalCategory;
 
-    private CategoryVo(String customCategoryName, LogicalCategories logicalCategory) {
-        this.customCategoryName = customCategoryName;
+    private DisplayCategoryVo(CategoryVo customCategory, LogicalCategories logicalCategory) {
+        this.customCategory = customCategory;
         this.logicalCategory = logicalCategory;
     }
 
-    public String getCustomCategoryName() {
+    public CategoryVo getCustomCategory() {
         if (!isCustom()) {
             throw new UnsupportedOperationException("This CategoryVo instance represents a"
-                    + "logical category, getName() is not supported");
+                    + "logical category, getCustomCategory() is not supported");
         }
-        return customCategoryName;
+        return customCategory;
     }
 
     public LogicalCategories getLogicalCategory() {
@@ -44,7 +45,7 @@ public class CategoryVo {
     }
 
     public boolean isCustom() {
-        return customCategoryName != null;
+        return customCategory != null;
     }
 
 }

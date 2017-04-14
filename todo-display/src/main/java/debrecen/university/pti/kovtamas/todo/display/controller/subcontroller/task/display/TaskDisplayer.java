@@ -6,6 +6,7 @@ import debrecen.university.pti.kovtamas.display.utils.load.DisplayLoader;
 import debrecen.university.pti.kovtamas.display.utils.load.DisplayVo;
 import debrecen.university.pti.kovtamas.todo.display.controller.TaskRowController;
 import debrecen.university.pti.kovtamas.todo.display.controller.subcontroller.task.TaskNode;
+import debrecen.university.pti.kovtamas.todo.service.vo.CategoryVo;
 import debrecen.university.pti.kovtamas.todo.service.vo.TaskVo;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,22 +22,22 @@ import lombok.NonNull;
 public class TaskDisplayer {
 
     private VBox taskBox;
-    private List<String> customCategories;
+    private List<CategoryVo> customCategories;
 
     private TaskSelectionSubController taskSelection;
 
     private List<TaskRepresentations> displayedTasks;
     private Set<ValueChangeAction<TaskNode>> registeredTaskStateChangeActions;
 
-    public TaskDisplayer(VBox taskBox, Collection<String> customCategories) {
+    public TaskDisplayer(VBox taskBox, List<CategoryVo> customCategories) {
         initFields(taskBox, customCategories);
         setupRowModificationAction();
     }
 
-    private void initFields(VBox taskBox, Collection<String> customCategories) {
+    private void initFields(VBox taskBox, List<CategoryVo> customCategories) {
         this.taskBox = taskBox;
-        this.customCategories = new ArrayList<>(customCategories);
-        this.customCategories.add("");  // Represents uncategorized
+        this.customCategories = customCategories;
+        this.customCategories.add(new CategoryVo("", 99999999));  // Represents uncategorized
         this.displayedTasks = new ArrayList<>();
         this.taskSelection = new TaskSelectionSubController();
         this.registeredTaskStateChangeActions = new HashSet<>();
@@ -49,7 +50,6 @@ public class TaskDisplayer {
     }
 
     private void prepareAndExecuteTaskChangeActions(TaskRowController modifiedRowController) {
-        System.out.println("prepare and execute method called");
         TaskRepresentations selectedTaskRepresentations = getRepresentationsByController(modifiedRowController);
         TaskNode selectedOldTaskVo = selectedTaskRepresentations.getUnupdatedNode();
         TaskNode selectedNewTaskVo = selectedTaskRepresentations.getUpdatedNode();
@@ -75,14 +75,13 @@ public class TaskDisplayer {
         registeredTaskStateChangeActions.add(action);
     }
 
-    public void newCategoryAddedAction(String newCategory) {
+    public void newCategoryAddedAction(CategoryVo newCategory) {
         customCategories.add(newCategory);
         Collections.sort(customCategories);
         updateCategoryComboBoxes();
     }
 
-    public void categoryRemovedAction(String removedCategory) {
-        System.out.println("Task Displayer: category removed - " + removedCategory);
+    public void categoryRemovedAction(CategoryVo removedCategory) {
         customCategories.remove(removedCategory);
         updateCategoryComboBoxes();
     }
