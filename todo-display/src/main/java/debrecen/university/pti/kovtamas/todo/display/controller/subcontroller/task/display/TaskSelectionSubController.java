@@ -95,6 +95,8 @@ public class TaskSelectionSubController {
         if (hasSelectedRow()) {
             if (isUserEditing()) {
                 selectedRowWasModifiedAction();
+                // At this point, every row is reloaded from scratch, no cleanup is needed
+                return;
             }
 
             removeAllBackgroundFrom(selectedRow);

@@ -68,7 +68,23 @@ public class JdbcTaskRepository implements TaskRepository {
     @Override
     public List<TreeNode<TaskEntity>> findCompleted() {
         List<TaskEntity> completedTasks = taskQueries.findCompletedTasks();
-        return buildResultTreesFromEntities(completedTasks);
+        List<TaskEntity> realCompletedTasks = realCompletedTasks(completedTasks);
+        return buildResultTreesFromEntities(realCompletedTasks);
+    }
+
+    private List<TaskEntity> realCompletedTasks(List<TaskEntity> completedTasks) {
+        List<TaskRelationEntity> relations = findRelationsForTasks(completedTasks);
+        List<Integer> notRealCompletedIds = new ArrayList<>();
+
+        for (TaskRelationEntity relation : relations) {
+            if (!containsTaskWithId(completedTasks, relation.getParentId())) {
+                notRealCompletedIds.add(relation.getChildId());
+            }
+        }
+
+        return completedTasks.stream()
+                .filter(task -> !notRealCompletedIds.contains(task.getId()))
+                .collect(Collectors.toList());
     }
 
     private List<TreeNode<TaskEntity>> buildResultTreesFromEntities(List<TaskEntity> entities) {

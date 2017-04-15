@@ -112,25 +112,26 @@ public class TaskTreeSynchronizer {
         TaskNode currentNode = newNode;
         while (currentNode.hasParent()) {
             currentNode = currentNode.getParent();
-            changeCompletionState(currentNode.getVo(), false);
+            applyCompletionState(currentNode.getVo(), false);
         }
     }
 
     private void applyCompletionChangesDownwards(TaskVo newVo) {
         if (newVo.hasSubTasks()) {
             newVo.getSubTasks().forEach(subTask -> {
-                changeCompletionState(subTask, true);
+                applyCompletionState(subTask, true);
                 applyCompletionChangesDownwards(subTask);
             });
         }
     }
 
-    private void changeCompletionState(TaskVo vo, boolean completionState) {
-        TaskVo fromVo = TaskVo.deepCopy(vo);
-        vo.setCompleted(completionState);
-        TaskVo toVo = TaskVo.deepCopy(vo);
-
-        saveTaskChange(fromVo, toVo);
+    private void applyCompletionState(TaskVo vo, boolean completionState) {
+        if (vo.isCompleted() != completionState) {
+            TaskVo fromVo = TaskVo.deepCopy(vo);
+            vo.setCompleted(completionState);
+            TaskVo toVo = TaskVo.deepCopy(vo);
+            saveTaskChange(fromVo, toVo);
+        }
     }
 
     private boolean areThereInheritedValueChanges(TaskNode oldNode, TaskNode newNode) {
@@ -138,8 +139,7 @@ public class TaskTreeSynchronizer {
         TaskVo newVo = newNode.getVo();
         return !Objects.equals(oldVo.getCategory(), newVo.getCategory())
                 || !Objects.equals(oldVo.getDeadline(), newVo.getDeadline())
-                || !Objects.equals(oldVo.getPriority(), newVo.getPriority())
-                || !Objects.equals(oldVo.isRepeating(), newVo.isRepeating());
+                || !Objects.equals(oldVo.getPriority(), newVo.getPriority());
     }
 
     private void saveTaskChange(TaskVo fromVo, TaskVo toVo) {

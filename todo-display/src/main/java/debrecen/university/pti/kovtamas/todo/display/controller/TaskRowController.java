@@ -67,6 +67,9 @@ public class TaskRowController {
         });
         categoryBox.getSelectionModel().selectedItemProperty().addListener((observable, oldCategory, newCategory) -> {
             CategoryVo newCategoryVo = getVoByName(newCategory);
+            if ("".equals(newCategoryVo.getName())) {
+                newCategoryVo = null;
+            }
             currentTaskState.setSelectedCategory(newCategoryVo);
         });
         datePicker.valueProperty().addListener((observable, oldDate, newDate) -> {
@@ -81,17 +84,14 @@ public class TaskRowController {
 
     private void setupPriorityCircleClickHandler() {
         priorityCircleClickHandler = (event) -> {
-            Priority[] allPriorities = Priority.values();
-            int allPriorityCount = allPriorities.length;
-
             int currentPriority = currentTaskState.getPriorityColor().toPriority().intValue();
-            currentPriority++;
-            currentPriority = currentPriority % allPriorityCount;
-            Priority newPriority = allPriorities[currentPriority];
+            int nextPriority = (currentPriority + 1) % (Priority.HIGH.intValue() + 1);
+
+            Priority newPriority = Priority.ofInteger(nextPriority);
             PriorityColors newColor = PriorityColors.ofPriority(newPriority);
 
-            setPriorityColor(newColor.getColorStyle());
             currentTaskState.setPriorityColor(newColor);
+            setPriorityColor(newColor.getColorStyle());
         };
     }
 
