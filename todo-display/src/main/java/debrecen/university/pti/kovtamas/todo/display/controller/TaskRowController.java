@@ -63,6 +63,8 @@ public class TaskRowController {
 
     public void setup() {
         taskDefText.textProperty().addListener((observable, oldText, newText) -> {
+            double minWidth = taskDefText.getText().length() * 12;
+            taskDefText.setMinWidth(minWidth);
             currentTaskState.setTaskDef(newText);
         });
         categoryBox.getSelectionModel().selectedItemProperty().addListener((observable, oldCategory, newCategory) -> {

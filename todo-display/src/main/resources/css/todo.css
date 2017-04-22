@@ -36,6 +36,8 @@
 .image-button {
     -fx-background-color: rgb(120, 120, 50);
     -fx-border-color: rgba(0,0,0,.5);
+    -fx-text-fill: rgb(168, 195, 207);
+    -fx-text-weight: bold;
 }
 
 .image-button:hover {

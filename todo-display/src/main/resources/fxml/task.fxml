@@ -14,7 +14,7 @@
         <Region fx:id="indentRegion" minWidth="0.0" />
         <CheckBox fx:id="doneCheckBox" mnemonicParsing="false" HBox.hgrow="NEVER" />
         <Circle fx:id="priorityIndicator" fill="DODGERBLUE" radius="10.0" stroke="BLACK" strokeType="INSIDE" styleClass="priority-indicator" HBox.hgrow="NEVER" />
-        <TextField fx:id="taskDefText" maxWidth="-Infinity" minWidth="-Infinity" styleClass="transparent-bkg" text="This is something I have to do today" HBox.hgrow="ALWAYS" />
+        <TextField fx:id="taskDefText" minWidth="-Infinity" styleClass="transparent-bkg" text="This is something I have to do today" HBox.hgrow="ALWAYS" />
         <DatePicker fx:id="datePicker" editable="false" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="25.0" styleClass="transparent-bkg" HBox.hgrow="NEVER" />
         <ComboBox fx:id="categoryBox" maxWidth="130.0" promptText="Personal" styleClass="transparent-bkg" HBox.hgrow="NEVER" />
     </children>

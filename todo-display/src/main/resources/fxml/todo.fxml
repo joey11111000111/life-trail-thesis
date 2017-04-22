@@ -24,7 +24,7 @@
          <top>
             <HBox alignment="CENTER_LEFT" prefHeight="34.0" prefWidth="490.0" spacing="2.0" styleClass="menubox" BorderPane.alignment="TOP_CENTER">
                <children>
-                  <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#goBack" styleClass="image-button" text="BA" textFill="#e1dca5">
+                  <Button fx:id="backToMenuButton" alignment="CENTER" contentDisplay="CENTER" maxHeight="26.0" maxWidth="32.0" minHeight="26.0" minWidth="32.0" mnemonicParsing="false" onAction="#goBack" styleClass="image-button" textFill="#e1dca5">
                      <tooltip>
                         <Tooltip styleClass="ttip" text="%button_hover_back" />
                      </tooltip></Button>
@@ -33,15 +33,15 @@
                         <Insets />
                      </HBox.margin>
                   </Separator>
-                  <Button mnemonicParsing="false" onAction="#addNewTask" styleClass="image-button" text="A" textFill="#e1dca5">
+                  <Button fx:id="taskAddButton" maxHeight="26.0" maxWidth="26.0" minHeight="26.0" minWidth="26.0" mnemonicParsing="false" onAction="#addNewTask" styleClass="image-button" textFill="#e1dca5">
                      <tooltip>
                         <Tooltip text="%button_hover_new" />
                      </tooltip></Button>
-                  <Button mnemonicParsing="false" onAction="#removeSelectedTask" styleClass="image-button" text="R" textFill="#e1dca5">
+                  <Button fx:id="taskRemoveButton" maxHeight="26.0" maxWidth="26.0" minHeight="26.0" minWidth="26.0" mnemonicParsing="false" onAction="#removeSelectedTask" styleClass="image-button" textFill="#e1dca5">
                      <tooltip>
                         <Tooltip text="%button_hover_remove" />
                      </tooltip></Button>
-                  <Button mnemonicParsing="false" onAction="#editSelectedTask" styleClass="image-button" text="E" textFill="#e1dca5">
+                  <Button fx:id="taskEditButton" maxHeight="26.0" maxWidth="26.0" minHeight="26.0" minWidth="26.0" mnemonicParsing="false" onAction="#editSelectedTask" styleClass="image-button" textFill="#e1dca5">
                      <tooltip>
                         <Tooltip text="%button_hover_edit" />
                      </tooltip></Button>
@@ -50,9 +50,9 @@
                         <Insets />
                      </HBox.margin>
                   </Region>
-                  <Button layoutX="429.0" layoutY="14.0" mnemonicParsing="false" onAction="#switchToSpanishLanguage" styleClass="image-button" text="ES" textFill="#e1dca5" />
-                  <Button mnemonicParsing="false" onAction="#switchToHungarianLanguage" styleClass="image-button" text="HU" textFill="#e1dca5" />
-                  <Button mnemonicParsing="false" onAction="#switchToEnglishLanguage" styleClass="image-button" text="EN" textFill="#e1dca5" />
+                  <Button fx:id="esLangButton" layoutX="429.0" layoutY="14.0" mnemonicParsing="false" onAction="#switchToSpanishLanguage" styleClass="image-button" text="ES" textFill="#a8c3cf" />
+                  <Button fx:id="huLangButton" mnemonicParsing="false" onAction="#switchToHungarianLanguage" styleClass="image-button" text="HU" textFill="#a8c3cf" />
+                  <Button fx:id="enLangButton" mnemonicParsing="false" onAction="#switchToEnglishLanguage" styleClass="image-button" text="EN" textFill="#a8c3cf" />
                </children>
             </HBox>
          </top>
@@ -91,7 +91,7 @@
                <center>
                   <ScrollPane prefHeight="200.0" prefWidth="200.0" styleClass="scrollable-container" BorderPane.alignment="CENTER">
                      <content>
-                        <VBox fx:id="taskBox" styleClass="task-container" />
+                        <VBox fx:id="taskBox" maxWidth="1.7976931348623157E308" styleClass="task-container" />
                      </content>
                      <BorderPane.margin>
                         <Insets bottom="4.0" top="4.0" />
@@ -120,13 +120,13 @@
          <bottom>
             <BorderPane prefHeight="34.0" prefWidth="201.0" styleClass="cat-menu-border-pane" BorderPane.alignment="CENTER">
                <left>
-                  <Button mnemonicParsing="false" onAction="#addNewCategory" styleClass="image-button" text="+" textFill="#e1dca5" BorderPane.alignment="CENTER">
+                  <Button fx:id="categoryAddButton" maxHeight="26.0" maxWidth="26.0" minHeight="26.0" minWidth="26.0" mnemonicParsing="false" onAction="#addNewCategory" styleClass="image-button" textFill="#e1dca5" BorderPane.alignment="CENTER">
                      <tooltip>
                         <Tooltip text="%button_hover_new" />
                      </tooltip></Button>
                </left>
                <right>
-                  <Button mnemonicParsing="false" onAction="#removeCategory" styleClass="image-button" text="--" textFill="#e1dca5" BorderPane.alignment="CENTER">
+                  <Button fx:id="categoryRemoveButton" maxHeight="26.0" maxWidth="26.0" minHeight="26.0" minWidth="26.0" mnemonicParsing="false" onAction="#removeCategory" styleClass="image-button" textFill="#e1dca5" BorderPane.alignment="CENTER">
                      <tooltip>
                         <Tooltip text="%button_hover_remove" />
                      </tooltip></Button>
@@ -134,11 +134,11 @@
                <center>
                   <HBox alignment="CENTER" prefHeight="100.0" prefWidth="149.0" spacing="4.0" BorderPane.alignment="CENTER">
                      <children>
-                        <Button mnemonicParsing="false" onAction="#moveCategoryUp" styleClass="image-button" text="^" textFill="#e1dca5">
+                        <Button fx:id="categoryUpButton" maxHeight="26.0" maxWidth="26.0" minHeight="26.0" minWidth="26.0" mnemonicParsing="false" onAction="#moveCategoryUp" styleClass="image-button" textFill="#e1dca5">
                            <tooltip>
                               <Tooltip text="%button_hover_move_up" />
                            </tooltip></Button>
-                        <Button mnemonicParsing="false" onAction="#moveCategoryDown" styleClass="image-button" text="v" textFill="#e1dca5">
+                        <Button fx:id="categoryDownButton" maxHeight="26.0" maxWidth="26.0" minHeight="26.0" minWidth="26.0" mnemonicParsing="false" onAction="#moveCategoryDown" styleClass="image-button" textFill="#e1dca5">
                            <tooltip>
                               <Tooltip text="%button_hover_move_down" />
                            </tooltip></Button>

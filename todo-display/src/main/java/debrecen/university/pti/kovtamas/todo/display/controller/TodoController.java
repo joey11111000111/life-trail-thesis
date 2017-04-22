@@ -11,12 +11,14 @@ import debrecen.university.pti.kovtamas.todo.service.api.TodoService;
 import java.util.function.Consumer;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
-import lombok.Getter;
 
 public class TodoController {
 
@@ -32,31 +34,69 @@ public class TodoController {
     private Consumer<Localizer.SupportedLanguages> switchLanguageMethod;
 
     @FXML
-    @Getter
+    private Button backToMenuButton;
+
+    @FXML
+    private Button taskAddButton;
+
+    @FXML
+    private Button taskRemoveButton;
+
+    @FXML
+    private Button taskEditButton;
+
+    @FXML
+    private Button categoryAddButton;
+
+    @FXML
+    private Button categoryRemoveButton;
+
+    @FXML
+    private Button categoryUpButton;
+
+    @FXML
+    private Button categoryDownButton;
+
+    @FXML
     private VBox progressContainer;
 
     @FXML
-    @Getter
     private Rectangle progressRect;
 
     @FXML
     private HBox motivationContainer;
 
     @FXML
-    @Getter
     private Text motivationText;
 
     @FXML
-    @Getter
     private VBox taskBox;
 
     @FXML
-    @Getter
     private ListView<String> categoryListView;
 
     public void startUp(TodoControllerDependencies dependencies) {
         initFields(dependencies);
         makeBindingsBetweenSubControllers();
+        setImageButtonBackgrounds();
+    }
+
+    private void setImageButtonBackgrounds() {
+        setImageBackgroundForButton("/img/button/back.png", backToMenuButton);
+
+        setImageBackgroundForButton("/img/button/add.png", taskAddButton);
+        setImageBackgroundForButton("/img/button/remove.png", taskRemoveButton);
+        setImageBackgroundForButton("/img/button/edit.png", taskEditButton);
+
+        setImageBackgroundForButton("/img/button/add.png", categoryAddButton);
+        setImageBackgroundForButton("/img/button/up.png", categoryUpButton);
+        setImageBackgroundForButton("/img/button/down.png", categoryDownButton);
+        setImageBackgroundForButton("/img/button/remove.png", categoryRemoveButton);
+    }
+
+    private void setImageBackgroundForButton(String imgUrl, Button button) {
+        Image buttonImg = new Image(getClass().getResource(imgUrl).toExternalForm());
+        button.setGraphic(new ImageView(buttonImg));
     }
 
     private void initFields(TodoControllerDependencies dependencies) {

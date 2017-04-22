@@ -19,7 +19,8 @@ public class QuoteChanger {
     public QuoteChanger(Text motivationText, QuoteSupplier quoteSupplier) {
         this.motivationText = motivationText;
         this.quoteSupplier = quoteSupplier;
-        quoteOnScreenMillis = java.time.Duration.ofMinutes(1).toMillis();
+//        quoteOnScreenMillis = java.time.Duration.ofMinutes(1).toMillis();
+        quoteOnScreenMillis = java.time.Duration.ofSeconds(25).toMillis();
         quoteChangerThread = null;
         isQuoteChangerStopped = false;
     }
